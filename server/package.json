@@ -9,7 +9,8 @@
     "start": "node ./dist/index.js",
     "preview": "npm run build && npm start",
     "dev": "tsx watch ./src/index.ts",
-    "debug": "tsx watch --inspect ./src/index.ts"
+    "debug": "tsx watch --inspect ./src/index.ts",
+    "db:init:mysql": "tsx ./src/database/mysql/scripts/initDB.js"
   },
   "keywords": [],
   "author": "",
@@ -26,6 +27,8 @@
     "dotenv": "^16.5.0",
     "express": "^5.1.0",
     "mongodb": "^6.15.0",
-    "mongoose": "^8.13.2"
+    "mongoose": "^8.13.2",
+    "mysql2": "^3.14.0",
+    "sequelize": "^6.37.7"
   }
 }

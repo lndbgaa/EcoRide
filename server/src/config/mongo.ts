@@ -1,24 +1,16 @@
-import dotenv from "dotenv";
+import config from "@/config/app.js";
 import mongoose from "mongoose";
 
-dotenv.config();
-
 const connectMongo = async (): Promise<void> => {
-  const uri = process.env.MONGO_DB_URI;
-
-  if (!uri) {
-    console.error(
-      "❌ URI MongoDB manquante dans les variables d'environnement."
-    );
-    process.exit(1);
-  }
+  const uri = config.mongo.uri;
 
   try {
     await mongoose.connect(uri);
-    console.log(`✅ Connexion à MongoDB réussie`);
-  } catch (error) {
-    console.error("❌ Erreur de connexion à la base MongoDB:", error);
-    process.exit(1);
+    console.log("✅ MongoDB: Connexion réussie");
+  } catch (err) {
+    throw new Error(
+      `❌ Échec de connexion à MongoDB: ${(err as Error).message}`
+    );
   }
 };
 
