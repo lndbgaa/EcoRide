@@ -42,7 +42,7 @@ class Base extends Model {
     this: ModelStatic<T>,
     id: string,
     options: FindOptions = {}
-  ): Promise<T> {
+  ): Promise<T | null> {
     try {
       const instance = await this.findOne({ where: { id }, ...options });
 
@@ -112,10 +112,7 @@ class Base extends Model {
   /**
    * Supprime définitivement un élément de la BDD à partir de son identifiant.
    */
-  static async deleteHard<T extends Model>(
-    this: ModelStatic<T>,
-    id: string
-  ): Promise<number> {
+  static async deleteHard<T extends Model>(this: ModelStatic<T>, id: string): Promise<number> {
     try {
       const deletedRows = await this.destroy({
         where: { id } as unknown as WhereOptions<T["_attributes"]>,
@@ -127,9 +124,7 @@ class Base extends Model {
 
       return deletedRows;
     } catch (err) {
-      const message = `[${
-        this.name
-      }] deleteHard → Suppression définitive impossible : ${
+      const message = `[${this.name}] deleteHard → Suppression définitive impossible : ${
         err instanceof Error ? err.message : String(err)
       }`;
       throw new Error(message);

@@ -26,15 +26,15 @@ class Account extends Base {
   declare address: string | null;
   declare birth_date: Date | null;
   declare profile_picture: string | null;
-  declare createdAt: Date;
-  declare updatedAt: Date;
-  declare last_login: Date;
-  declare deleted_at: Date | null;
+  declare status?: "active" | "suspended" | "inactive" | "deleted";
+  declare last_login?: Date;
+  declare updated_at?: Date;
+  declare created_at?: Date;
   declare suspended_at: Date | null;
-  declare status: "active" | "suspended" | "inactive" | "deleted";
-  declare role?: Role; // Association Sequelize : rôle associé au compte (chargé via include)
+  declare deleted_at: Date | null;
 
-  // === Méthodes statiques ===
+  // Associations chargées dynamiquement via Sequelize (si `include` est utilisé)
+  declare role?: Role;
 
   /**
    * Génère les attributs Sequelize d'un compte.
@@ -47,7 +47,6 @@ class Account extends Base {
       id: {
         type: DataTypes.UUID,
         primaryKey: true,
-        allowNull: false,
         defaultValue: DataTypes.UUIDV4,
       },
       role_id: {
@@ -56,12 +55,14 @@ class Account extends Base {
         validate: {
           isIn: [[roleId]],
         },
+        onUpdate: "CASCADE",
+        onDelete: "RESTRICT",
       },
       email: {
         type: DataTypes.STRING(100),
         allowNull: false,
         unique: true,
-        validate: { isEmail: true },
+        validate: { isEmail: true, notEmpty: true },
       },
       password: {
         type: DataTypes.STRING(255),
@@ -136,10 +137,7 @@ class Account extends Base {
   /**
    * Récupère un compte à partir d'un email.
    */
-  static async findByEmail<T extends Model>(
-    this: ModelStatic<T>,
-    email: string
-  ): Promise<T> {
+  static async findByEmail<T extends Model>(this: ModelStatic<T>, email: string): Promise<T> {
     try {
       const instance = await this.findOne({
         where: { email } as unknown as WhereOptions<T["_attributes"]>,
@@ -162,10 +160,7 @@ class Account extends Base {
   /**
    * Soft-delete d'un compte à partir de son identifiant.
    */
-  static async deleteSoft<T extends Model>(
-    this: ModelStatic<T>,
-    id: string
-  ): Promise<number> {
+  static async deleteSoft<T extends Model>(this: ModelStatic<T>, id: string): Promise<number> {
     try {
       const [affectedRows] = await this.update(
         { deleted_at: new Date(), status: "deleted" },
@@ -181,9 +176,7 @@ class Account extends Base {
 
       return affectedRows;
     } catch (err) {
-      const message = `[${
-        this.name
-      }] deleteSoft → Suppression partielle du compte impossible : ${
+      const message = `[${this.name}] deleteSoft → Suppression partielle du compte impossible : ${
         err instanceof Error ? err.message : String(err)
       }`;
       throw new Error(message);
@@ -193,10 +186,7 @@ class Account extends Base {
   /**
    * Suspend un compte en définissant la date de suspension et le statut.
    */
-  static async suspend<T extends Model>(
-    this: ModelStatic<T>,
-    id: string
-  ): Promise<number> {
+  static async suspend<T extends Model>(this: ModelStatic<T>, id: string): Promise<number> {
     try {
       const [affectedRows] = await this.update(
         { suspended_at: new Date(), status: "suspended" },
@@ -212,9 +202,7 @@ class Account extends Base {
 
       return affectedRows;
     } catch (err) {
-      const message = `[${
-        this.name
-      }] suspend → Suspension du compte impossible : ${
+      const message = `[${this.name}] suspend → Suspension du compte impossible : ${
         err instanceof Error ? err.message : String(err)
       }`;
       throw new Error(message);
@@ -224,10 +212,7 @@ class Account extends Base {
   /**
    * Réactive un compte en réinitialisant les champs de suspension et de suppression.
    */
-  static async reactivate<T extends Model>(
-    this: ModelStatic<T>,
-    id: string
-  ): Promise<number> {
+  static async reactivate<T extends Model>(this: ModelStatic<T>, id: string): Promise<number> {
     try {
       const [affectedRows] = await this.update(
         { suspended_at: null, deleted_at: null, status: "active" },
@@ -243,29 +228,20 @@ class Account extends Base {
 
       return affectedRows;
     } catch (err) {
-      const message = `[${
-        this.name
-      }] reactivate → Réactivation du compte impossible : ${
+      const message = `[${this.name}] reactivate → Réactivation du compte impossible : ${
         err instanceof Error ? err.message : String(err)
       }`;
       throw new Error(message);
     }
   }
 
-  // === Méthodes d'instance ===
-
   async checkPassword(password: string): Promise<boolean> {
     return await bcrypt.compare(password, this.password);
   }
 
-  async updateLastLogin() {
+  async updateLastLogin(): Promise<void> {
     this.last_login = new Date();
     await this.save();
-  }
-
-  toSafeObject() {
-    const { password, ...safeData } = this.get();
-    return safeData;
   }
 
   isActive(): boolean {
