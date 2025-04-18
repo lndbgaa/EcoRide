@@ -18,7 +18,7 @@ CREATE TABLE accounts (
   password VARCHAR(255) NOT NULL,
   first_name VARCHAR(50) NOT NULL,
   last_name VARCHAR(50) NOT NULL,
-  pseudo VARCHAR(50) NOT NULL,
+  pseudo VARCHAR(50) UNIQUE NOT NULL,
   phone VARCHAR(50),
   address VARCHAR(255),
   birth_date DATE,
@@ -34,7 +34,6 @@ CREATE TABLE accounts (
   status ENUM('active', 'suspended', 'inactive', 'deleted') DEFAULT 'active',
   FOREIGN KEY (role_id) REFERENCES roles(id)
 );
-
 
 
 -- TABLE VEHICLE_BRANDS
