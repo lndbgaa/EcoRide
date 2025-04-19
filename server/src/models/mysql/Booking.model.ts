@@ -1,4 +1,5 @@
 import { sequelize } from "@/config/mysql.js";
+import type { FindOptions } from "sequelize";
 import { DataTypes, UUIDV4 } from "sequelize";
 import Base from "./Base.model.js";
 import type Ride from "./Ride.model.js";
@@ -11,53 +12,45 @@ class Booking extends Base {
   declare ride_id: string;
   declare passenger_id: string;
   declare status: BookingStatus;
-  declare created_at?: Date;
-  declare updated_at?: Date;
+  declare created_at: Date;
+  declare updated_at: Date;
 
   // Associations chargées dynamiquement via Sequelize (si `include` est utilisé)
   declare ride?: Ride;
   declare passenger?: User;
 
-  // Récupère toutes les réservations faites sur un covoiturage donné.
-  static async findByRide(rideId: string): Promise<Booking[]> {
+  /**
+   * Récupère toutes les réservations faites sur un covoiturage à partir d'un id.
+   *
+   * Options possibles : filtre par statut, tri, pagination, etc.
+   *
+   */
+  static async findAllByRide(
+    rideId: string,
+    options: FindOptions<Booking> = {}
+  ): Promise<Booking[]> {
     if (!rideId || typeof rideId !== "string") {
-      throw new Error(`[${this.name}] findByRide → ID de covoiturage invalide.`);
+      throw new Error("ID de covoiturage invalide.");
     }
 
-    try {
-      const bookings = await this.findAll({
-        where: { ride_id: rideId },
-        include: [{ association: "ride" }, { association: "passenger" }],
-      });
-
-      return bookings;
-    } catch (err) {
-      const message = `[${this.name}] findByRide → ${
-        err instanceof Error ? err.message : String(err)
-      }`;
-      throw new Error(message);
-    }
+    return await this.findAllByField("ride_id", rideId, options);
   }
 
-  // Récupère toutes les réservations d'un passager donné.
-  static async findByPassenger(passengerId: string): Promise<Booking[]> {
+  /**
+   * Récupère toutes les réservations d'un passager à partir d'un id.
+   *
+   * Options possibles : filtre par statut, tri, pagination, etc.
+   *
+   */
+  static async findAllByPassenger(
+    passengerId: string,
+    options: FindOptions<Booking> = {}
+  ): Promise<Booking[]> {
     if (!passengerId || typeof passengerId !== "string") {
-      throw new Error(`[${this.name}] findByPassenger → ID de covoiturage invalide.`);
+      throw new Error("ID de passager invalide.");
     }
 
-    try {
-      const bookings = await this.findAll({
-        where: { passenger_id: passengerId },
-        include: [{ association: "ride" }, { association: "passenger" }],
-      });
-
-      return bookings;
-    } catch (err) {
-      const message = `[${this.name}] findByPassenger → ${
-        err instanceof Error ? err.message : String(err)
-      }`;
-      throw new Error(message);
-    }
+    return await this.findAllByField("passenger_id", passengerId, options);
   }
 
   // Liste des transitions autorisées entre les statuts d'une réservation.
@@ -90,6 +83,31 @@ class Booking extends Base {
   async markAsCancelled() {
     await this.transitionTo("cancelled");
     await this.save();
+  }
+
+  hasStatus(status: BookingStatus) {
+    return this.status === status;
+  }
+
+  toPublicDTO() {
+    return {
+      id: this.id,
+      passenger: this.passenger
+        ? {
+            id: this.passenger.id,
+            first_name: this.passenger.first_name,
+            pseudo: this.passenger.pseudo,
+            profile_picture: this.passenger.profile_picture,
+          }
+        : undefined,
+    };
+  }
+
+  toPrivateDTO() {
+    return {
+      id: this.id,
+      ride: this.ride?.toPublicDTO() ?? undefined,
+    };
   }
 }
 

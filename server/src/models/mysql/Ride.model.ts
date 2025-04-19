@@ -4,13 +4,10 @@ import { DataTypes } from "sequelize";
 import Base from "./Base.model.js";
 import type User from "./User.model.js";
 import type Vehicle from "./Vehicle.model.js";
-import type { PublicVehicleDTO } from "./Vehicle.model.js";
+import type { PrivateVehicleDTO, PublicVehicleDTO } from "./Vehicle.model.js";
 
 export type RideStatus = "open" | "full" | "in_progress" | "completed" | "no_show" | "cancelled";
 
-/**
- * Représente la version publique (DTO) d'un covoiturage, retournée par l'API.
- */
 interface PublicRideDTO {
   id: string;
   departure_date: string;
@@ -25,6 +22,11 @@ interface PublicRideDTO {
   is_eco_friendly: boolean;
   price: number;
   available_seats: number;
+}
+
+interface PrivateRideDTO extends Omit<PublicRideDTO, "driver" | "vehicle"> {
+  offered_seats: number;
+  vehicle?: PrivateVehicleDTO;
 }
 
 /**
@@ -70,6 +72,8 @@ class Ride extends Base {
 
   // Applique une transition vers un nouveau statut, si elle est autorisée.
   async transitionTo(status: RideStatus) {
+    if (this.status === status) return;
+
     if (!this.canTransitionTo(status))
       throw new Error(`Transition de "${this.status}" vers "${status}" non autorisée.`);
 
@@ -79,34 +83,50 @@ class Ride extends Base {
 
   // Permet d'ajouter des places disponibles à un covoiturage (ex: annulation réservation)
   async addSeats(amount: number): Promise<void> {
-    if (amount <= 0) {
-      throw new Error("Le nombre de places à ajouter doit être supérieur à 0.");
-    }
+    try {
+      if (this.status !== "open") {
+        throw new Error(`Le covoiturage est actuellement en statut "${this.status}".`);
+      }
 
-    if (this.available_seats + amount > this.offered_seats) {
-      throw new Error(
-        `Impossible d'ajouter ${amount} place(s) : cela dépasserait la capacité maximale de ${this.offered_seats} places proposées.`
-      );
-    }
+      if (amount <= 0) {
+        throw new Error("Le nombre de places à ajouter doit être supérieur à 0.");
+      }
 
-    this.available_seats += amount;
-    if (this.available_seats === 0) await this.transitionTo("full");
-    await this.save();
+      if (this.available_seats + amount > this.offered_seats) {
+        throw new Error(
+          `Impossible d'ajouter ${amount} place(s) : la capacité maximale est de ${this.offered_seats}.`
+        );
+      }
+
+      this.available_seats += amount;
+      if (this.available_seats > 0 && this.status !== "open") await this.transitionTo("open");
+      await this.save();
+    } catch (err) {
+      const message = `[Ride] addSeats → ${err instanceof Error ? err.message : String(err)}`;
+      throw new Error(message);
+    }
   }
 
   // Permet de retirer des places disponibles à un covoiturage (ex: création réservation)
   async removeSeats(amount: number): Promise<void> {
-    if (amount <= 0) {
-      throw new Error("Le nombre de places à retirer doit être supérieur à 0.");
-    }
-    if (amount > this.available_seats)
-      throw new Error(
-        `Impossible de retirer ${amount} places : seulement ${this.available_seats} disponibles.`
-      );
+    try {
+      if (!["open", "full"].includes(this.status)) {
+        throw new Error(`Le covoiturage est actuellement en statut "${this.status}".`);
+      }
 
-    this.available_seats -= amount;
-    if (this.available_seats > 0) await this.transitionTo("open");
-    await this.save();
+      if (amount <= 0) {
+        throw new Error("Le nombre de places à retirer doit être supérieur à 0.");
+      }
+      if (amount > this.available_seats)
+        throw new Error(`Seulement ${this.available_seats} disponibles pour ce covoiturage.`);
+
+      this.available_seats -= amount;
+      if (this.available_seats === 0 && this.status !== "full") await this.transitionTo("full");
+      await this.save();
+    } catch (err) {
+      const message = `[Ride] removeSeats → ${err instanceof Error ? err.message : String(err)}`;
+      throw new Error(message);
+    }
   }
 
   async markAsInProgress(): Promise<void> {
@@ -129,22 +149,36 @@ class Ride extends Base {
     await this.save();
   }
 
-  toPublicJSON(): PublicRideDTO {
-    const { departure_datetime, arrival_datetime } = this;
+  hasStatus(status: RideStatus): boolean {
+    return this.status === status;
+  }
+
+  // Retourne une version "publique" du trajet, prête à être exposée via l'API.
+  toPublicDTO(): PublicRideDTO {
     return {
       id: this.id,
-      departure_date: toDateOnly(departure_datetime),
+      departure_date: toDateOnly(this.departure_datetime),
       departure_location: this.departure_location,
-      departure_time: toTimeOnly(departure_datetime),
-      arrival_date: toDateOnly(arrival_datetime),
+      departure_time: toTimeOnly(this.departure_datetime),
+      arrival_date: toDateOnly(this.arrival_datetime),
       arrival_location: this.arrival_location,
-      arrival_time: toTimeOnly(arrival_datetime),
-      duration: getDuration(arrival_datetime, departure_datetime),
+      arrival_time: toTimeOnly(this.arrival_datetime),
+      duration: getDuration(this.arrival_datetime, this.departure_datetime),
       driver: this.driver ?? undefined,
-      vehicle: this.vehicle?.toJSON() ?? undefined,
+      vehicle: this.vehicle?.toPublicDTO() ?? undefined,
       price: this.price,
       available_seats: this.available_seats,
       is_eco_friendly: this.is_eco_friendly,
+    };
+  }
+
+  // Retourne une version "privée" du trajet, prête à être exposée via l'API.
+  toPrivateDTO(): PrivateRideDTO {
+    const { driver, ...publicDTOWithoutDriver } = this.toPublicDTO();
+    return {
+      ...publicDTOWithoutDriver,
+      vehicle: this.vehicle?.toPrivateDTO() ?? undefined,
+      offered_seats: this.offered_seats,
     };
   }
 }
@@ -156,28 +190,20 @@ Ride.init(
       primaryKey: true,
       defaultValue: DataTypes.UUIDV4,
     },
-    departure_date: {
-      type: DataTypes.DATEONLY,
+    departure_datetime: {
+      type: DataTypes.DATE,
       allowNull: false,
     },
     departure_location: {
       type: DataTypes.STRING(255),
       allowNull: false,
     },
-    departure_time: {
-      type: DataTypes.TIME,
-      allowNull: false,
-    },
-    arrival_date: {
-      type: DataTypes.DATEONLY,
+    arrival_datetime: {
+      type: DataTypes.DATE,
       allowNull: false,
     },
     arrival_location: {
       type: DataTypes.STRING(255),
-      allowNull: false,
-    },
-    arrival_time: {
-      type: DataTypes.TIME,
       allowNull: false,
     },
     driver_id: {

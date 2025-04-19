@@ -111,7 +111,7 @@ CREATE TABLE bookings (
   passenger_id CHAR(36) NULL, 
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  status ENUM('pending', 'confirmed','completed','cancelled') DEFAULT 'pending',
+  status ENUM('confirmed','completed','cancelled') DEFAULT 'confirmed',
   FOREIGN KEY (ride_id) REFERENCES rides(id) ON DELETE SET NULL, 
   FOREIGN KEY (passenger_id) REFERENCES accounts(id) ON DELETE SET NULL, 
   UNIQUE (ride_id, passenger_id)

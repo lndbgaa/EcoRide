@@ -1,4 +1,5 @@
 import { sequelize } from "@/config/mysql.js";
+import bcrypt from "bcrypt";
 import { DataTypes } from "sequelize";
 import Account from "./Account.model.js";
 
@@ -47,7 +48,7 @@ class User extends Account {
     await this.save();
   }
 
-  async deductCredits(amount: number): Promise<void> {
+  async removeCredits(amount: number): Promise<void> {
     if (amount <= 0) throw new Error("Montant invalide");
     if (this.credits < amount) throw new Error("Crédits insuffisants");
     this.credits -= amount;
@@ -72,10 +73,20 @@ User.init(
   }
 );
 
-Account.addPasswordHooks(User);
-
 User.beforeValidate((user: User) => {
   if (!user.role_id) user.role_id = USER_ROLE_ID;
+});
+
+User.beforeCreate(async (account: Account) => {
+  const salt = await bcrypt.genSalt(10);
+  account.password = await bcrypt.hash(account.password, salt);
+});
+
+User.beforeUpdate(async (account: Account) => {
+  if (account.changed("password")) {
+    const salt = await bcrypt.genSalt(10);
+    account.password = await bcrypt.hash(account.password, salt);
+  }
 });
 
 export default User;

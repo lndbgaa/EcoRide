@@ -17,8 +17,7 @@ User.belongsTo(Role, { foreignKey: "role_id", as: "role" });
 Admin.belongsTo(Role, { foreignKey: "role_id", as: "role" });
 Employee.belongsTo(Role, { foreignKey: "role_id", as: "role" });
 
-// Véhicules liés à un utilisateur
-Vehicle.belongsTo(User, { foreignKey: "owner_id", as: "owner" });
+// Un utilisateur peut avoir plusieurs véhicules
 User.hasMany(Vehicle, { foreignKey: "owner_id", as: "vehicles" });
 
 // Véhicule lié à ses attributs
@@ -33,7 +32,6 @@ Ride.belongsTo(Vehicle, { foreignKey: "vehicle_id", as: "vehicle" });
 // Avis liés à l'auteur, à la cible, à la modération et au trajet concerné
 Review.belongsTo(User, { foreignKey: "author_id", as: "author" });
 Review.belongsTo(User, { foreignKey: "target_id", as: "target" });
-Review.belongsTo(Employee, { foreignKey: "moderator_id", as: "moderator" });
 Review.belongsTo(Ride, { foreignKey: "ride_id", as: "ride" });
 
 // Réservation lié à un passager et à un covoiturage

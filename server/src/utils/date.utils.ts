@@ -1,10 +1,10 @@
 //
-export function toDateOnly(datetime: Date) {
+export function toDateOnly(datetime: Date): string {
   return datetime.toLocaleDateString("fr-CA");
 }
 
 //
-export function toTimeOnly(datetime: Date) {
+export function toTimeOnly(datetime: Date): string {
   return datetime.toLocaleTimeString("fr-FR", {
     hour: "2-digit",
     minute: "2-digit",
@@ -13,7 +13,7 @@ export function toTimeOnly(datetime: Date) {
 }
 
 //
-export function getDuration(datetime1: Date, datetime2: Date) {
+export function getDuration(datetime1: Date, datetime2: Date): number {
   return Math.round(Math.abs(datetime2.getTime() - datetime1.getTime()) / 60000);
 }
 

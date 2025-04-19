@@ -1,6 +1,5 @@
 import bcrypt from "bcrypt";
-import type { ModelStatic, WhereOptions } from "sequelize";
-import { DataTypes, Model } from "sequelize";
+import { DataTypes } from "sequelize";
 import Base from "./Base.model.js";
 import type Role from "./Role.model.js";
 
@@ -37,9 +36,11 @@ class Account extends Base {
   declare role?: Role;
 
   /**
-   * Génère les attributs Sequelize d'un compte.
+   * Génère les attributs Sequelize de base pour un compte.
+   *
+   * ⚠️ À utiliser uniquement dans `Model.init()` d'un modèle enfant (User, Admin, Employee).
    */
-  static defineAttributes(
+  public static defineAttributes(
     roleId: number,
     additionalAttributes: Record<string, any> = {}
   ): Record<string, any> {
@@ -118,54 +119,56 @@ class Account extends Base {
   }
 
   /**
-   * Définit les hooks de création/mise à jour pour hasher le mot de passe d'un compte.
+   * Récupère un compte à partir d'un email.
+   *
+   * Utile pour la connexion et l'inscription.
    */
-  static addPasswordHooks(model: typeof Account) {
-    model.beforeCreate(async (account: Account) => {
-      const salt = await bcrypt.genSalt(10);
-      account.password = await bcrypt.hash(account.password, salt);
+  public static async findOneByEmail(email: string): Promise<Account> {
+    if (!email || typeof email !== "string") {
+      throw new Error("L'email doit être une chaîne de caractères");
+    }
+
+    const account = await this.findOneByField("email", email, {
+      include: [{ association: "role" }],
     });
 
-    model.beforeUpdate(async (account: Account) => {
-      if (account.changed("password")) {
-        const salt = await bcrypt.genSalt(10);
-        account.password = await bcrypt.hash(account.password, salt);
-      }
-    });
+    if (!account) {
+      throw new Error(`Aucun compte trouvé pour l'adresse : ${email}`);
+    }
+
+    return account;
   }
 
   /**
-   * Récupère un compte à partir d'un email.
+   * Récupère un  compte utilisateur à partir d'un pseudo.
+   *
+   * Utile pour la recherche par un admin par exemple.
    */
-  static async findByEmail<T extends Model>(this: ModelStatic<T>, email: string): Promise<T> {
-    try {
-      const instance = await this.findOne({
-        where: { email } as unknown as WhereOptions<T["_attributes"]>,
-        include: [{ association: "role" }],
-      });
-
-      if (!instance) {
-        throw new Error(`Aucun compte associé à l'adresse e-mail : ${email}`);
-      }
-
-      return instance;
-    } catch (err) {
-      const message = `[${this.name}] findByEmail → ${
-        err instanceof Error ? err.message : String(err)
-      }`;
-      throw new Error(message);
+  public static async findOneByPseudo(pseudo: string): Promise<Account> {
+    if (!pseudo || typeof pseudo !== "string") {
+      throw new Error(`Le pseudo doit être une chaîne de caractères.`);
     }
+
+    const account = await this.findOneByField("pseudo", pseudo, {
+      include: [{ association: "role" }],
+    });
+
+    if (!account) {
+      throw new Error(`Aucun compte trouvé pour le pseudo: ${pseudo}`);
+    }
+
+    return account;
   }
 
   /**
    * Soft-delete d'un compte à partir de son identifiant.
    */
-  static async deleteSoft<T extends Model>(this: ModelStatic<T>, id: string): Promise<number> {
+  public static async deleteOneSoft(id: string): Promise<number> {
     try {
       const [affectedRows] = await this.update(
         { deleted_at: new Date(), status: "deleted" },
         {
-          where: { id } as unknown as WhereOptions<T["_attributes"]>,
+          where: { id },
           individualHooks: true,
         }
       );
@@ -176,7 +179,9 @@ class Account extends Base {
 
       return affectedRows;
     } catch (err) {
-      const message = `[${this.name}] deleteSoft → Suppression partielle du compte impossible : ${
+      const message = `[${
+        this.name
+      }] deleteOneSoft → Suppression partielle du compte impossible : ${
         err instanceof Error ? err.message : String(err)
       }`;
       throw new Error(message);
@@ -186,12 +191,12 @@ class Account extends Base {
   /**
    * Suspend un compte en définissant la date de suspension et le statut.
    */
-  static async suspend<T extends Model>(this: ModelStatic<T>, id: string): Promise<number> {
+  public static async suspendOne(id: string): Promise<number> {
     try {
       const [affectedRows] = await this.update(
         { suspended_at: new Date(), status: "suspended" },
         {
-          where: { id } as unknown as WhereOptions<T["_attributes"]>,
+          where: { id },
           individualHooks: true,
         }
       );
@@ -202,7 +207,7 @@ class Account extends Base {
 
       return affectedRows;
     } catch (err) {
-      const message = `[${this.name}] suspend → Suspension du compte impossible : ${
+      const message = `[${this.name}] suspendOne → Suspension du compte impossible : ${
         err instanceof Error ? err.message : String(err)
       }`;
       throw new Error(message);
@@ -212,12 +217,12 @@ class Account extends Base {
   /**
    * Réactive un compte en réinitialisant les champs de suspension et de suppression.
    */
-  static async reactivate<T extends Model>(this: ModelStatic<T>, id: string): Promise<number> {
+  public static async reactivateOne(id: string): Promise<number> {
     try {
       const [affectedRows] = await this.update(
         { suspended_at: null, deleted_at: null, status: "active" },
         {
-          where: { id } as unknown as WhereOptions<T["_attributes"]>,
+          where: { id },
           individualHooks: true,
         }
       );
@@ -228,7 +233,7 @@ class Account extends Base {
 
       return affectedRows;
     } catch (err) {
-      const message = `[${this.name}] reactivate → Réactivation du compte impossible : ${
+      const message = `[${this.name}] reactivateOne → Réactivation du compte impossible : ${
         err instanceof Error ? err.message : String(err)
       }`;
       throw new Error(message);
