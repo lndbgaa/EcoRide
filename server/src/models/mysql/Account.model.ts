@@ -1,7 +1,9 @@
 import bcrypt from "bcrypt";
 import { DataTypes } from "sequelize";
 import Base from "./Base.model.js";
-import type Role from "./Role.model.js";
+import Role from "./Role.model.js";
+
+type AccountStatus = "active" | "suspended" | "inactive" | "deleted";
 
 /**
  * Modèle représentant un compte générique.
@@ -25,10 +27,10 @@ class Account extends Base {
   declare address: string | null;
   declare birth_date: Date | null;
   declare profile_picture: string | null;
-  declare status?: "active" | "suspended" | "inactive" | "deleted";
-  declare last_login?: Date;
-  declare updated_at?: Date;
-  declare created_at?: Date;
+  declare status: AccountStatus;
+  declare last_login: Date;
+  declare created_at: Date;
+  declare updated_at: Date;
   declare suspended_at: Date | null;
   declare deleted_at: Date | null;
 
@@ -38,7 +40,11 @@ class Account extends Base {
   /**
    * Génère les attributs Sequelize de base pour un compte.
    *
-   * ⚠️ À utiliser uniquement dans `Model.init()` d'un modèle enfant (User, Admin, Employee).
+   * @param roleId - ID du rôle à appliquer.
+   * @param additionalAttributes - Champs supplémentaires à ajouter.
+   * @returns Les attributs Sequelize pour `Model.init()`.
+   *
+   *  ⚠️ À utiliser uniquement dans les modèles Sequelize enfants héritant de Account (User, Employee, Admin).
    */
   public static defineAttributes(
     roleId: number,
@@ -53,9 +59,7 @@ class Account extends Base {
       role_id: {
         type: DataTypes.INTEGER,
         allowNull: false,
-        validate: {
-          isIn: [[roleId]],
-        },
+        defaultValue: roleId,
         onUpdate: "CASCADE",
         onDelete: "RESTRICT",
       },
@@ -63,24 +67,39 @@ class Account extends Base {
         type: DataTypes.STRING(100),
         allowNull: false,
         unique: true,
-        validate: { isEmail: true, notEmpty: true },
+        validate: {
+          isEmail: true,
+          notEmpty: true,
+        },
       },
       password: {
         type: DataTypes.STRING(255),
         allowNull: false,
+        validate: {
+          notEmpty: true,
+        },
       },
       first_name: {
         type: DataTypes.STRING(50),
         allowNull: false,
+        validate: {
+          notEmpty: true,
+        },
       },
       last_name: {
         type: DataTypes.STRING(50),
         allowNull: false,
+        validate: {
+          notEmpty: true,
+        },
       },
       pseudo: {
         type: DataTypes.STRING(50),
         allowNull: false,
         unique: true,
+        validate: {
+          notEmpty: true,
+        },
       },
       phone: {
         type: DataTypes.STRING(50),
@@ -111,7 +130,9 @@ class Account extends Base {
         allowNull: true,
       },
       status: {
-        type: DataTypes.ENUM("active", "suspended", "inactive", "deleted"),
+        type: DataTypes.ENUM(
+          ...(["active", "suspended", "inactive", "deleted"] as AccountStatus[])
+        ),
         defaultValue: "active",
       },
       ...additionalAttributes,
@@ -119,51 +140,31 @@ class Account extends Base {
   }
 
   /**
-   * Récupère un compte à partir d'un email.
-   *
-   * Utile pour la connexion et l'inscription.
+   * Hooks statiques pour le hachage de mot de passe.
+   * Ces hooks seront hérités par les modèles enfants.
    */
-  public static async findOneByEmail(email: string): Promise<Account> {
-    if (!email || typeof email !== "string") {
-      throw new Error("L'email doit être une chaîne de caractères");
-    }
-
-    const account = await this.findOneByField("email", email, {
-      include: [{ association: "role" }],
+  public static addPasswordHooks(): void {
+    this.beforeCreate(async (account: Account) => {
+      const salt = await bcrypt.genSalt(10);
+      account.password = await bcrypt.hash(account.password, salt);
     });
 
-    if (!account) {
-      throw new Error(`Aucun compte trouvé pour l'adresse : ${email}`);
-    }
-
-    return account;
-  }
-
-  /**
-   * Récupère un  compte utilisateur à partir d'un pseudo.
-   *
-   * Utile pour la recherche par un admin par exemple.
-   */
-  public static async findOneByPseudo(pseudo: string): Promise<Account> {
-    if (!pseudo || typeof pseudo !== "string") {
-      throw new Error(`Le pseudo doit être une chaîne de caractères.`);
-    }
-
-    const account = await this.findOneByField("pseudo", pseudo, {
-      include: [{ association: "role" }],
+    this.beforeUpdate(async (account: Account) => {
+      if (account.changed("password")) {
+        const salt = await bcrypt.genSalt(10);
+        account.password = await bcrypt.hash(account.password, salt);
+      }
     });
-
-    if (!account) {
-      throw new Error(`Aucun compte trouvé pour le pseudo: ${pseudo}`);
-    }
-
-    return account;
   }
 
   /**
    * Soft-delete d'un compte à partir de son identifiant.
    */
   public static async deleteOneSoft(id: string): Promise<number> {
+    if (!id || typeof id !== "string") {
+      throw new Error(`L'id du compte doit être une chaîne de caractères.`);
+    }
+
     try {
       const [affectedRows] = await this.update(
         { deleted_at: new Date(), status: "deleted" },
@@ -192,6 +193,10 @@ class Account extends Base {
    * Suspend un compte en définissant la date de suspension et le statut.
    */
   public static async suspendOne(id: string): Promise<number> {
+    if (!id || typeof id !== "string") {
+      throw new Error(`L'id du compte doit être une chaîne de caractères.`);
+    }
+
     try {
       const [affectedRows] = await this.update(
         { suspended_at: new Date(), status: "suspended" },
@@ -218,6 +223,10 @@ class Account extends Base {
    * Réactive un compte en réinitialisant les champs de suspension et de suppression.
    */
   public static async reactivateOne(id: string): Promise<number> {
+    if (!id || typeof id !== "string") {
+      throw new Error(`L'id du compte doit être une chaîne de caractères.`);
+    }
+
     try {
       const [affectedRows] = await this.update(
         { suspended_at: null, deleted_at: null, status: "active" },
@@ -247,18 +256,6 @@ class Account extends Base {
   async updateLastLogin(): Promise<void> {
     this.last_login = new Date();
     await this.save();
-  }
-
-  isActive(): boolean {
-    return this.status === "active";
-  }
-
-  isSuspended(): boolean {
-    return this.status === "suspended";
-  }
-
-  isDeleted(): boolean {
-    return this.status === "deleted";
   }
 }
 

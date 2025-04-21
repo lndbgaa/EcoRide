@@ -11,7 +11,7 @@ import { Model } from "sequelize";
 /**
  * Classe de base générique pour les modèles Sequelize.
  *
- * Fournit des méthodes utilitaires pour effectuer des opérations CRUD simples.
+ * Fournit des méthodes utilitaires nota pour effectuer des opérations CRUD simples.
  *
  * ⚠️ Ne doit pas être instanciée directement.
  */
@@ -22,7 +22,7 @@ class Base extends Model {
    * @param field - Le nom du champ à filtrer.
    * @param value - La valeur recherchée pour ce champ.
    * @param options - Options Sequelize supplémentaires (inclure des relations, etc.).
-   * @returns Une liste d’instances correspondant au champ.
+   * @returns Une liste d’instances.
    */
   static async findAllByField<T extends Model>(
     this: ModelStatic<T>,
@@ -63,9 +63,9 @@ class Base extends Model {
    * Récupère un seul enregistrement correspondant à un champ donné.
    *
    * @param field - Le nom du champ à filtrer.
-   * @param value - La valeur recherchée.
-   * @param options - Options Sequelize supplémentaires.
-   * @returns Une instance ou `null` si aucune correspondance.
+   * @param value - La valeur recherchée pour ce champ.
+   * @param options - Options de recherche Sequelize.
+   * @returns L’instance trouvée ou `null`.
    */
   static async findOneByField<T extends Model>(
     this: ModelStatic<T>,
@@ -102,6 +102,29 @@ class Base extends Model {
   }
 
   /**
+   *  Récupère un enregistrement en fonction de son id.
+   *
+   * @param id - Identifiant de l'enregistrement.
+   * @param options - Options de recherche Sequelize.
+   * @returns L’instance trouvée ou `null`.
+   */
+  static async findById<T extends Model>(
+    this: ModelStatic<T>,
+    id: string | number,
+    options: FindOptions<T> = {}
+  ): Promise<T | null> {
+    try {
+      const instance = await this.findByPk(id, options);
+      return instance ?? null;
+    } catch (err) {
+      const message = `[${this.name}] findById (${id}) → ${
+        err instanceof Error ? err.message : String(err)
+      }`;
+      throw new Error(message);
+    }
+  }
+
+  /**
    * Crée une nouvelle entrée dans la base de données.
    *
    * @param data - Les données à insérer.
@@ -130,7 +153,7 @@ class Base extends Model {
    * @param id - Identifiant de l'enregistrement.
    * @param data - Données à mettre à jour.
    * @param options - Options de mise à jour Sequelize.
-   * @returns Le nombre de lignes modifiées (1 si succès, sinon 0).
+   * @returns Le nombre de lignes modifiées (1 si ok, sinon 0).
    */
   static async updateOne<T extends Model>(
     this: ModelStatic<T>,
@@ -153,7 +176,24 @@ class Base extends Model {
 
       return affectedRows;
     } catch (err) {
-      const message = `[${this.name}] updateOne → Mise à jours impossible : ${
+      const message = `[${this.name}] updateOne → Mise à jours de l'élément impossible : ${
+        err instanceof Error ? err.message : String(err)
+      }`;
+      throw new Error(message);
+    }
+  }
+
+  /**
+   * Compte tous les enregistrements d'une table.
+   *
+   * @returns Le nombre total d'enregistrements (0 si aucun).
+   */
+  static async countAll<T extends Model>(this: ModelStatic<T>): Promise<number> {
+    try {
+      const count = await this.count();
+      return count;
+    } catch (err) {
+      const message = `[${this.name}] countAll → ${
         err instanceof Error ? err.message : String(err)
       }`;
       throw new Error(message);
@@ -163,8 +203,8 @@ class Base extends Model {
   /**
    * Supprime définitivement un enregistrement par son identifiant.
    *
-   * @param id - Identifiant de l'enregistrement à supprimer.
-   * @returns Le nombre de lignes supprimées (1 si succès, sinon 0).
+   * @param id - Identifiant de l'enregistrement.
+   * @returns Le nombre de lignes supprimées (1 si ok, sinon 0).
    */
   static async deleteHard<T extends Model>(
     this: ModelStatic<T>,
@@ -181,7 +221,9 @@ class Base extends Model {
 
       return deletedRows;
     } catch (err) {
-      const message = `[${this.name}] deleteHard → Suppression définitive impossible : ${
+      const message = `[${
+        this.name
+      }] deleteHard → Suppression définitive de l'élément impossible : ${
         err instanceof Error ? err.message : String(err)
       }`;
       throw new Error(message);

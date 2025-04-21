@@ -2,13 +2,14 @@ import { sequelize } from "@/config/mysql.js";
 import { getDuration, toDateOnly, toTimeOnly } from "@/utils/date.utils.js";
 import { DataTypes } from "sequelize";
 import Base from "./Base.model.js";
-import type User from "./User.model.js";
-import type Vehicle from "./Vehicle.model.js";
-import type { PrivateVehicleDTO, PublicVehicleDTO } from "./Vehicle.model.js";
+import type { UserPublicDTO } from "./User.model.js";
+import User from "./User.model.js";
+import type { VehiclePrivateDTO, VehiclePublicDTO } from "./Vehicle.model.js";
+import Vehicle from "./Vehicle.model.js";
 
 export type RideStatus = "open" | "full" | "in_progress" | "completed" | "no_show" | "cancelled";
 
-interface PublicRideDTO {
+export interface RidePublicDTO {
   id: string;
   departure_date: string;
   departure_location: string;
@@ -17,16 +18,16 @@ interface PublicRideDTO {
   arrival_location: string;
   arrival_time: string;
   duration: number;
-  driver?: User;
-  vehicle?: PublicVehicleDTO;
+  driver: UserPublicDTO | null;
+  vehicle: VehiclePublicDTO | null;
   is_eco_friendly: boolean;
   price: number;
   available_seats: number;
 }
 
-interface PrivateRideDTO extends Omit<PublicRideDTO, "driver" | "vehicle"> {
+export interface RidePrivateDTO extends Omit<RidePublicDTO, "driver" | "vehicle"> {
   offered_seats: number;
-  vehicle?: PrivateVehicleDTO;
+  vehicle: VehiclePrivateDTO | null;
 }
 
 /**
@@ -43,18 +44,20 @@ class Ride extends Base {
   declare driver_id: string;
   declare vehicle_id: string;
   declare price: number;
-  declare is_eco_friendly: boolean;
   declare offered_seats: number;
   declare available_seats: number;
+  declare is_eco_friendly: boolean;
   declare status: RideStatus;
-  declare updated_at: Date;
   declare created_at: Date;
+  declare updated_at: Date;
 
-  // Associations chargées dynamiquement via Sequelize (si `include` est utilisé)
+  // Associations chargées dynamiquement via Sequelize (si `include` est utilisé).
   declare driver?: User;
   declare vehicle?: Vehicle;
 
-  // Liste des transitions autorisées entre les statuts d'un trajet.
+  /**
+   * Liste des transitions autorisées entre les statuts d'un trajet.
+   */
   static readonly allowedTransitions: Record<RideStatus, RideStatus[]> = {
     open: ["full", "cancelled", "in_progress"],
     full: ["in_progress", "cancelled", "no_show"],
@@ -64,13 +67,17 @@ class Ride extends Base {
     no_show: [],
   };
 
-  // Vérifie si une transition vers un nouveau statut est autorisée.
+  /**
+   * Vérifie si une transition vers un nouveau statut est autorisée.
+   */
   canTransitionTo(status: RideStatus): boolean {
     const currentStatus: RideStatus = this.status;
     return Ride.allowedTransitions[currentStatus]?.includes(status) ?? false;
   }
 
-  // Applique une transition vers un nouveau statut, si elle est autorisée.
+  /**
+   * Applique une transition vers un nouveau statut, si elle est autorisée.
+   */
   async transitionTo(status: RideStatus) {
     if (this.status === status) return;
 
@@ -81,7 +88,9 @@ class Ride extends Base {
     await this.save();
   }
 
-  // Permet d'ajouter des places disponibles à un covoiturage (ex: annulation réservation)
+  /**
+   * Permet d'ajouter des places disponibles à un covoiturage (ex: annulation réservation)
+   * */
   async addSeats(amount: number): Promise<void> {
     try {
       if (this.status !== "open") {
@@ -102,12 +111,14 @@ class Ride extends Base {
       if (this.available_seats > 0 && this.status !== "open") await this.transitionTo("open");
       await this.save();
     } catch (err) {
-      const message = `[Ride] addSeats → ${err instanceof Error ? err.message : String(err)}`;
+      const message = `addSeats → ${err instanceof Error ? err.message : String(err)}`;
       throw new Error(message);
     }
   }
 
-  // Permet de retirer des places disponibles à un covoiturage (ex: création réservation)
+  /**
+   *  Permet de retirer des places disponibles à un covoiturage (ex: création réservation)
+   * */
   async removeSeats(amount: number): Promise<void> {
     try {
       if (!["open", "full"].includes(this.status)) {
@@ -131,30 +142,26 @@ class Ride extends Base {
 
   async markAsInProgress(): Promise<void> {
     await this.transitionTo("in_progress");
-    await this.save();
   }
 
   async markAsCompleted(): Promise<void> {
     await this.transitionTo("completed");
-    await this.save();
   }
 
   async markAsNoShow(): Promise<void> {
     await this.transitionTo("no_show");
-    await this.save();
   }
 
   async markAsCancelled(): Promise<void> {
     await this.transitionTo("cancelled");
-    await this.save();
   }
 
-  hasStatus(status: RideStatus): boolean {
-    return this.status === status;
-  }
-
-  // Retourne une version "publique" du trajet, prête à être exposée via l'API.
-  toPublicDTO(): PublicRideDTO {
+  /**
+   * Retourne une version "publique" du trajet.
+   *
+   * 💡 Utile lorsque le trajet est consulté par un autre utilisateur.
+   */
+  toPublicDTO(): RidePublicDTO {
     return {
       id: this.id,
       departure_date: toDateOnly(this.departure_datetime),
@@ -164,20 +171,24 @@ class Ride extends Base {
       arrival_location: this.arrival_location,
       arrival_time: toTimeOnly(this.arrival_datetime),
       duration: getDuration(this.arrival_datetime, this.departure_datetime),
-      driver: this.driver ?? undefined,
-      vehicle: this.vehicle?.toPublicDTO() ?? undefined,
+      driver: this.driver?.toPublicJSON() ?? null,
+      vehicle: this.vehicle?.toPublicDTO() ?? null,
       price: this.price,
       available_seats: this.available_seats,
       is_eco_friendly: this.is_eco_friendly,
     };
   }
 
-  // Retourne une version "privée" du trajet, prête à être exposée via l'API.
-  toPrivateDTO(): PrivateRideDTO {
+  /**
+   * Retourne une version "privée" du trajet.
+   *
+   * 💡 Utile lorsque le chauffeur consulte son covoiturage.
+   */
+  toPrivateDTO(): RidePrivateDTO {
     const { driver, ...publicDTOWithoutDriver } = this.toPublicDTO();
     return {
       ...publicDTOWithoutDriver,
-      vehicle: this.vehicle?.toPrivateDTO() ?? undefined,
+      vehicle: this.vehicle?.toPrivateDTO() ?? null,
       offered_seats: this.offered_seats,
     };
   }
@@ -222,10 +233,6 @@ Ride.init(
         key: "id",
       },
     },
-    is_eco_friendly: {
-      type: DataTypes.BOOLEAN,
-      allowNull: false,
-    },
     price: {
       type: DataTypes.INTEGER,
       allowNull: false,
@@ -256,7 +263,7 @@ Ride.init(
     },
     available_seats: {
       type: DataTypes.INTEGER,
-      allowNull: false,
+      allowNull: true,
       validate: {
         min: {
           args: [0],
@@ -264,8 +271,14 @@ Ride.init(
         },
       },
     },
+    is_eco_friendly: {
+      type: DataTypes.BOOLEAN,
+      allowNull: false,
+    },
     status: {
-      type: DataTypes.ENUM("open", "full", "in_progress", "completed", "no_show", "cancelled"),
+      type: DataTypes.ENUM(
+        ...(["open", "full", "in_progress", "completed", "no_show", "cancelled"] as RideStatus[])
+      ),
       defaultValue: "open",
     },
   },
@@ -280,14 +293,22 @@ Ride.init(
 );
 
 Ride.beforeValidate((ride: Ride) => {
-  // Cas 1: Le départ doit être antérieur à l'arrivée.
-  if (ride.departure_datetime >= ride.arrival_datetime) {
-    throw new Error("Le départ doit être antérieur à l'arrivée.");
+  const now = new Date();
+
+  // Cas 1 : Le départ doit être après maintenant.
+  if (ride.departure_datetime <= now) {
+    throw new Error("La date de départ doit être ultérieure à la date actuelle.");
   }
 
-  // Cas 2: Les places disponibles ne peuvent pas dépasser les places proposées.
-  if (ride.available_seats > ride.offered_seats)
+  // Cas 2 : Le départ doit être antérieur à l'arrivée.
+  if (ride.departure_datetime >= ride.arrival_datetime) {
+    throw new Error("La date de départ doit être antérieure à la date d'arrivée.");
+  }
+
+  // Cas 3 : Les places disponibles ne peuvent pas dépasser les places proposées.
+  if (ride.available_seats > ride.offered_seats) {
     throw new Error("Le nombre de places disponibles ne peut pas dépasser les places proposées.");
+  }
 });
 
 // Définit par défaut le nombre de places disponibles comme égal aux nombres de places proposées.

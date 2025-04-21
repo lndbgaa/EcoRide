@@ -60,13 +60,13 @@ CREATE TABLE vehicles (
   brand_id INT NOT NULL,
   model VARCHAR(50) NOT NULL,
   color_id INT NOT NULL,
-  seats INT NOT NULL CHECK (seats BETWEEN 2 AND 7), -- véhicules de 2 à 7 places max = voiture
   energy_id INT NOT NULL,
+  seats INT NOT NULL CHECK (seats BETWEEN 2 AND 7), -- véhicules de 2 à 7 places max = voiture
   license_plate VARCHAR(50) UNIQUE NOT NULL,
   first_registration DATE NOT NULL,
   owner_id CHAR(36) NOT NULL,
-  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   FOREIGN KEY (brand_id) REFERENCES vehicle_brands(id) ON UPDATE CASCADE ON DELETE RESTRICT,
   FOREIGN KEY (color_id) REFERENCES vehicle_colors(id) ON UPDATE CASCADE ON DELETE RESTRICT,
   FOREIGN KEY (energy_id) REFERENCES vehicle_energies(id) ON UPDATE CASCADE ON DELETE RESTRICT,
@@ -93,13 +93,13 @@ CREATE TABLE rides (
   arrival_location VARCHAR(255) NOT NULL,
   driver_id CHAR(36) NULL,
   vehicle_id CHAR(36) NULL,
-  is_eco_friendly BOOLEAN NOT NULL,
   price INT NOT NULL CHECK (price BETWEEN 10 AND 500), -- crédits (1 crédit = 0,10€)
   offered_seats INT NOT NULL CHECK (offered_seats BETWEEN 1 AND 6 ), 
-  available_seats INT NOT NULL CHECK (available_seats >= 0), 
+  available_seats INT NOT NULL CHECK (available_seats >= 0),
+  is_eco_friendly BOOLEAN NOT NULL,
   status ENUM('open', 'full', 'in_progress', 'completed', 'no_show', 'cancelled') DEFAULT 'open',
-  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   FOREIGN KEY (driver_id) REFERENCES accounts(id) ON DELETE SET NULL, 
   FOREIGN KEY (vehicle_id) REFERENCES vehicles(id) ON DELETE SET NULL
 );
