@@ -168,12 +168,6 @@ class Base extends Model {
         ...options,
       });
 
-      if (affectedRows === 0) {
-        throw new Error(
-          `L'élément avec l'identifiant ${id} est introuvable ou n'a pas pu être mis à jour.`
-        );
-      }
-
       return affectedRows;
     } catch (err) {
       const message = `[${this.name}] updateOne → Mise à jours de l'élément impossible : ${
@@ -214,10 +208,6 @@ class Base extends Model {
       const deletedRows = await this.destroy({
         where: { id } as unknown as WhereOptions<T["_attributes"]>,
       });
-
-      if (deletedRows === 0) {
-        throw new Error(`L'élément avec l'identifiant ${id} est introuvable.`);
-      }
 
       return deletedRows;
     } catch (err) {

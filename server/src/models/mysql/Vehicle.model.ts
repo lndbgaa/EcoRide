@@ -1,4 +1,4 @@
-import { sequelize } from "@/config/mysql.js";
+import { sequelize } from "@/config/mysql.config.js";
 import { DataTypes } from "sequelize";
 import Base from "./Base.model.js";
 import VehicleBrand from "./VehicleBrand.model.js";

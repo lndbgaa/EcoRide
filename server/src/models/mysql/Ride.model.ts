@@ -1,4 +1,4 @@
-import { sequelize } from "@/config/mysql.js";
+import { sequelize } from "@/config/mysql.config.js";
 import { getDuration, toDateOnly, toTimeOnly } from "@/utils/date.utils.js";
 import { DataTypes } from "sequelize";
 import Base from "./Base.model.js";

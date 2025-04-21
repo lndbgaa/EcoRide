@@ -1,4 +1,4 @@
-import { sequelize } from "@/config/mysql.js";
+import { sequelize } from "@/config/mysql.config.js";
 import Account from "./Account.model.js";
 
 const EMPLOYEE_ROLE_ID = 2;

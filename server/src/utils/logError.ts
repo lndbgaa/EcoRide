@@ -1,4 +1,4 @@
-import config from "@/config/app.js";
+import config from "@/config/app.config.js";
 import chalk from "chalk";
 
 interface LogErrorArgs {

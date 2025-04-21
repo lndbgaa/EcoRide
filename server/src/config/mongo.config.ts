@@ -1,4 +1,4 @@
-import config from "@/config/app.js";
+import config from "@/config/app.config.js";
 import mongoose from "mongoose";
 
 const connectMongo = async (): Promise<void> => {
@@ -8,9 +8,7 @@ const connectMongo = async (): Promise<void> => {
     await mongoose.connect(uri);
     console.log("✅ MongoDB: Connexion réussie");
   } catch (err) {
-    throw new Error(
-      `❌ Échec de connexion à MongoDB: ${(err as Error).message}`
-    );
+    throw new Error(`❌ Échec de connexion à MongoDB: ${(err as Error).message}`);
   }
 };
 

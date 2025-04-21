@@ -1,9 +1,10 @@
-import config from "@/config/app.js";
-import connectMongo from "@/config/mongo.js";
-import { connectMySQL } from "@/config/mysql.js";
+import config from "@/config/app.config.js";
+import connectMongo from "@/config/mongo.config.js";
+import { connectMySQL } from "@/config/mysql.config.js";
+import errorHandler from "@/middlewares/errorHandler.js";
+import userRoutes from "@/routes/user.route.js";
+import AppError from "@/utils/AppError.js";
 import express from "express";
-import errorHandler from "./middlewares/errorHandler.js";
-import AppError from "./utils/AppError.js";
 
 const app = express();
 const PORT = config.server.port;
@@ -11,6 +12,8 @@ const PORT = config.server.port;
 app.get("/", (req, res) => {
   res.send("Bienvenue sur le serveur!");
 });
+
+app.use("/api/v1/user", userRoutes);
 
 app.use((req, res, next) => {
   next(

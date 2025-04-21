@@ -1,4 +1,4 @@
-import { sequelize } from "@/config/mysql.js";
+import { sequelize } from "@/config/mysql.config.js";
 import { getAge } from "@/utils/date.utils.js";
 import { DataTypes } from "sequelize";
 import Account from "./Account.model.js";

@@ -8,8 +8,8 @@ class AppError extends Error {
   public isOperational: boolean;
   constructor({
     statusCode = 500,
-    statusText = "Erreur Interne du Serveur",
-    message = "Erreur Inconnue",
+    statusText = "Internal Server Error",
+    message = "Unknown Error",
     details = {},
     isOperational = true,
   }) {
