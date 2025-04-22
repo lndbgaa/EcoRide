@@ -23,7 +23,7 @@ const errorHandler: ErrorRequestHandler = (
     });
   } else {
     const statusCode = 500;
-    const statusText = "Erreur interne au serveur";
+    const statusText = "Internal Server Error";
     const message = err.message || "Une erreur inattendue s'est produite.";
     const stack = err.stack ?? null;
 

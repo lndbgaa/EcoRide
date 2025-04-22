@@ -38,4 +38,16 @@ Review.belongsTo(Ride, { foreignKey: "ride_id", as: "ride" });
 Booking.belongsTo(Ride, { foreignKey: "ride_id", as: "ride" });
 Booking.belongsTo(User, { foreignKey: "passenger_id", as: "passenger" });
 
-export { Admin, Booking, Employee, Review, Ride, Role, User, Vehicle };
+export {
+  Admin,
+  Booking,
+  Employee,
+  Review,
+  Ride,
+  Role,
+  User,
+  Vehicle,
+  VehicleBrand,
+  VehicleColor,
+  VehicleEnergy,
+};

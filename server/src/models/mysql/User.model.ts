@@ -1,29 +1,28 @@
 import { sequelize } from "@/config/mysql.config.js";
+import { ACCOUNT_ROLES_ID } from "@/constants/index.js";
 import { getAge } from "@/utils/date.utils.js";
 import { DataTypes } from "sequelize";
 import Account from "./Account.model.js";
 import Review from "./Review.model.js";
 
-const USER_ROLE_ID = 3;
-
 export interface UserPublicDTO {
   id: string;
   pseudo: string;
   age: string | null;
-  profile_picture: string | null;
-  average_rating: number | null;
-  member_since: number | null;
+  profilePicture: string | null;
+  averageRating: number | null;
+  memberSince: number | null;
 }
 
 export interface UserPrivateDTO extends UserPublicDTO {
   email: string;
-  first_name: string;
-  last_name: string;
+  firstName: string;
+  lastName: string;
   phone: string | null;
   address: string | null;
-  birth_date: Date | null;
-  is_passenger: boolean;
-  is_driver: boolean;
+  birthDate: Date | null;
+  isPassenger: boolean;
+  isDriver: boolean;
   credits: number;
 }
 
@@ -41,46 +40,6 @@ class User extends Account {
   declare is_driver: boolean;
   declare average_rating: number | null;
   declare credits: number;
-
-  public static async findOneByEmail(email: string): Promise<User> {
-    if (!email || typeof email !== "string") {
-      throw new Error("L'email doit être une chaîne de caractères");
-    }
-
-    const user = await this.findOneByField("email", email, {
-      include: [{ association: "role" }],
-    });
-
-    if (!user) {
-      throw new Error(`Aucun compte trouvé pour l'adresse : ${email}`);
-    }
-
-    if (user.role_id !== USER_ROLE_ID) {
-      throw new Error("Le compte trouvé n'est pas un utilisateur");
-    }
-
-    return user;
-  }
-
-  public static async findOneByPseudo(pseudo: string): Promise<User> {
-    if (!pseudo || typeof pseudo !== "string") {
-      throw new Error("Le pseudo doit être une chaîne de caractères");
-    }
-
-    const account = await User.findOneByField("pseudo", pseudo, {
-      include: [{ association: "role" }],
-    });
-
-    if (!account) {
-      throw new Error(`Aucun compte trouvé pour le pseudo: ${pseudo}`);
-    }
-
-    if (account.role_id !== USER_ROLE_ID) {
-      throw new Error("Le compte trouvé n'est pas un utilisateur");
-    }
-
-    return account;
-  }
 
   /**
    * Active ou désactive le mode conducteur.
@@ -141,9 +100,9 @@ class User extends Account {
       id: this.id,
       pseudo: this.pseudo,
       age: this.birth_date ? getAge(this.birth_date) : null,
-      profile_picture: this.profile_picture,
-      average_rating: this.average_rating,
-      member_since: this.created_at?.getFullYear() ?? null,
+      profilePicture: this.profile_picture ?? null,
+      averageRating: this.average_rating ?? null,
+      memberSince: this.created_at?.getFullYear() ?? null,
     };
   }
 
@@ -156,20 +115,20 @@ class User extends Account {
     return {
       ...this.toPublicJSON(),
       email: this.email,
-      first_name: this.first_name,
-      last_name: this.last_name,
-      phone: this.phone,
-      address: this.address,
-      birth_date: this.birth_date,
-      is_passenger: this.is_passenger,
-      is_driver: this.is_driver,
+      firstName: this.first_name,
+      lastName: this.last_name,
+      phone: this.phone ?? null,
+      address: this.address ?? null,
+      birthDate: this.birth_date ?? null,
+      isPassenger: this.is_passenger,
+      isDriver: this.is_driver,
       credits: this.credits,
     };
   }
 }
 
 User.init(
-  Account.defineAttributes(USER_ROLE_ID, {
+  Account.defineAttributes(ACCOUNT_ROLES_ID.USER, {
     is_driver: { type: DataTypes.BOOLEAN, defaultValue: false },
     is_passenger: { type: DataTypes.BOOLEAN, defaultValue: true },
     average_rating: { type: DataTypes.DECIMAL(3, 2), allowNull: true },
@@ -186,7 +145,7 @@ User.init(
 );
 
 User.beforeValidate((user: User) => {
-  if (!user.role_id) user.role_id = USER_ROLE_ID;
+  if (!user.role_id) user.role_id = ACCOUNT_ROLES_ID.USER;
 });
 
 User.addPasswordHooks();

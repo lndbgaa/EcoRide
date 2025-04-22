@@ -1,7 +1,20 @@
 import { sequelize } from "@/config/mysql.config.js";
+import { ACCOUNT_ROLES_ID } from "@/constants/index.js";
+import { getAge } from "@/utils/date.utils.js";
 import Account from "./Account.model.js";
 
-const EMPLOYEE_ROLE_ID = 2;
+interface EmployeePrivateDTO {
+  id: string;
+  email: string;
+  firstName: string;
+  lastName: string;
+  phone: string | null;
+  address: string | null;
+  birthDate: Date | null;
+  age: string | null;
+  profilePicture: string | null;
+  memberSince: number | null;
+}
 
 /**
  * Modèle représentant un employé de la plateforme.
@@ -9,48 +22,28 @@ const EMPLOYEE_ROLE_ID = 2;
  * @extends Account
  */
 class Employee extends Account {
-  public static async findOneByEmail(email: string): Promise<Employee> {
-    if (!email || typeof email !== "string") {
-      throw new Error("L'email doit être une chaîne de caractères");
-    }
-
-    const employee = await this.findOneByField("email", email, {
-      include: [{ association: "role" }],
-    });
-
-    if (!employee) {
-      throw new Error(`Aucun compte trouvé pour l'adresse : ${email}`);
-    }
-
-    if (employee.role_id !== EMPLOYEE_ROLE_ID) {
-      throw new Error("Le compte trouvé n'est pas un employé");
-    }
-
-    return employee;
-  }
-
-  public static async findOneByPseudo(pseudo: string): Promise<Employee> {
-    if (!pseudo || typeof pseudo !== "string") {
-      throw new Error("Le pseudo doit être une chaîne de caractères");
-    }
-
-    const employee = await this.findOneByField("pseudo", pseudo, {
-      include: [{ association: "role" }],
-    });
-
-    if (!employee) {
-      throw new Error(`Aucun compte trouvé pour le pseudo: ${pseudo}`);
-    }
-
-    if (employee.role_id !== EMPLOYEE_ROLE_ID) {
-      throw new Error("Le compte trouvé n'est pas un employé");
-    }
-
-    return employee;
+  /**
+   * Retourne les informations privées d'un employé'.
+   *
+   * 💡 Utile lorsque l'employé lui-même consulte son profil.
+   */
+  toPrivateJSON(): EmployeePrivateDTO {
+    return {
+      id: this.id,
+      email: this.email,
+      firstName: this.first_name,
+      lastName: this.last_name,
+      phone: this.phone ?? null,
+      address: this.address ?? null,
+      birthDate: this.birth_date ?? null,
+      age: this.birth_date ? getAge(this.birth_date) : null,
+      profilePicture: this.profile_picture ?? null,
+      memberSince: this.created_at?.getFullYear() ?? null,
+    };
   }
 }
 
-Employee.init(Account.defineAttributes(EMPLOYEE_ROLE_ID), {
+Employee.init(Account.defineAttributes(ACCOUNT_ROLES_ID.EMPLOYEE), {
   sequelize,
   modelName: "Employee",
   tableName: "accounts",
@@ -60,7 +53,7 @@ Employee.init(Account.defineAttributes(EMPLOYEE_ROLE_ID), {
 });
 
 Employee.beforeValidate((employee: Employee) => {
-  if (!employee.role_id) employee.role_id = EMPLOYEE_ROLE_ID;
+  if (!employee.role_id) employee.role_id = ACCOUNT_ROLES_ID.EMPLOYEE;
 });
 
 Employee.addPasswordHooks();

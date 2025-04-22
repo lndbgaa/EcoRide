@@ -10,7 +10,7 @@ interface LogErrorArgs {
   stack?: string | null;
 }
 
-export default ({
+const logError = ({
   errorType,
   statusCode,
   statusText,
@@ -35,3 +35,5 @@ export default ({
     console.error(chalk.red(`Stack Trace:\n${formattedStack}`));
   }
 };
+
+export default logError;

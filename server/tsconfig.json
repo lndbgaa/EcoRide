@@ -23,6 +23,7 @@
     "baseUrl": "./",
     "paths": {
       "@/config/*": ["src/config/*"],
+      "@/constants/*": ["src/constants/*"],
       "@/controllers/*": ["src/controllers/*"],
       "@/database/*": ["src/database/*"],
       "@/middlewares/*": ["src/middlewares/*"],
@@ -30,7 +31,8 @@
       "@/routes/*": ["src/routes/*"],
       "@/services/*": ["src/services/*"],
       "@/types/*": ["src/types/*"],
-      "@/utils/*": ["src/utils/*"]
+      "@/utils/*": ["src/utils/*"],
+      "@/validators/*": ["src/validators/*"]
     }
 
     //"sourceMap": true,
