@@ -1,6 +1,7 @@
 import Admin from "./Admin.model.js";
 import Booking from "./Booking.model.js";
 import Employee from "./Employee.model.js";
+import RefreshToken from "./RefreshToken.model.js";
 import Review from "./Review.model.js";
 import Ride from "./Ride.model.js";
 import Role from "./Role.model.js";
@@ -16,6 +17,11 @@ import VehicleEnergy from "./VehicleEnergy.model.js";
 User.belongsTo(Role, { foreignKey: "role_id", as: "role" });
 Admin.belongsTo(Role, { foreignKey: "role_id", as: "role" });
 Employee.belongsTo(Role, { foreignKey: "role_id", as: "role" });
+
+// Un compte a un jeton de rafraîchissement (auth)
+User.hasOne(RefreshToken, { foreignKey: "account_id", as: "refresh_tokens" });
+Admin.hasOne(RefreshToken, { foreignKey: "account_id", as: "refresh_tokens" });
+Employee.hasOne(RefreshToken, { foreignKey: "account_id", as: "refresh_tokens" });
 
 // Un utilisateur peut avoir plusieurs véhicules
 User.hasMany(Vehicle, { foreignKey: "owner_id", as: "vehicles" });
@@ -42,6 +48,7 @@ export {
   Admin,
   Booking,
   Employee,
+  RefreshToken,
   Review,
   Ride,
   Role,

@@ -15,7 +15,7 @@ import { Model } from "sequelize";
  *
  * ⚠️ Ne doit pas être instanciée directement.
  */
-class Base extends Model {
+abstract class Base extends Model {
   /**
    * Récupère tous les enregistrements correspondant à un champ donné.
    *
@@ -200,20 +200,21 @@ class Base extends Model {
    * @param id - Identifiant de l'enregistrement.
    * @returns Le nombre de lignes supprimées (1 si ok, sinon 0).
    */
-  static async deleteHard<T extends Model>(
+  static async deleteHardByField<T extends Model>(
     this: ModelStatic<T>,
-    id: string | number
+    field: string,
+    value: any
   ): Promise<number> {
     try {
       const deletedRows = await this.destroy({
-        where: { id } as unknown as WhereOptions<T["_attributes"]>,
+        where: { [field]: value } as unknown as WhereOptions<T["_attributes"]>,
       });
 
       return deletedRows;
     } catch (err) {
       const message = `[${
         this.name
-      }] deleteHard → Suppression définitive de l'élément impossible : ${
+      }] deleteHardByField (${field}) → Suppression définitive de l'élément impossible : ${
         err instanceof Error ? err.message : String(err)
       }`;
       throw new Error(message);

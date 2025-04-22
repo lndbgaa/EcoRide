@@ -1,5 +1,6 @@
-import { JWT_CONFIG } from "@/constants/index.js";
+import AppError from "@/utils/AppError.js";
 import jwt from "jsonwebtoken";
+import type { StringValue } from "ms";
 
 interface JwtPayload {
   id: string;
@@ -12,6 +13,29 @@ interface JwtPayload {
  * @param payload - Données à inclure dans le token
  * @returns Token JWT
  */
-export function generateToken<T extends JwtPayload>(payload: T): string {
-  return jwt.sign(payload, JWT_CONFIG.SECRET, { expiresIn: JWT_CONFIG.EXPIRES_IN });
+export function generateToken(
+  payload: JwtPayload,
+  secret: string,
+  expiresIn: StringValue | number
+): string {
+  return jwt.sign(payload, secret, { expiresIn });
+}
+
+/**
+ * Vérifie un token JWT
+ *
+ * @param token - Token JWT
+ * @param secret - Clé secrète
+ * @returns Données du token
+ */
+export function verifyToken(token: string, secret: string): JwtPayload | null {
+  try {
+    return jwt.verify(token, secret) as JwtPayload;
+  } catch {
+    throw new AppError({
+      statusCode: 401,
+      statusText: "Unauthorized",
+      message: "Token invalide ou expiré",
+    });
+  }
 }

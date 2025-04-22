@@ -1,5 +1,5 @@
 import bcrypt from "bcrypt";
-import { DataTypes } from "sequelize";
+import { DataTypes, type ModelStatic } from "sequelize";
 import Base from "./Base.model.js";
 import Role from "./Role.model.js";
 
@@ -15,7 +15,7 @@ type AccountStatus = "active" | "suspended" | "inactive" | "deleted";
  * @extends Base
  */
 
-class Account extends Base {
+abstract class Account extends Base {
   declare id: string;
   declare role_id: number;
   declare email: string;
@@ -144,12 +144,12 @@ class Account extends Base {
    * Ces hooks seront hérités par les modèles enfants.
    */
   public static addPasswordHooks(): void {
-    this.beforeCreate(async (account: Account) => {
+    (this as unknown as ModelStatic<Account>).beforeCreate(async (account: Account) => {
       const salt = await bcrypt.genSalt(10);
       account.password = await bcrypt.hash(account.password, salt);
     });
 
-    this.beforeUpdate(async (account: Account) => {
+    (this as unknown as ModelStatic<Account>).beforeUpdate(async (account: Account) => {
       if (account.changed("password")) {
         const salt = await bcrypt.genSalt(10);
         account.password = await bcrypt.hash(account.password, salt);
@@ -166,7 +166,7 @@ class Account extends Base {
     }
 
     try {
-      const [affectedRows] = await this.update(
+      const [affectedRows] = await (this as unknown as ModelStatic<Account>).update(
         { deleted_at: new Date(), status: "deleted" },
         {
           where: { id },
@@ -198,7 +198,7 @@ class Account extends Base {
     }
 
     try {
-      const [affectedRows] = await this.update(
+      const [affectedRows] = await (this as unknown as ModelStatic<Account>).update(
         { suspended_at: new Date(), status: "suspended" },
         {
           where: { id },
@@ -228,7 +228,7 @@ class Account extends Base {
     }
 
     try {
-      const [affectedRows] = await this.update(
+      const [affectedRows] = await (this as unknown as ModelStatic<Account>).update(
         { suspended_at: null, deleted_at: null, status: "active" },
         {
           where: { id },

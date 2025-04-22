@@ -1,11 +1,13 @@
+import express from "express";
+
 import config from "@/config/app.config.js";
 import connectMongo from "@/config/mongo.config.js";
 import { connectMySQL } from "@/config/mysql.config.js";
 import errorHandler from "@/middlewares/errorHandler.js";
 import adminRoutes from "@/routes/admin.route.js";
+import authRoutes from "@/routes/auth.route.js";
 import userRoutes from "@/routes/user.route.js";
 import AppError from "@/utils/AppError.js";
-import express from "express";
 
 const app = express();
 const PORT = config.server.port;
@@ -16,8 +18,9 @@ app.get("/", (req, res) => {
   res.send("Bienvenue sur le serveur!");
 });
 
-app.use("/api/v1/user", userRoutes);
-app.use("/api/v1/admin", adminRoutes);
+app.use("/api/v1/auth", authRoutes); // Routes d'authentification
+app.use("/api/v1/user", userRoutes); // Routes d'utilisateur
+app.use("/api/v1/admin", adminRoutes); // Routes d'administrateur
 
 app.use((req, res, next) => {
   next(

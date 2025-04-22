@@ -14,6 +14,8 @@ const config = {
     env: process.env.NODE_ENV ?? "development",
     port: process.env.PORT ?? 8080,
     url: process.env.SERVER_URL ?? "http://localhost:8080",
+    jwt_secret: getEnvVar("JWT_SECRET"),
+    jwt_refresh_secret: getEnvVar("JWT_REFRESH_SECRET"),
   },
   mysql: {
     port: Number(process.env.MYSQL_DB_PORT) || 3306,
