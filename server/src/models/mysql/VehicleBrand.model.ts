@@ -1,5 +1,6 @@
-import { sequelize } from "@/config/mysql.config.js";
 import { DataTypes, Model } from "sequelize";
+
+import { sequelize } from "@/config/mysql.config.js";
 
 /**
  * Modèle représentant une marque de véhicule.

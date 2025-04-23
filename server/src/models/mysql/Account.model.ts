@@ -1,9 +1,11 @@
+import type { ModelStatic } from "sequelize";
+
 import bcrypt from "bcrypt";
-import { DataTypes, type ModelStatic } from "sequelize";
+import { DataTypes } from "sequelize";
 import Base from "./Base.model.js";
 import Role from "./Role.model.js";
 
-type AccountStatus = "active" | "suspended" | "inactive" | "deleted";
+type AccountStatus = "active" | "suspended";
 
 /**
  * Modèle représentant un compte générique.
@@ -125,14 +127,8 @@ abstract class Account extends Base {
         type: DataTypes.DATE,
         allowNull: true,
       },
-      deleted_at: {
-        type: DataTypes.DATE,
-        allowNull: true,
-      },
       status: {
-        type: DataTypes.ENUM(
-          ...(["active", "suspended", "inactive", "deleted"] as AccountStatus[])
-        ),
+        type: DataTypes.ENUM(...(["active", "suspended"] as AccountStatus[])),
         defaultValue: "active",
       },
       ...additionalAttributes,
@@ -143,110 +139,18 @@ abstract class Account extends Base {
    * Hooks statiques pour le hachage de mot de passe.
    * Ces hooks seront hérités par les modèles enfants.
    */
-  public static addPasswordHooks(): void {
-    (this as unknown as ModelStatic<Account>).beforeCreate(async (account: Account) => {
+  public static addPasswordHooks<T extends Account>(this: ModelStatic<T>) {
+    this.beforeCreate(async (account: T) => {
       const salt = await bcrypt.genSalt(10);
       account.password = await bcrypt.hash(account.password, salt);
     });
 
-    (this as unknown as ModelStatic<Account>).beforeUpdate(async (account: Account) => {
+    this.beforeUpdate(async (account: T) => {
       if (account.changed("password")) {
         const salt = await bcrypt.genSalt(10);
         account.password = await bcrypt.hash(account.password, salt);
       }
     });
-  }
-
-  /**
-   * Soft-delete d'un compte à partir de son identifiant.
-   */
-  public static async deleteOneSoft(id: string): Promise<number> {
-    if (!id || typeof id !== "string") {
-      throw new Error(`L'id du compte doit être une chaîne de caractères.`);
-    }
-
-    try {
-      const [affectedRows] = await (this as unknown as ModelStatic<Account>).update(
-        { deleted_at: new Date(), status: "deleted" },
-        {
-          where: { id },
-          individualHooks: true,
-        }
-      );
-
-      if (affectedRows === 0) {
-        throw new Error(`Le compte avec l'identifiant ${id} est introuvable.`);
-      }
-
-      return affectedRows;
-    } catch (err) {
-      const message = `[${
-        this.name
-      }] deleteOneSoft → Suppression partielle du compte impossible : ${
-        err instanceof Error ? err.message : String(err)
-      }`;
-      throw new Error(message);
-    }
-  }
-
-  /**
-   * Suspend un compte en définissant la date de suspension et le statut.
-   */
-  public static async suspendOne(id: string): Promise<number> {
-    if (!id || typeof id !== "string") {
-      throw new Error(`L'id du compte doit être une chaîne de caractères.`);
-    }
-
-    try {
-      const [affectedRows] = await (this as unknown as ModelStatic<Account>).update(
-        { suspended_at: new Date(), status: "suspended" },
-        {
-          where: { id },
-          individualHooks: true,
-        }
-      );
-
-      if (affectedRows === 0) {
-        throw new Error(`Le compte avec l'identifiant ${id} est introuvable.`);
-      }
-
-      return affectedRows;
-    } catch (err) {
-      const message = `[${this.name}] suspendOne → Suspension du compte impossible : ${
-        err instanceof Error ? err.message : String(err)
-      }`;
-      throw new Error(message);
-    }
-  }
-
-  /**
-   * Réactive un compte en réinitialisant les champs de suspension et de suppression.
-   */
-  public static async reactivateOne(id: string): Promise<number> {
-    if (!id || typeof id !== "string") {
-      throw new Error(`L'id du compte doit être une chaîne de caractères.`);
-    }
-
-    try {
-      const [affectedRows] = await (this as unknown as ModelStatic<Account>).update(
-        { suspended_at: null, deleted_at: null, status: "active" },
-        {
-          where: { id },
-          individualHooks: true,
-        }
-      );
-
-      if (affectedRows === 0) {
-        throw new Error(`Le compte avec l'identifiant ${id} est introuvable.`);
-      }
-
-      return affectedRows;
-    } catch (err) {
-      const message = `[${this.name}] reactivateOne → Réactivation du compte impossible : ${
-        err instanceof Error ? err.message : String(err)
-      }`;
-      throw new Error(message);
-    }
   }
 
   async checkPassword(password: string): Promise<boolean> {
@@ -256,6 +160,26 @@ abstract class Account extends Base {
   async updateLastLogin(): Promise<void> {
     this.last_login = new Date();
     await this.save();
+  }
+
+  async suspend(): Promise<void> {
+    this.status = "suspended";
+    this.suspended_at = new Date();
+    await this.save();
+  }
+
+  async unsuspend(): Promise<void> {
+    this.status = "active";
+    this.suspended_at = null;
+    await this.save();
+  }
+
+  isActive(): boolean {
+    return this.status === "active";
+  }
+
+  isSuspended(): boolean {
+    return this.status === "suspended";
   }
 }
 

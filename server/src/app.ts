@@ -1,3 +1,4 @@
+import cookieParser from "cookie-parser";
 import express from "express";
 
 import config from "@/config/app.config.js";
@@ -12,15 +13,16 @@ import AppError from "@/utils/AppError.js";
 const app = express();
 const PORT = config.server.port;
 
+app.use(cookieParser());
 app.use(express.json());
 
 app.get("/", (req, res) => {
   res.send("Bienvenue sur le serveur!");
 });
 
-app.use("/api/v1/auth", authRoutes); // Routes d'authentification
-app.use("/api/v1/user", userRoutes); // Routes d'utilisateur
-app.use("/api/v1/admin", adminRoutes); // Routes d'administrateur
+app.use("/api/v1/auth", authRoutes);
+app.use("/api/v1/user", userRoutes);
+app.use("/api/v1/admin", adminRoutes);
 
 app.use((req, res, next) => {
   next(
@@ -30,6 +32,7 @@ app.use((req, res, next) => {
       message: "La ressource demandée n'a pas été trouvée.",
       details: {
         path: req.originalUrl,
+
         method: req.method,
       },
     })

@@ -1,6 +1,8 @@
 import dotenv from "dotenv";
 dotenv.config();
 
+import type { StringValue } from "ms";
+
 function getEnvVar(name: string): string {
   const value = process.env[name];
   if (!value) {
@@ -12,10 +14,13 @@ function getEnvVar(name: string): string {
 const config = {
   server: {
     env: process.env.NODE_ENV ?? "development",
-    port: process.env.PORT ?? 8080,
+    port: Number(process.env.PORT ?? 8080),
     url: process.env.SERVER_URL ?? "http://localhost:8080",
-    jwt_secret: getEnvVar("JWT_SECRET"),
-    jwt_refresh_secret: getEnvVar("JWT_REFRESH_SECRET"),
+  },
+  jwt: {
+    access_secret: getEnvVar("JWT_ACCESS_SECRET"),
+    access_expiration: (process.env.JWT_ACCESS_EXPIRATION as StringValue) ?? "15m", // 15 minutes
+    refresh_expiration: (process.env.JWT_REFRESH_EXPIRATION as StringValue) ?? "7d", // 7 jours
   },
   mysql: {
     port: Number(process.env.MYSQL_DB_PORT) || 3306,

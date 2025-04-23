@@ -1,3 +1,4 @@
+import Account from "./Account.model.js";
 import Admin from "./Admin.model.js";
 import Booking from "./Booking.model.js";
 import Employee from "./Employee.model.js";
@@ -45,6 +46,7 @@ Booking.belongsTo(Ride, { foreignKey: "ride_id", as: "ride" });
 Booking.belongsTo(User, { foreignKey: "passenger_id", as: "passenger" });
 
 export {
+  Account,
   Admin,
   Booking,
   Employee,

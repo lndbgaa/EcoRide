@@ -16,6 +16,11 @@ Admin.init(Account.defineAttributes(ACCOUNT_ROLES_ID.ADMIN), {
   timestamps: true,
   createdAt: "created_at",
   updatedAt: "updated_at",
+  defaultScope: {
+    where: {
+      role_id: ACCOUNT_ROLES_ID.ADMIN,
+    },
+  },
 });
 
 Admin.beforeValidate((admin: Admin) => {

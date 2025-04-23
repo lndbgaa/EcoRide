@@ -1,8 +1,9 @@
-import AppError from "@/utils/AppError.js";
 import type { NextFunction, Request, Response } from "express";
 
+import AppError from "@/utils/AppError.js";
+
 /**
- * Middleware pour vérifier si l'utilisateur connecté est dans un des rôles spécifiés
+ * Middleware de vérification du rôle de l'utilisateur (autorisation)
  */
 const requireRole = (roles: string[]) => {
   return (req: Request, res: Response, next: NextFunction): void => {

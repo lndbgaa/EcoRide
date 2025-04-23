@@ -1,7 +1,8 @@
+import { DataTypes } from "sequelize";
+
 import { sequelize } from "@/config/mysql.config.js";
 import { ACCOUNT_ROLES_ID } from "@/constants/index.js";
 import { getAge } from "@/utils/date.utils.js";
-import { DataTypes } from "sequelize";
 import Account from "./Account.model.js";
 import Review from "./Review.model.js";
 
@@ -141,6 +142,11 @@ User.init(
     timestamps: true,
     createdAt: "created_at",
     updatedAt: "updated_at",
+    defaultScope: {
+      where: {
+        role_id: ACCOUNT_ROLES_ID.USER,
+      },
+    },
   }
 );
 

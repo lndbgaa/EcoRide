@@ -1,10 +1,16 @@
+import ms from "ms";
+import { nanoid } from "nanoid";
+
 import config from "@/config/app.config.js";
-import { Admin, Employee, RefreshToken, User } from "@/models/mysql/index.js";
+import { sequelize } from "@/config/mysql.config.js";
+import { Employee, RefreshToken, User } from "@/models/mysql/index.js";
 import AccountService from "@/services/account.service.js";
 import AppError from "@/utils/AppError.js";
 import { generateToken } from "@/utils/jwt.utils.js";
 
-type AccountType = typeof User | typeof Admin | typeof Employee;
+type AccountModel = typeof User | typeof Employee;
+
+type AccountRole = "user" | "employee";
 
 type RegisterData = {
   email: string;
@@ -14,24 +20,30 @@ type RegisterData = {
   lastName: string;
 };
 
+const { access_secret, access_expiration, refresh_expiration } = config.jwt;
+
 class AuthService {
   /**
-   * Création d'un compte (user, admin, employee)
+   * Création d'un compte (utilisateur ou employé)
    *
-   * @param model - Modèle de compte à enregistrer (User, Employee)
-   * @param role - Rôle du compte (user, employee)
-   * @param data - Données du compte (email, pseudo, password, firstName, lastName)
-   * @returns JWT du compte
+   * @param model - Modèle de compte à enregistrer
+   * @param role - Rôle du compte
+   * @param data - Données du compte
+   * @returns Jeton d'accès (access token) du compte
    */
-  public static async register(model: AccountType, role: string, data: RegisterData) {
+  public static async register(
+    model: AccountModel,
+    role: AccountRole,
+    data: RegisterData
+  ): Promise<{ accessToken: string | null; refreshToken: string | null }> {
     const { email, pseudo, password, firstName, lastName } = data;
 
     const emailExists = await AccountService.doesEmailExist(email);
 
     if (emailExists) {
       throw new AppError({
-        statusCode: 400,
-        statusText: "Bad Request",
+        statusCode: 409,
+        statusText: "Conflict",
         message: "Un compte avec cet email existe déjà.",
       });
     }
@@ -40,39 +52,64 @@ class AuthService {
 
     if (pseudoExists) {
       throw new AppError({
-        statusCode: 400,
-        statusText: "Bad Request",
+        statusCode: 409,
+        statusText: "Conflict",
         message: "Le pseudo est déjà pris.",
       });
     }
 
-    const newAccount = await model.createOne({
-      email,
-      pseudo,
-      password,
-      first_name: firstName,
-      last_name: lastName,
+    // Un compte employé est créer par un admin = pas de refresh token à l'inscription
+    if (role === "employee") {
+      await model.createOne({
+        email,
+        pseudo,
+        password,
+        first_name: firstName,
+        last_name: lastName,
+      });
+
+      return { accessToken: null, refreshToken: null };
+    }
+
+    // Un compte ne peut pas être créer dans la BDD sans un refresh token et inversement = transaction
+    return await sequelize.transaction(async (transaction) => {
+      const account = await model.createOne(
+        {
+          email,
+          pseudo,
+          password,
+          first_name: firstName,
+          last_name: lastName,
+        },
+        { transaction }
+      );
+
+      const refreshToken = await RefreshToken.createOne(
+        {
+          account_id: account.id,
+          token: nanoid(),
+          expires_at: new Date(Date.now() + ms(refresh_expiration)),
+        },
+        { transaction }
+      );
+
+      const accessToken = generateToken({ id: account.id, role }, access_secret, access_expiration);
+
+      return { accessToken, refreshToken: refreshToken.token };
     });
-
-    await RefreshToken.createOne({
-      account_id: newAccount.id,
-      token: generateToken({ id: newAccount.id, role }, config.server.jwt_refresh_secret, "7d"),
-      expires_at: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 jours
-    });
-
-    const accessToken = generateToken({ id: newAccount.id, role }, config.server.jwt_secret, "1h");
-
-    return { accessToken };
   }
 
   /**
-   * Connexion d'un compte (user, admin, employee)
+   * Connexion d'un compte (utilisateur, employé, administrateur)
    *
    * @param email - Email du compte
    * @param password - Mot de passe du compte
-   * @returns JWT du compte
+   * @returns Jeton d'accès (access token) du compte
    */
-  public static async login(email: string, password: string) {
+  public static async login(
+    email: string,
+    password: string
+  ): Promise<{ accessToken: string; refreshToken: string }> {
     const account = await AccountService.findOneByEmail(email);
 
     if (!account || !(await account.checkPassword(password))) {
@@ -83,34 +120,90 @@ class AuthService {
       });
     }
 
-    await RefreshToken.createOne({
-      account_id: account.id,
-      token: generateToken(
-        { id: account.id, role: account.role?.label ?? "user" },
-        config.server.jwt_refresh_secret,
-        "7d"
-      ),
-      expires_at: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 jours
+    if (account.isSuspended()) {
+      throw new AppError({
+        statusCode: 403,
+        statusText: "Forbidden",
+        message: "Le compte est suspendu.",
+      });
+    }
+
+    const role = account.role?.label ?? "user";
+
+    return await sequelize.transaction(async (transaction) => {
+      await account.updateLastLogin();
+
+      await RefreshToken.deleteHardByField("account_id", account.id, {
+        transaction,
+      });
+
+      const refreshToken = await RefreshToken.createOne(
+        {
+          account_id: account.id,
+          token: nanoid(),
+          expires_at: new Date(Date.now() + ms(refresh_expiration)),
+        },
+        { transaction }
+      );
+
+      const accessToken = generateToken({ id: account.id, role }, access_secret, access_expiration);
+
+      return { accessToken, refreshToken: refreshToken.token };
     });
-
-    const accessToken = generateToken(
-      { id: account.id, role: account.role?.label ?? "user" },
-      config.server.jwt_secret,
-      "1h"
-    );
-
-    return { accessToken };
   }
 
   /**
-   * Déconnexion d'un utilisateur
+   * Déconnexion d'un compte (utilisateur, employé, administrateur)
    *
-   * =Détruit le jeton de rafraîchissement
-   *
-   * @param account_id - ID du compte
+   * @param refreshToken - Jeton de rafraîchissement (refresh token)
    */
-  public static async logout(account_id: string) {
-    await RefreshToken.deleteHardByField("account_id", account_id);
+  public static async logout(refreshToken: string): Promise<void> {
+    await RefreshToken.deleteHardByField("token", refreshToken);
+  }
+
+  /**
+   * Génération d'un nouveau jeton d'accès (access token)
+   *
+   * @param refreshToken - Jeton de rafraîchissement (refresh token)
+   * @returns Jeton d'accès (access token) du compte
+   */
+  public static async refreshAccessToken(refreshToken: string): Promise<{ accessToken: string }> {
+    const tokenRecord = await RefreshToken.findOneByField("token", refreshToken);
+
+    if (!tokenRecord) {
+      throw new AppError({
+        statusCode: 403,
+        statusText: "Forbidden",
+        message: "Token de rafraîchissement invalide. L'utilisateur n'est pas connecté.",
+      });
+    }
+
+    if (tokenRecord.expires_at < new Date()) {
+      await RefreshToken.deleteHardByField("token", refreshToken);
+      throw new AppError({
+        statusCode: 401,
+        statusText: "Unauthorized",
+        message: "Token de rafraîchissement expiré. L'utilisateur doit se reconnecter.",
+      });
+    }
+
+    const account = await AccountService.findOneById(tokenRecord.account_id);
+
+    if (!account) {
+      throw new AppError({
+        statusCode: 404,
+        statusText: "Not Found",
+        message: "Compte introuvable. Le compte a peut-être été supprimé.",
+      });
+    }
+
+    const newAccessToken = generateToken(
+      { id: account.id, role: account.role?.label ?? "user" },
+      access_secret,
+      access_expiration
+    );
+
+    return { accessToken: newAccessToken };
   }
 }
 

@@ -1,6 +1,7 @@
-import catchAsync from "@/utils/catchAsync.js";
 import type { NextFunction, Request, Response } from "express";
 import type { ObjectSchema } from "joi";
+
+import catchAsync from "@/utils/catchAsync.js";
 
 /**
  * Middleware de validation des données entrantes via Joi

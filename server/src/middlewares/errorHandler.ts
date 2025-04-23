@@ -1,7 +1,8 @@
+import type { ErrorRequestHandler, NextFunction, Request, Response } from "express";
+
 import config from "@/config/app.config.js";
 import AppError from "@/utils/AppError.js";
 import logError from "@/utils/logError.js";
-import type { ErrorRequestHandler, NextFunction, Request, Response } from "express";
 
 const errorHandler: ErrorRequestHandler = (
   err: Error,

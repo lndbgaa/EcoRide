@@ -50,6 +50,11 @@ Employee.init(Account.defineAttributes(ACCOUNT_ROLES_ID.EMPLOYEE), {
   timestamps: true,
   createdAt: "created_at",
   updatedAt: "updated_at",
+  defaultScope: {
+    where: {
+      role_id: ACCOUNT_ROLES_ID.EMPLOYEE,
+    },
+  },
 });
 
 Employee.beforeValidate((employee: Employee) => {

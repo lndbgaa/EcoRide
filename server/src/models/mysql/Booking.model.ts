@@ -1,6 +1,8 @@
-import { sequelize } from "@/config/mysql.config.js";
-import type { FindOptions } from "sequelize";
 import { DataTypes, UUIDV4 } from "sequelize";
+
+import type { FindOptions } from "sequelize";
+
+import { sequelize } from "@/config/mysql.config.js";
 import Base from "./Base.model.js";
 import Ride, { type RidePublicDTO } from "./Ride.model.js";
 import User, { type UserPublicDTO } from "./User.model.js";

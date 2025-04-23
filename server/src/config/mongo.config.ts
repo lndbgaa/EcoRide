@@ -1,5 +1,6 @@
-import config from "@/config/app.config.js";
 import mongoose from "mongoose";
+
+import config from "@/config/app.config.js";
 
 const connectMongo = async (): Promise<void> => {
   const uri = config.mongo.uri;

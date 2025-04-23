@@ -1,40 +1,84 @@
-import User from "@/models/mysql/User.model";
-import AuthService from "@/services/auth.service.js";
-import catchAsync from "@/utils/catchAsync.js";
-import type { Request, Response } from "express";
-import { ACCOUNT_ROLES_LABEL } from "../constants";
+import ms from "ms";
 
-/**
- * Gère l'inscription d'un utilisateur standard
- *
- * (Les employés sont gérés par l'admin avec /admin/create-employee)
- */
+import type { Request, Response } from "express";
+
+import config from "@/config/app.config.js";
+import { ACCOUNT_ROLES_LABEL } from "@/constants/index.js";
+import User from "@/models/mysql/User.model.js";
+import AuthService from "@/services/auth.service.js";
+import AppError from "@/utils/AppError.js";
+import catchAsync from "@/utils/catchAsync.js";
+
+const { env } = config.server;
+const { refresh_expiration } = config.jwt;
+
+// 🔑 Création d'un compte (utilisateur)
 export const registerUser = catchAsync(async (req: Request, res: Response) => {
   const data = req.body;
 
-  const token = await AuthService.register(User, ACCOUNT_ROLES_LABEL.USER, data);
+  const { accessToken, refreshToken } = await AuthService.register(
+    User,
+    ACCOUNT_ROLES_LABEL.USER,
+    data
+  );
 
-  return res.status(200).json({ success: true, token });
+  res.cookie("refreshToken", refreshToken, {
+    httpOnly: true,
+    secure: env === "production",
+    sameSite: "lax",
+    maxAge: ms(refresh_expiration),
+  });
+
+  return res.status(201).json({ success: true, accessToken });
 });
 
-/**
- * Gère la connexion de tout type de compte (user, admin, employee)
- */
+// 🔑 Connexion d'un compte (utilisateur, employé, administrateur)
 export const login = catchAsync(async (req: Request, res: Response) => {
   const { email, password } = req.body;
 
-  const token = await AuthService.login(email, password);
+  const { accessToken, refreshToken } = await AuthService.login(email, password);
 
-  res.status(200).json({ success: true, token });
+  res.cookie("refreshToken", refreshToken, {
+    httpOnly: true,
+    secure: env === "production",
+    sameSite: "lax",
+    maxAge: ms(refresh_expiration),
+  });
+  res.status(200).json({ success: true, accessToken });
 });
 
-/**
- * Gère la déconnexion d'un compte
- */
+// 🔑 Déconnexion d'un compte (utilisateur, employé, administrateur)
 export const logout = catchAsync(async (req: Request, res: Response) => {
-  const { accountId } = req.body;
+  const refreshToken = req.cookies.refreshToken;
 
-  await AuthService.logout(accountId);
+  if (!refreshToken) {
+    throw new AppError({
+      statusCode: 401,
+      statusText: "Unauthorized",
+      message: "Token de rafraîchissement manquant.",
+    });
+  }
+
+  await AuthService.logout(refreshToken);
+
+  res.clearCookie("refreshToken");
 
   res.status(200).json({ success: true });
+});
+
+// 🔑 Rafraîchissement d'un jeton d'accès (utilisateur, employé, administrateur)
+export const refreshToken = catchAsync(async (req: Request, res: Response) => {
+  const refreshToken = req.cookies.refreshToken;
+
+  if (!refreshToken) {
+    throw new AppError({
+      statusCode: 401,
+      statusText: "Unauthorized",
+      message: "Token de rafraîchissement manquant.",
+    });
+  }
+
+  const { accessToken } = await AuthService.refreshAccessToken(refreshToken);
+
+  res.status(200).json({ success: true, accessToken });
 });

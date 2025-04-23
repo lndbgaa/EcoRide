@@ -27,12 +27,11 @@ CREATE TABLE accounts (
   is_passenger BOOLEAN,
   average_rating DECIMAL(3,2),
   credits INT CHECK (credits >= 0),
-  status ENUM('active', 'suspended', 'inactive', 'deleted') DEFAULT 'active',
+  status ENUM('active', 'suspended') DEFAULT 'active',
   last_login TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   suspended_at TIMESTAMP,
-  deleted_at TIMESTAMP,
   FOREIGN KEY (role_id) REFERENCES roles(id) ON UPDATE CASCADE ON DELETE RESTRICT
 );
 
@@ -40,7 +39,7 @@ CREATE TABLE accounts (
 CREATE TABLE refresh_tokens (
   id INT AUTO_INCREMENT PRIMARY KEY,
   account_id CHAR(36) NOT NULL,
-  token VARCHAR(255) NOT NULL,
+  token VARCHAR(21) NOT NULL,
   expires_at TIMESTAMP NOT NULL,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,

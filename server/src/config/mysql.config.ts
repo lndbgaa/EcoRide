@@ -1,5 +1,6 @@
-import config from "@/config/app.config.js";
 import { Sequelize } from "sequelize";
+
+import config from "@/config/app.config.js";
 
 const { port, host, user, password, database } = config.mysql;
 

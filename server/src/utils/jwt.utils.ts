@@ -11,6 +11,8 @@ interface JwtPayload {
  * Génère un token JWT pour un compte
  *
  * @param payload - Données à inclure dans le token
+ * @param secret - Clé secrète
+ * @param expiresIn - Durée de validité du token
  * @returns Token JWT
  */
 export function generateToken(
@@ -28,7 +30,7 @@ export function generateToken(
  * @param secret - Clé secrète
  * @returns Données du token
  */
-export function verifyToken(token: string, secret: string): JwtPayload | null {
+export function verifyToken(token: string, secret: string): JwtPayload {
   try {
     return jwt.verify(token, secret) as JwtPayload;
   } catch {
