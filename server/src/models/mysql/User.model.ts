@@ -2,7 +2,7 @@ import { DataTypes } from "sequelize";
 
 import { sequelize } from "@/config/mysql.config.js";
 import { ACCOUNT_ROLES_ID } from "@/constants/index.js";
-import { getAge } from "@/utils/date.utils.js";
+import { getAge, toDateOnly } from "@/utils/date.utils.js";
 import Account from "./Account.model.js";
 import Review from "./Review.model.js";
 
@@ -25,6 +25,7 @@ export interface UserPrivateDTO extends UserPublicDTO {
   isPassenger: boolean;
   isDriver: boolean;
   credits: number;
+  lastLogin: string | null;
 }
 
 /**
@@ -99,12 +100,7 @@ class User extends Account {
     return this.is_passenger;
   }
 
-  /**
-   * Retourne les informations publiques de l'utilisateur.
-   *
-   * 💡 Utile lorsque ces informations sont consultées par un autre utilisateur (ex: liste passagers covoiturage).
-   */
-  toPublicJSON(): UserPublicDTO {
+  toPublicDTO(): UserPublicDTO {
     return {
       id: this.id,
       pseudo: this.pseudo,
@@ -115,14 +111,9 @@ class User extends Account {
     };
   }
 
-  /**
-   * Retourne les informations privées de l'utilisateur.
-   *
-   * 💡 Utile lorsque l'utilisateur lui-même consulte son profil.
-   */
-  toPrivateJSON(): UserPrivateDTO {
+  toPrivateDTO(): UserPrivateDTO {
     return {
-      ...this.toPublicJSON(),
+      ...this.toPublicDTO(),
       email: this.email,
       firstName: this.first_name,
       lastName: this.last_name,
@@ -132,6 +123,7 @@ class User extends Account {
       isPassenger: this.is_passenger,
       isDriver: this.is_driver,
       credits: this.credits,
+      lastLogin: this.last_login ? toDateOnly(this.last_login) : null,
     };
   }
 }

@@ -25,6 +25,12 @@ class PreferenceService {
     return preference;
   }
 
+  public static async getPreferences(userId: string): Promise<Preference[]> {
+    const preferences = await Preference.findAllByField("user_id", userId);
+
+    return preferences;
+  }
+
   public static async createPreference(userId: string, data: any) {
     await UserService.assertUserIsDriverOrThrow(userId);
 

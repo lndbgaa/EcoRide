@@ -1,6 +1,6 @@
 import type { MulterRequest } from "@/types/express.js";
 import type { CreatePreferenceData } from "@/types/preference.types.js";
-import type { UpdateUserInfo, UserRole } from "@/types/user.types.js";
+import type { UpdateUserData, UserRole } from "@/types/user.types.js";
 import type { CreateVehicleData, UpdateVehicleData } from "@/types/vehicle.types.js";
 import type { Request, Response } from "express";
 
@@ -11,13 +11,28 @@ import AppError from "@/utils/AppError.js";
 import catchAsync from "@/utils/catchAsync.js";
 
 /**
+ * Gère la récupération des informations de profil d'un utilisateur
+ */
+export const getUserInfo = catchAsync(async (req: Request, res: Response): Promise<void> => {
+  const userId: string = req.user.id;
+
+  const user = await UserService.getUserInfo(userId);
+
+  res.status(200).json({
+    success: true,
+    message: "Informations de profil récupérées avec succès.",
+    data: user.toPrivateDTO(),
+  });
+});
+
+/**
  * Gère la mise à jour des informations de profil d'un utilisateur
  */
 export const updateUserInfo = catchAsync(async (req: Request, res: Response): Promise<void> => {
   const userId: string = req.user.id;
-  const data: UpdateUserInfo = req.body;
+  const data: UpdateUserData = req.body;
 
-  const updatedData: UpdateUserInfo = await UserService.updateInfo(userId, data);
+  const updatedData: UpdateUserData = await UserService.updateInfo(userId, data);
 
   res.status(200).json({
     success: true,
@@ -66,6 +81,21 @@ export const updateUserAvatar = catchAsync(
 );
 
 /**
+ * Gère la récupération des véhicules d'un utilisateur (chauffeur)
+ */
+export const getUserVehicles = catchAsync(async (req: Request, res: Response): Promise<void> => {
+  const userId: string = req.user.id;
+
+  const vehicles = await VehicleService.getVehicles(userId);
+
+  res.status(200).json({
+    success: true,
+    message: "Véhicules récupérés avec succès.",
+    data: vehicles.map((vehicle) => vehicle.toPrivateDTO()),
+  });
+});
+
+/**
  * Gère la création d'un véhicule par un utilisateur (chauffeur)
  */
 export const addVehicleToProfile = catchAsync(
@@ -111,6 +141,21 @@ export const deleteVehicleFromProfile = catchAsync(
     res.status(200).json({ success: true, message: "Véhicule supprimé avec succès." });
   }
 );
+
+/**
+ * Gère la récupération des préférences d'un utilisateur (chauffeur)
+ */
+export const getUserPreferences = catchAsync(async (req: Request, res: Response): Promise<void> => {
+  const userId: string = req.user.id;
+
+  const preferences = await PreferenceService.getPreferences(userId);
+
+  res.status(200).json({
+    success: true,
+    message: "Préférences récupérées avec succès.",
+    data: preferences.map((preference) => preference.toPublicDTO()),
+  });
+});
 
 /**
  * Gère l'ajout d'une préférence par un utilisateur (chauffeur)

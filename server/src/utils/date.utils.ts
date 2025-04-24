@@ -27,10 +27,11 @@ export function getDuration(start: Date, end: Date): number {
  * Retourne l'âge en années à partir d'une date de naissance
  */
 export function getAge(birthDate: Date): string {
+  const date = new Date(birthDate);
   const today = new Date();
-  let age = today.getFullYear() - birthDate.getFullYear();
+  let age = today.getFullYear() - date.getFullYear();
 
-  if (today < new Date(today.getFullYear(), birthDate.getMonth(), birthDate.getDate())) {
+  if (today < new Date(today.getFullYear(), date.getMonth(), date.getDate())) {
     age--;
   }
 

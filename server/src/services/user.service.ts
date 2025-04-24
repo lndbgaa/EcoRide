@@ -1,11 +1,11 @@
-import type { UserInfo, UserRole } from "@/types/user.types.js";
+import type { UpdateUserData, UserRole } from "@/types/user.types.js";
 
 import User from "@/models/mysql/User.model.js";
 import AppError from "@/utils/AppError.js";
 import uploadImage from "@/utils/upload.utils.js";
 
 class UserService {
-  public static async findUserOrThrow(userId: string) {
+  public static async findUserOrThrow(userId: string): Promise<User> {
     const user = await User.findOneByField("id", userId);
 
     if (!user) {
@@ -45,7 +45,13 @@ class UserService {
     }
   }
 
-  public static async updateInfo(userId: string, data: UserInfo): Promise<UserInfo> {
+  public static async getUserInfo(userId: string): Promise<User> {
+    const user = await this.findUserOrThrow(userId);
+
+    return user;
+  }
+
+  public static async updateInfo(userId: string, data: UpdateUserData): Promise<UpdateUserData> {
     await this.findUserOrThrow(userId);
 
     // formatage des données à mettre à jour avant de les envoyer à la base de données
@@ -61,7 +67,7 @@ class UserService {
     await User.updateByField("id", userId, dataToUpdate);
 
     // formatage des données à retourner avant de les envoyer au client
-    const result: UserInfo = {};
+    const result: UpdateUserData = {};
     if (data.firstName) result.firstName = data.firstName;
     if (data.lastName) result.lastName = data.lastName;
     if (data.birthDate) result.birthDate = data.birthDate;
@@ -72,7 +78,7 @@ class UserService {
     return result;
   }
 
-  public static async updateRole(role: UserRole, userId: string) {
+  public static async updateRole(role: UserRole, userId: string): Promise<void> {
     const user = await this.findUserOrThrow(userId);
 
     if (role === "driver") {

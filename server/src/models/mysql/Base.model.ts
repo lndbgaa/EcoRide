@@ -45,6 +45,7 @@ abstract class Base extends Model {
 
       const instances = await this.findAll({
         where: mergedWhere,
+        include: options.include ?? [],
         ...otherOptions,
       });
 
@@ -86,6 +87,7 @@ abstract class Base extends Model {
 
       const instance = await this.findOne({
         where: mergedWhere,
+        include: options.include ?? [],
         ...otherOptions,
       });
       return instance ?? null;
@@ -197,6 +199,7 @@ abstract class Base extends Model {
 
       const count = await this.count({
         where: mergedWhere,
+        include: options.include ?? [],
         ...otherOptions,
       });
       return count;

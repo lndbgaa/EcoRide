@@ -1,6 +1,6 @@
 import type { CreateVehicleData, UpdateVehicleData } from "@/types/vehicle.types.js";
 
-import Vehicle from "@/models/mysql/Vehicle.model.js";
+import { Vehicle } from "@/models/mysql/index.js";
 import UserService from "@/services/user.service.js";
 import AppError from "@/utils/AppError.js";
 
@@ -25,6 +25,19 @@ class VehicleService {
     }
 
     return vehicle;
+  }
+
+  /**
+   * Récupère tous les véhicules d'un utilisateur
+   * @param userId - L'id de l'utilisateur
+   * @returns Les véhicules de l'utilisateur
+   */
+  public static async getVehicles(userId: string): Promise<Vehicle[]> {
+    const vehicles = await Vehicle.findAllByField("owner_id", userId, {
+      include: [{ association: "brand" }, { association: "color" }, { association: "energy" }],
+    });
+
+    return vehicles;
   }
 
   /**

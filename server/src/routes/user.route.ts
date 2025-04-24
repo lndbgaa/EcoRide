@@ -18,6 +18,9 @@ import {
   addVehicleToProfile,
   deletePreferenceFromProfile,
   deleteVehicleFromProfile,
+  getUserInfo,
+  getUserPreferences,
+  getUserVehicles,
   updatePreferenceFromProfile,
   updateUserAvatar,
   updateUserInfo,
@@ -30,11 +33,12 @@ const router = Router();
 router.use(requireAuth);
 router.use(requireRole(["user"]));
 
-//router.get("/me", getUser);
+router.get("/me", getUserInfo);
 router.patch("/me/info", validate(updateInfoSchema), updateUserInfo);
-router.patch("/me/role", validate(updateRoleSchema), updateUserRole);
+router.patch("/me/roles", validate(updateRoleSchema), updateUserRole);
 router.patch("/me/avatar", multerUploads, updateUserAvatar);
 
+router.get("/me/vehicles", getUserVehicles);
 router.post("/me/vehicles", validate(addVehicleSchema), addVehicleToProfile);
 router.patch(
   "/me/vehicles/:vehicleId",
@@ -48,6 +52,7 @@ router.delete(
   deleteVehicleFromProfile
 );
 
+router.get("/me/preferences", getUserPreferences);
 router.post("/me/preferences", validate(addPreferenceSchema), addPreferenceToProfile);
 router.patch(
   "/me/preferences/:preferenceId",

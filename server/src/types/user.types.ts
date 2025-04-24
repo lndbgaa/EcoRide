@@ -1,6 +1,6 @@
 export type UserRole = "driver" | "passenger";
 
-export type UpdateUserInfo = {
+export type UpdateUserData = {
   firstName?: string;
   lastName?: string;
   pseudo?: string;
