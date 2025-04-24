@@ -5,7 +5,7 @@ import AppError from "@/utils/AppError.js";
 import uploadImage from "@/utils/upload.utils.js";
 
 class UserService {
-  private static async findUserOrThrow(userId: string) {
+  public static async findUserOrThrow(userId: string) {
     const user = await User.findOneByField("id", userId);
 
     if (!user) {
@@ -17,6 +17,32 @@ class UserService {
     }
 
     return user;
+  }
+
+  public static async assertUserIsDriverOrThrow(userId: string): Promise<void> {
+    const user = await UserService.findUserOrThrow(userId);
+
+    if (!user.isDriver()) {
+      throw new AppError({
+        statusCode: 403,
+        statusText: "Forbidden",
+        message:
+          "Seuls les utilisateurs chauffeurs peuvent accéder à cette ressource. Veuillez mettre à jour votre profil.",
+      });
+    }
+  }
+
+  public static async assertUserIsPassengerOrThrow(userId: string): Promise<void> {
+    const user = await UserService.findUserOrThrow(userId);
+
+    if (!user.isPassenger()) {
+      throw new AppError({
+        statusCode: 403,
+        statusText: "Forbidden",
+        message:
+          "Seuls les utilisateurs passagers peuvent accéder à cette ressource. Veuillez mettre à jour votre profil.",
+      });
+    }
   }
 
   public static async updateInfo(userId: string, data: UserInfo): Promise<UserInfo> {

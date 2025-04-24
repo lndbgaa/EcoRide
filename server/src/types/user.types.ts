@@ -1,4 +1,6 @@
-export type UserInfo = {
+export type UserRole = "driver" | "passenger";
+
+export type UpdateUserInfo = {
   firstName?: string;
   lastName?: string;
   pseudo?: string;
@@ -6,5 +8,3 @@ export type UserInfo = {
   phone?: string;
   address?: string;
 };
-
-export type UserRole = "driver" | "passenger";

@@ -1,6 +1,14 @@
-import { sequelize } from "@/config/mysql.config.js";
 import { DataTypes, UUIDV4 } from "sequelize";
+
+import { sequelize } from "@/config/mysql.config.js";
 import Base from "./Base.model.js";
+
+export interface PreferencePublicDTO {
+  id: string;
+  label: string;
+  value: boolean;
+  is_custom: boolean;
+}
 
 class Preference extends Base {
   declare id: string;
@@ -8,18 +16,25 @@ class Preference extends Base {
   declare label: string;
   declare value: boolean;
   declare is_custom: boolean;
+  declare created_at: Date;
+  declare updated_at: Date;
 
-  // Récupère toutes les préférences d'un utilisateur donné.
-  static async findByUser(userId: string): Promise<Preference[]> {
-    try {
-      const preferences = await this.findAll({ where: { user_id: userId } });
-      return preferences;
-    } catch (err) {
-      const message = `[${this.name}] findByUser → ${
-        err instanceof Error ? err.message : String(err)
-      }`;
-      throw new Error(message);
-    }
+  public async toggleValue(): Promise<void> {
+    this.value = !this.value;
+    await this.save();
+  }
+
+  public isDefault(): boolean {
+    return !this.is_custom;
+  }
+
+  public toPublicDTO(): PreferencePublicDTO {
+    return {
+      id: this.id,
+      label: this.label,
+      value: this.value,
+      is_custom: this.is_custom,
+    };
   }
 }
 
@@ -56,7 +71,9 @@ Preference.init(
     sequelize,
     modelName: "Preference",
     tableName: "preferences",
-    timestamps: false,
+    timestamps: true,
+    createdAt: "created_at",
+    updatedAt: "updated_at",
     indexes: [{ unique: true, fields: ["user_id", "label"] }], // pas de doublons
   }
 );

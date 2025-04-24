@@ -45,33 +45,11 @@ class Vehicle extends Base {
   declare color?: VehicleColor;
   declare energy?: VehicleEnergy;
 
-  /**
-   * Récupère tous les véhicules appartenant à un utilisateur donné.
-   */
-  static async findAllByOwner(ownerId: string): Promise<Vehicle[]> {
-    if (!ownerId || typeof ownerId !== "string") {
-      throw new Error("ID propriétaire véhicule invalide.");
-    }
-
-    return await this.findAllByField("owner_id", ownerId, {
-      include: [{ association: "brand" }, { association: "color" }, { association: "energy" }],
-    });
-  }
-
-  /**
-   * Indique si le véhicule est considéré comme éco-responsable.
-   * Déterminé par l'ID d'énergie (ex : électrique = 3, hydrogène = 9).
-   */
-  isEcoVehicle(): boolean {
+  public isEcoVehicle(): boolean {
     return ECO_ENERGY_IDS.includes(this.energy_id);
   }
 
-  /**
-   * Retourne une version "publique" du véhicule.
-   *
-   * 💡 Utile pour afficher le véhicule utiliser pour un covoiturage.
-   */
-  toPublicDTO(): VehiclePublicDTO {
+  public toPublicDTO(): VehiclePublicDTO {
     return {
       id: this.id,
       brand: this.brand?.label ?? null,
@@ -82,12 +60,7 @@ class Vehicle extends Base {
     };
   }
 
-  /**
-   * Retourne une version "privée" du véhicule.
-   *
-   * 💡 Utile pour que l'utilisateur puisse visionner ses véhicules.
-   */
-  toPrivateDTO(): VehiclePrivateDTO {
+  public toPrivateDTO(): VehiclePrivateDTO {
     return {
       ...this.toPublicDTO(),
       license_plate: this.license_plate,
@@ -187,7 +160,8 @@ Vehicle.init(
     modelName: "Vehicle",
     tableName: "vehicles",
     timestamps: true,
-    underscored: true,
+    createdAt: "created_at",
+    updatedAt: "updated_at",
   }
 );
 

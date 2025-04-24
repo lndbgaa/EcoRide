@@ -1,8 +1,12 @@
 import type { MulterRequest } from "@/types/express.js";
-import type { UserInfo } from "@/types/user.types.js";
+import type { CreatePreferenceData } from "@/types/preference.types.js";
+import type { UpdateUserInfo, UserRole } from "@/types/user.types.js";
+import type { CreateVehicleData, UpdateVehicleData } from "@/types/vehicle.types.js";
 import type { Request, Response } from "express";
 
+import PreferenceService from "@/services/preference.service.js";
 import UserService from "@/services/user.service.js";
+import VehicleService from "@/services/vehicle.service.js";
 import AppError from "@/utils/AppError.js";
 import catchAsync from "@/utils/catchAsync.js";
 
@@ -10,10 +14,10 @@ import catchAsync from "@/utils/catchAsync.js";
  * Gère la mise à jour des informations de profil d'un utilisateur
  */
 export const updateUserInfo = catchAsync(async (req: Request, res: Response): Promise<void> => {
-  const userId = req.user.id;
-  const data = req.body;
+  const userId: string = req.user.id;
+  const data: UpdateUserInfo = req.body;
 
-  const updatedData: UserInfo = await UserService.updateInfo(userId, data);
+  const updatedData: UpdateUserInfo = await UserService.updateInfo(userId, data);
 
   res.status(200).json({
     success: true,
@@ -23,11 +27,11 @@ export const updateUserInfo = catchAsync(async (req: Request, res: Response): Pr
 });
 
 /**
- * Gère la mise à jour du rôle d'un utilisateur (chauffeur/passager)
+ * Gère la mise à jour du rôle d'un utilisateur
  */
 export const updateUserRole = catchAsync(async (req: Request, res: Response): Promise<void> => {
-  const userId = req.user.id;
-  const { role } = req.body;
+  const userId: string = req.user.id;
+  const { role }: { role: UserRole } = req.body;
 
   await UserService.updateRole(role, userId);
 
@@ -39,7 +43,7 @@ export const updateUserRole = catchAsync(async (req: Request, res: Response): Pr
  */
 export const updateUserAvatar = catchAsync(
   async (req: MulterRequest, res: Response): Promise<void> => {
-    const userId = req.user.id;
+    const userId: string = req.user.id;
 
     const { file } = req;
 
@@ -62,8 +66,94 @@ export const updateUserAvatar = catchAsync(
 );
 
 /**
- * Gère la création d'un véhicule pour un utilisateur
+ * Gère la création d'un véhicule par un utilisateur (chauffeur)
  */
-export const createVehicle = catchAsync(async (req: Request, res: Response): Promise<void> => {
-  const userId = req.user.id;
-});
+export const addVehicleToProfile = catchAsync(
+  async (req: Request, res: Response): Promise<void> => {
+    const userId: string = req.user.id;
+    const data: CreateVehicleData = req.body;
+
+    const vehicle = await VehicleService.createVehicle(userId, data);
+
+    res.status(201).json({
+      success: true,
+      message: "Véhicule créé avec succès.",
+      data: vehicle.toPrivateDTO(),
+    });
+  }
+);
+
+/**
+ * Gère la mise à jour d'un véhicule par un utilisateur (chauffeur)
+ */
+export const updateVehicleFromProfile = catchAsync(
+  async (req: Request, res: Response): Promise<void> => {
+    const userId: string = req.user.id;
+    const vehicleId: string = req.params.vehicleId;
+    const data: UpdateVehicleData = req.body;
+
+    await VehicleService.updateVehicle(userId, vehicleId, data);
+
+    res.status(200).json({ success: true, message: "Véhicule mis à jour avec succès." });
+  }
+);
+
+/**
+ * Gère la suppression d'un véhicule par un utilisateur (chauffeur)
+ */
+export const deleteVehicleFromProfile = catchAsync(
+  async (req: Request, res: Response): Promise<void> => {
+    const userId: string = req.user.id;
+    const vehicleId: string = req.params.vehicleId;
+
+    await VehicleService.deleteVehicle(userId, vehicleId);
+
+    res.status(200).json({ success: true, message: "Véhicule supprimé avec succès." });
+  }
+);
+
+/**
+ * Gère l'ajout d'une préférence par un utilisateur (chauffeur)
+ */
+export const addPreferenceToProfile = catchAsync(
+  async (req: Request, res: Response): Promise<void> => {
+    const userId: string = req.user.id;
+    const data: CreatePreferenceData = req.body;
+
+    const preference = await PreferenceService.createPreference(userId, data);
+
+    res.status(201).json({
+      success: true,
+      message: "Préférence ajoutée avec succès.",
+      data: preference.toPublicDTO(),
+    });
+  }
+);
+
+/**
+ * Gère la mise à jour de la valeur d'une préférence par un utilisateur (chauffeur)
+ */
+export const updatePreferenceFromProfile = catchAsync(
+  async (req: Request, res: Response): Promise<void> => {
+    const userId: string = req.user.id;
+    const preferenceId: string = req.params.preferenceId;
+
+    await PreferenceService.togglePreferenceValue(userId, preferenceId);
+
+    res.status(200).json({ success: true, message: "Préférence mise à jour avec succès." });
+  }
+);
+
+/**
+ * Gère la suppression d'une préférence par un utilisateur (chauffeur)
+ */
+export const deletePreferenceFromProfile = catchAsync(
+  async (req: Request, res: Response): Promise<void> => {
+    const userId: string = req.user.id;
+    const preferenceId: string = req.params.preferenceId;
+
+    await PreferenceService.deletePreference(userId, preferenceId);
+
+    res.status(200).json({ success: true, message: "Préférence supprimée avec succès." });
+  }
+);

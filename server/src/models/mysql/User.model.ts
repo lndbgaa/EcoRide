@@ -91,6 +91,14 @@ class User extends Account {
     await this.save();
   }
 
+  isDriver(): boolean {
+    return this.is_driver;
+  }
+
+  isPassenger(): boolean {
+    return this.is_passenger;
+  }
+
   /**
    * Retourne les informations publiques de l'utilisateur.
    *
