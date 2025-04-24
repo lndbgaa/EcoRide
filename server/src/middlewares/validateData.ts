@@ -10,9 +10,11 @@ import catchAsync from "@/utils/catchAsync.js";
  * @returns Middleware Express
  */
 
-const validateData = (schema: ObjectSchema) => {
+const validateData = (schema: ObjectSchema, target: "body" | "params" | "query" = "body") => {
   return catchAsync(async (req: Request, res: Response, next: NextFunction) => {
-    await schema.validateAsync(req.body, { abortEarly: false, stripUnknown: true });
+    const data = req[target] ?? {};
+
+    await schema.validateAsync(data, { abortEarly: false, stripUnknown: true });
     next();
   });
 };

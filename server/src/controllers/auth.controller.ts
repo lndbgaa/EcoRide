@@ -16,7 +16,7 @@ const { refresh_expiration } = config.jwt;
 export const registerUser = catchAsync(async (req: Request, res: Response) => {
   const data = req.body;
 
-  const { accessToken, refreshToken } = await AuthService.register(
+  const { accessToken, refreshToken, expiresIn, expiresAt } = await AuthService.register(
     User,
     ACCOUNT_ROLES_LABEL.USER,
     data
@@ -29,14 +29,17 @@ export const registerUser = catchAsync(async (req: Request, res: Response) => {
     maxAge: ms(refresh_expiration),
   });
 
-  return res.status(201).json({ success: true, accessToken });
+  return res.status(201).json({ success: true, data: { accessToken, expiresIn, expiresAt } });
 });
 
 // 🔑 Connexion d'un compte (utilisateur, employé, administrateur)
 export const login = catchAsync(async (req: Request, res: Response) => {
   const { email, password } = req.body;
 
-  const { accessToken, refreshToken } = await AuthService.login(email, password);
+  const { accessToken, refreshToken, expiresIn, expiresAt } = await AuthService.login(
+    email,
+    password
+  );
 
   res.cookie("refreshToken", refreshToken, {
     httpOnly: true,
@@ -44,7 +47,7 @@ export const login = catchAsync(async (req: Request, res: Response) => {
     sameSite: "lax",
     maxAge: ms(refresh_expiration),
   });
-  res.status(200).json({ success: true, accessToken });
+  res.status(200).json({ success: true, data: { accessToken, expiresIn, expiresAt } });
 });
 
 // 🔑 Déconnexion d'un compte (utilisateur, employé, administrateur)
@@ -52,18 +55,23 @@ export const logout = catchAsync(async (req: Request, res: Response) => {
   const refreshToken = req.cookies.refreshToken;
 
   if (!refreshToken) {
-    throw new AppError({
-      statusCode: 401,
-      statusText: "Unauthorized",
-      message: "Token de rafraîchissement manquant.",
+    return res.status(200).json({
+      success: true,
+      message: "Aucune session active détectée.",
     });
   }
 
   await AuthService.logout(refreshToken);
 
-  res.clearCookie("refreshToken");
+  // Suppression immédiate du cookie côté client
+  res.clearCookie("refreshToken", {
+    httpOnly: true,
+    secure: env === "production",
+    sameSite: "lax",
+    maxAge: 0,
+  });
 
-  res.status(200).json({ success: true });
+  res.status(200).json({ success: true, message: "Déconnexion réussie. Session terminée." });
 });
 
 // 🔑 Rafraîchissement d'un jeton d'accès (utilisateur, employé, administrateur)
@@ -78,7 +86,7 @@ export const refreshToken = catchAsync(async (req: Request, res: Response) => {
     });
   }
 
-  const { accessToken } = await AuthService.refreshAccessToken(refreshToken);
+  const { accessToken, expiresIn, expiresAt } = await AuthService.refreshAccessToken(refreshToken);
 
-  res.status(200).json({ success: true, accessToken });
+  res.status(200).json({ success: true, data: { accessToken, expiresIn, expiresAt } });
 });

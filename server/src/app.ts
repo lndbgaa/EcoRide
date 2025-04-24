@@ -9,6 +9,7 @@ import adminRoutes from "@/routes/admin.route.js";
 import authRoutes from "@/routes/auth.route.js";
 import userRoutes from "@/routes/user.route.js";
 import AppError from "@/utils/AppError.js";
+import requireAuth from "./middlewares/requireAuth";
 
 const app = express();
 const PORT = config.server.port;
@@ -18,6 +19,10 @@ app.use(express.json());
 
 app.get("/", (req, res) => {
   res.send("Bienvenue sur le serveur!");
+});
+
+app.get("/test", requireAuth, (req, res) => {
+  res.send("Bienvenue!");
 });
 
 app.use("/api/v1/auth", authRoutes);

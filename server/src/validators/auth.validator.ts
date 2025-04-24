@@ -66,5 +66,3 @@ export const registerSchema = Joi.object({
     "string.max": "Le nom ne doit pas dépasser 50 caractères.",
   }),
 });
-
-export default registerSchema;

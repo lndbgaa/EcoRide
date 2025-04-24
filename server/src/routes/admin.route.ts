@@ -3,7 +3,7 @@ import { Router } from "express";
 import requireAuth from "@/middlewares/requireAuth.js";
 import requireRole from "@/middlewares/requireRole.js";
 import validate from "@/middlewares/validateData.js";
-import registerSchema from "@/validators/auth.validator.js";
+import { registerSchema } from "@/validators/auth.validator.js";
 import { idParamSchema } from "@/validators/common.validator.js";
 
 import {
@@ -18,7 +18,7 @@ router.use(requireAuth);
 router.use(requireRole(["admin"]));
 
 router.post("/employees", validate(registerSchema), registerEmployee);
-router.post("/accounts/:id/suspend", validate(idParamSchema), suspendAccount);
-router.post("/accounts/:id/unsuspend", validate(idParamSchema), unsuspendAccount);
+router.post("/accounts/:id/suspend", validate(idParamSchema, "params"), suspendAccount);
+router.post("/accounts/:id/unsuspend", validate(idParamSchema, "params"), unsuspendAccount);
 
 export default router;

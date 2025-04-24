@@ -1,3 +1,5 @@
+import Joi from "joi";
+
 import type { ErrorRequestHandler, NextFunction, Request, Response } from "express";
 
 import config from "@/config/app.config.js";
@@ -21,6 +23,13 @@ const errorHandler: ErrorRequestHandler = (
       statusText,
       message,
       details: config.server.env === "development" && details,
+    });
+  } else if (err instanceof Joi.ValidationError) {
+    res.status(400).json({
+      success: false,
+      statusCode: 400,
+      statusText: "Bad Request",
+      errors: err.details.map((detail) => detail.message),
     });
   } else {
     const statusCode = 500;

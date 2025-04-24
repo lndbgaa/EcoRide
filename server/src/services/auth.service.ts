@@ -20,6 +20,26 @@ type RegisterData = {
   lastName: string;
 };
 
+type RegisterResponse = {
+  accessToken: string | null;
+  refreshToken: string | null;
+  expiresAt: number | null;
+  expiresIn: number | null;
+};
+
+type LoginResponse = {
+  accessToken: string;
+  refreshToken: string;
+  expiresAt: number;
+  expiresIn: number;
+};
+
+type RefreshAccessTokenResponse = {
+  accessToken: string;
+  expiresAt: number;
+  expiresIn: number;
+};
+
 const { access_secret, access_expiration, refresh_expiration } = config.jwt;
 
 class AuthService {
@@ -29,13 +49,13 @@ class AuthService {
    * @param model - Modèle de compte à enregistrer
    * @param role - Rôle du compte
    * @param data - Données du compte
-   * @returns Jeton d'accès (access token) du compte
+   * @returns Jeton d'accès (access token) et de rafraîchissement (refresh token)
    */
   public static async register(
     model: AccountModel,
     role: AccountRole,
     data: RegisterData
-  ): Promise<{ accessToken: string | null; refreshToken: string | null }> {
+  ): Promise<RegisterResponse> {
     const { email, pseudo, password, firstName, lastName } = data;
 
     const emailExists = await AccountService.doesEmailExist(email);
@@ -68,7 +88,7 @@ class AuthService {
         last_name: lastName,
       });
 
-      return { accessToken: null, refreshToken: null };
+      return { accessToken: null, refreshToken: null, expiresIn: null, expiresAt: null };
     }
 
     // Un compte ne peut pas être créer dans la BDD sans un refresh token et inversement = transaction
@@ -95,7 +115,12 @@ class AuthService {
 
       const accessToken = generateToken({ id: account.id, role }, access_secret, access_expiration);
 
-      return { accessToken, refreshToken: refreshToken.token };
+      return {
+        accessToken,
+        refreshToken: refreshToken.token,
+        expiresIn: ms(access_expiration),
+        expiresAt: Date.now() + ms(access_expiration),
+      };
     });
   }
 
@@ -104,12 +129,9 @@ class AuthService {
    *
    * @param email - Email du compte
    * @param password - Mot de passe du compte
-   * @returns Jeton d'accès (access token) du compte
+   * @returns Jeton d'accès (access token) et de rafraîchissement (refresh token)
    */
-  public static async login(
-    email: string,
-    password: string
-  ): Promise<{ accessToken: string; refreshToken: string }> {
+  public static async login(email: string, password: string): Promise<LoginResponse> {
     const account = await AccountService.findOneByEmail(email);
 
     if (!account || !(await account.checkPassword(password))) {
@@ -148,7 +170,12 @@ class AuthService {
 
       const accessToken = generateToken({ id: account.id, role }, access_secret, access_expiration);
 
-      return { accessToken, refreshToken: refreshToken.token };
+      return {
+        accessToken,
+        refreshToken: refreshToken.token,
+        expiresIn: ms(access_expiration),
+        expiresAt: Date.now() + ms(access_expiration),
+      };
     });
   }
 
@@ -165,9 +192,11 @@ class AuthService {
    * Génération d'un nouveau jeton d'accès (access token)
    *
    * @param refreshToken - Jeton de rafraîchissement (refresh token)
-   * @returns Jeton d'accès (access token) du compte
+   * @returns Jeton d'accès (access token)
    */
-  public static async refreshAccessToken(refreshToken: string): Promise<{ accessToken: string }> {
+  public static async refreshAccessToken(
+    refreshToken: string
+  ): Promise<RefreshAccessTokenResponse> {
     const tokenRecord = await RefreshToken.findOneByField("token", refreshToken);
 
     if (!tokenRecord) {
@@ -180,6 +209,7 @@ class AuthService {
 
     if (tokenRecord.expires_at < new Date()) {
       await RefreshToken.deleteHardByField("token", refreshToken);
+
       throw new AppError({
         statusCode: 401,
         statusText: "Unauthorized",
@@ -197,13 +227,25 @@ class AuthService {
       });
     }
 
+    if (account.isSuspended()) {
+      throw new AppError({
+        statusCode: 403,
+        statusText: "Forbidden",
+        message: "Le compte est suspendu.",
+      });
+    }
+
     const newAccessToken = generateToken(
       { id: account.id, role: account.role?.label ?? "user" },
       access_secret,
       access_expiration
     );
 
-    return { accessToken: newAccessToken };
+    return {
+      accessToken: newAccessToken,
+      expiresIn: ms(access_expiration),
+      expiresAt: Date.now() + ms(access_expiration),
+    };
   }
 }
 
