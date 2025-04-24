@@ -5,11 +5,11 @@ import config from "@/config/app.config.js";
 import connectMongo from "@/config/mongo.config.js";
 import { connectMySQL } from "@/config/mysql.config.js";
 import errorHandler from "@/middlewares/errorHandler.js";
+import requireAuth from "@/middlewares/requireAuth.js";
 import adminRoutes from "@/routes/admin.route.js";
 import authRoutes from "@/routes/auth.route.js";
 import userRoutes from "@/routes/user.route.js";
 import AppError from "@/utils/AppError.js";
-import requireAuth from "./middlewares/requireAuth";
 
 const app = express();
 const PORT = config.server.port;
@@ -25,9 +25,9 @@ app.get("/test", requireAuth, (req, res) => {
   res.send("Bienvenue!");
 });
 
-app.use("/api/v1/auth", authRoutes);
-app.use("/api/v1/user", userRoutes);
-app.use("/api/v1/admin", adminRoutes);
+app.use("/api/v1/auth", authRoutes); // route pour l'authentification
+app.use("/api/v1/user", userRoutes); // route pour les utilisateurs
+app.use("/api/v1/admin", adminRoutes); // route pour les administrateurs
 
 app.use((req, res, next) => {
   next(

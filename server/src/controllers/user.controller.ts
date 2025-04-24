@@ -1,25 +1,45 @@
 import type { MulterRequest } from "@/types/express.js";
-import type { Response } from "express";
+import type { UserInfo } from "@/types/user.types.js";
+import type { Request, Response } from "express";
 
-import User from "@/models/mysql/User.model.js";
-import uploadImage from "@/services/upload.service.js";
+import UserService from "@/services/user.service.js";
 import AppError from "@/utils/AppError.js";
 import catchAsync from "@/utils/catchAsync.js";
 
 /**
+ * Gère la mise à jour des informations de profil d'un utilisateur
+ */
+export const updateUserInfo = catchAsync(async (req: Request, res: Response): Promise<void> => {
+  const userId = req.user.id;
+  const data = req.body;
+
+  const updatedData: UserInfo = await UserService.updateInfo(userId, data);
+
+  res.status(200).json({
+    success: true,
+    message: "Informations de profil modifiées avec succès.",
+    data: updatedData,
+  });
+});
+
+/**
+ * Gère la mise à jour du rôle d'un utilisateur (chauffeur/passager)
+ */
+export const updateUserRole = catchAsync(async (req: Request, res: Response): Promise<void> => {
+  const userId = req.user.id;
+  const { role } = req.body;
+
+  await UserService.updateRole(role, userId);
+
+  res.status(200).json({ success: true, message: "Rôle mis à jour avec succès." });
+});
+
+/**
  * Gère la mise à jour de la photo de profil d'un utilisateur
  */
-export const updateProfilePicture = catchAsync(
+export const updateUserAvatar = catchAsync(
   async (req: MulterRequest, res: Response): Promise<void> => {
-    const { id } = req.user.id;
-
-    if (!id) {
-      throw new AppError({
-        statusCode: 400,
-        statusText: "Bad Request",
-        message: "L'identifiant de l'utilisateur est requis.",
-      });
-    }
+    const userId = req.user.id;
 
     const { file } = req;
 
@@ -31,18 +51,19 @@ export const updateProfilePicture = catchAsync(
       });
     }
 
-    const { secure_url } = await uploadImage(file, `ecoride/users/${id}/profile-picture`);
+    const { url } = await UserService.updateAvatar(file, userId);
 
-    const updatedRows = await User.updateByField("id", id, { profile_picture: secure_url });
-
-    if (updatedRows === 0) {
-      throw new AppError({
-        statusCode: 404,
-        statusText: "Not Found",
-        message: "Utilisateur introuvable ou image non mise à jour.",
-      });
-    }
-
-    res.status(200).json({ success: true, url: secure_url });
+    res.status(200).json({
+      success: true,
+      message: "Photo de profil mise à jour avec succès.",
+      data: { avatar: url },
+    });
   }
 );
+
+/**
+ * Gère la création d'un véhicule pour un utilisateur
+ */
+export const createVehicle = catchAsync(async (req: Request, res: Response): Promise<void> => {
+  const userId = req.user.id;
+});

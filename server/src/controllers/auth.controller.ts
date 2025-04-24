@@ -13,7 +13,7 @@ const { env } = config.server;
 const { refresh_expiration } = config.jwt;
 
 // 🔑 Création d'un compte (utilisateur)
-export const registerUser = catchAsync(async (req: Request, res: Response) => {
+export const registerUser = catchAsync(async (req: Request, res: Response): Promise<void> => {
   const data = req.body;
 
   const { accessToken, refreshToken, expiresIn, expiresAt } = await AuthService.register(
@@ -29,11 +29,11 @@ export const registerUser = catchAsync(async (req: Request, res: Response) => {
     maxAge: ms(refresh_expiration),
   });
 
-  return res.status(201).json({ success: true, data: { accessToken, expiresIn, expiresAt } });
+  res.status(201).json({ success: true, data: { accessToken, expiresIn, expiresAt } });
 });
 
 // 🔑 Connexion d'un compte (utilisateur, employé, administrateur)
-export const login = catchAsync(async (req: Request, res: Response) => {
+export const login = catchAsync(async (req: Request, res: Response): Promise<void> => {
   const { email, password } = req.body;
 
   const { accessToken, refreshToken, expiresIn, expiresAt } = await AuthService.login(
@@ -51,11 +51,11 @@ export const login = catchAsync(async (req: Request, res: Response) => {
 });
 
 // 🔑 Déconnexion d'un compte (utilisateur, employé, administrateur)
-export const logout = catchAsync(async (req: Request, res: Response) => {
+export const logout = catchAsync(async (req: Request, res: Response): Promise<void> => {
   const refreshToken = req.cookies.refreshToken;
 
   if (!refreshToken) {
-    return res.status(200).json({
+    res.status(200).json({
       success: true,
       message: "Aucune session active détectée.",
     });
@@ -75,7 +75,7 @@ export const logout = catchAsync(async (req: Request, res: Response) => {
 });
 
 // 🔑 Rafraîchissement d'un jeton d'accès (utilisateur, employé, administrateur)
-export const refreshToken = catchAsync(async (req: Request, res: Response) => {
+export const refreshToken = catchAsync(async (req: Request, res: Response): Promise<void> => {
   const refreshToken = req.cookies.refreshToken;
 
   if (!refreshToken) {
