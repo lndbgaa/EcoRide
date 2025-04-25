@@ -1,4 +1,4 @@
-import { DataTypes } from "sequelize";
+import { DataTypes, Transaction } from "sequelize";
 
 import { sequelize } from "@/config/mysql.config.js";
 import { ACCOUNT_ROLES_ID } from "@/models/mysql/Account.model.js";
@@ -76,20 +76,24 @@ class User extends Account {
   /**
    *  Ajoute des crédits au compte utilisateur.
    */
-  async addCredits(amount: number): Promise<void> {
+  async addCredits(amount: number, options: { transaction?: Transaction }): Promise<void> {
     if (amount <= 0) throw new Error("Le montant doit être supérieur à 0.");
     this.credits += amount;
-    await this.save();
+    await this.save(options);
   }
 
   /**
    * Retire des crédits du compte utilisateur.
    */
-  async removeCredits(amount: number): Promise<void> {
+  async removeCredits(amount: number, options: { transaction?: Transaction }): Promise<void> {
     if (amount <= 0) throw new Error("Le montant doit être supérieur à 0.");
     if (this.credits < amount) throw new Error("Crédits insuffisants.");
     this.credits -= amount;
-    await this.save();
+    await this.save(options);
+  }
+
+  getCredits(): number {
+    return this.credits;
   }
 
   isDriver(): boolean {

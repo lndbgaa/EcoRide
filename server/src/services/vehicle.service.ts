@@ -83,17 +83,15 @@ class VehicleService {
       });
     }
 
-    const { brandId, model, colorId, energyId, seats, licensePlate, firstRegistration } = data;
-
     const dataToCreate = {
-      brand_id: brandId,
-      model,
-      color_id: colorId,
-      energy_id: energyId,
-      seats,
-      license_plate: licensePlate,
+      brand_id: data.brandId,
+      model: data.model,
+      color_id: data.colorId,
+      energy_id: data.energyId,
+      seats: data.seats,
+      license_plate: data.licensePlate,
       owner_id: userId,
-      first_registration: firstRegistration,
+      first_registration: data.firstRegistration,
     };
 
     const newVehicle = await Vehicle.createOne(dataToCreate);

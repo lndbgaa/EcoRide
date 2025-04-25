@@ -1,6 +1,8 @@
 import { DataTypes, type Includeable } from "sequelize";
 
 import { sequelize } from "@/config/mysql.config.js";
+import AppError from "@/utils/AppError.js";
+import { toDateOnly } from "@/utils/date.utils.js";
 import Base from "./Base.model.js";
 import VehicleBrand from "./VehicleBrand.model.js";
 import VehicleColor from "./VehicleColor.model.js";
@@ -25,7 +27,7 @@ export interface VehiclePublicDTO {
 
 export interface VehiclePrivateDTO extends VehiclePublicDTO {
   license_plate: string;
-  first_registration: Date;
+  first_registration: string;
 }
 
 /**
@@ -70,7 +72,7 @@ class Vehicle extends Base {
     return {
       ...this.toPublicDTO(),
       license_plate: this.license_plate,
-      first_registration: this.first_registration,
+      first_registration: toDateOnly(this.first_registration),
     };
   }
 }
@@ -144,12 +146,6 @@ Vehicle.init(
     first_registration: {
       type: DataTypes.DATEONLY,
       allowNull: false,
-      validate: {
-        isBefore: {
-          args: new Date().toISOString().split("T")[0],
-          msg: "La date de première immatriculation doit être antérieure à la date actuelle.",
-        },
-      },
     },
     owner_id: {
       type: DataTypes.UUID,
@@ -170,5 +166,18 @@ Vehicle.init(
     updatedAt: "updated_at",
   }
 );
+
+Vehicle.beforeValidate((vehicle: Vehicle) => {
+  const now = new Date();
+  const firstRegistrationDate = new Date(vehicle.first_registration);
+
+  if (firstRegistrationDate > now) {
+    throw new AppError({
+      statusCode: 400,
+      statusText: "Bad Request",
+      message: "La date de première immatriculation doit être antérieure à la date actuelle.",
+    });
+  }
+});
 
 export default Vehicle;

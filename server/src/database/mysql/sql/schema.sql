@@ -103,6 +103,7 @@ CREATE TABLE rides (
   departure_location VARCHAR(255) NOT NULL,
   arrival_datetime DATETIME NOT NULL,
   arrival_location VARCHAR(255) NOT NULL,
+  duration INT NOT NULL,
   driver_id CHAR(36) NULL,
   vehicle_id CHAR(36) NULL,
   price INT NOT NULL CHECK (price BETWEEN 10 AND 500), -- crédits (1 crédit = 0,10€)

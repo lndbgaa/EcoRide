@@ -1,4 +1,4 @@
-import type { UpdateUserData, UserRole } from "@/types/user.types.js";
+import type { UserRole } from "@/types/index.js";
 
 import User from "@/models/mysql/User.model.js";
 import AppError from "@/utils/AppError.js";
@@ -27,8 +27,9 @@ class UserService {
   /**
    * Vérifie si un utilisateur est chauffeur
    * @param userId - L'id de l'utilisateur
+   * @returns Le user trouvé
    */
-  public static async assertUserIsDriverOrThrow(userId: string): Promise<void> {
+  public static async assertUserIsDriverOrThrow(userId: string): Promise<User> {
     const user = await UserService.findUserOrThrow(userId);
 
     if (!user.isDriver()) {
@@ -38,13 +39,16 @@ class UserService {
         message: "Seuls les utilisateurs chauffeurs peuvent accéder à cette ressource. ",
       });
     }
+
+    return user;
   }
 
   /**
    * Vérifie si un utilisateur est passager
    * @param userId - L'id de l'utilisateur
+   * @returns Le user trouvé
    */
-  public static async assertUserIsPassengerOrThrow(userId: string): Promise<void> {
+  public static async assertUserIsPassengerOrThrow(userId: string): Promise<User> {
     const user = await UserService.findUserOrThrow(userId);
 
     if (!user.isPassenger()) {
@@ -54,6 +58,8 @@ class UserService {
         message: "Seuls les utilisateurs passagers peuvent accéder à cette ressource.",
       });
     }
+
+    return user;
   }
 
   /**
@@ -72,7 +78,7 @@ class UserService {
    * @param data - Les données à mettre à jour
    * @returns Les informations de l'utilisateur mises à jour
    */
-  public static async updateInfo(userId: string, data: UpdateUserData): Promise<User> {
+  public static async updateInfo(userId: string, data: any): Promise<User> {
     await this.findUserOrThrow(userId);
 
     // formatage des données à mettre à jour avant de les envoyer à la BDD

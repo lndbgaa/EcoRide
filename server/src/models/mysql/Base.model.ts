@@ -10,7 +10,7 @@ import type {
 } from "sequelize";
 
 import config from "@/config/app.config.js";
-
+import AppError from "@/utils/AppError";
 const { env } = config.server;
 
 /**
@@ -51,15 +51,22 @@ abstract class Base extends Model {
 
       return instances ?? [];
     } catch (err) {
-      if (env === "production") {
-        throw new Error("Une erreur est survenue lors de la récupération des enregistrements.");
-      } else {
-        throw new Error(
-          `[${this.name}] findAllByField (${String(field)}) : (${String(value)}) → ${
-            err instanceof Error ? err.message : String(err)
-          }`
-        );
+      if (err instanceof AppError) {
+        throw err;
       }
+
+      const devMessage = `[${this.name}] findAllByField (${String(field)}) : (${String(value)}) → ${
+        err instanceof Error ? err.message : String(err)
+      }`;
+
+      throw new AppError({
+        statusCode: 500,
+        statusText: "Internal Server Error",
+        message:
+          env === "production"
+            ? "Une erreur est survenue lors de la récupération des enregistrements."
+            : devMessage,
+      });
     }
   }
 
@@ -92,15 +99,22 @@ abstract class Base extends Model {
       });
       return instance ?? null;
     } catch (err) {
-      if (env === "production") {
-        throw new Error("Une erreur est survenue lors de la récupération de l'enregistrement.");
-      } else {
-        throw new Error(
-          `[${this.name}] findOneByField (${String(field)}) : (${String(value)}) → ${
-            err instanceof Error ? err.message : String(err)
-          }`
-        );
+      if (err instanceof AppError) {
+        throw err;
       }
+
+      const devMessage = `[${this.name}] findOneByField (${String(field)}) : (${String(value)}) → ${
+        err instanceof Error ? err.message : String(err)
+      }`;
+
+      throw new AppError({
+        statusCode: 500,
+        statusText: "Internal Server Error",
+        message:
+          env === "production"
+            ? "Une erreur est survenue lors de la récupération de l'enregistrement."
+            : devMessage,
+      });
     }
   }
 
@@ -120,15 +134,22 @@ abstract class Base extends Model {
       const instance = await this.create(data, options);
       return instance;
     } catch (err) {
-      if (env === "production") {
-        throw new Error("Une erreur est survenue lors de la création de l'enregistrement.");
-      } else {
-        throw new Error(
-          `[${this.name}] createOne → Données : ${JSON.stringify(data)} → ${
-            err instanceof Error ? err.message : String(err)
-          }`
-        );
+      if (err instanceof AppError) {
+        throw err;
       }
+
+      const devMessage = `[${this.name}] createOne → ${
+        err instanceof Error ? err.message : String(err)
+      }`;
+
+      throw new AppError({
+        statusCode: 500,
+        statusText: "Internal Server Error",
+        message:
+          env === "production"
+            ? "Une erreur est survenue lors de la création de l'enregistrement."
+            : devMessage,
+      });
     }
   }
 
@@ -163,15 +184,22 @@ abstract class Base extends Model {
 
       return affectedRows;
     } catch (err) {
-      if (env === "production") {
-        throw new Error("Une erreur est survenue lors de la mise à jour de l'enregistrement.");
-      } else {
-        throw new Error(
-          `[${this.name}] updateOne → Données : ${JSON.stringify(data)} → ${
-            err instanceof Error ? err.message : String(err)
-          }`
-        );
+      if (err instanceof AppError) {
+        throw err;
       }
+
+      const devMessage = `[${this.name}] updateOne → ${
+        err instanceof Error ? err.message : String(err)
+      }`;
+
+      throw new AppError({
+        statusCode: 500,
+        statusText: "Internal Server Error",
+        message:
+          env === "production"
+            ? "Une erreur est survenue lors de la mise à jour de l'enregistrement."
+            : devMessage,
+      });
     }
   }
 
@@ -204,17 +232,22 @@ abstract class Base extends Model {
       });
       return count;
     } catch (err) {
-      if (env === "production") {
-        throw new Error(
-          "Une erreur est survenue lors de la récupération du nombre d'enregistrements."
-        );
-      } else {
-        throw new Error(
-          `[${this.name}] countAllByField (${String(field)}) : (${String(value)}) → ${
-            err instanceof Error ? err.message : String(err)
-          }`
-        );
+      if (err instanceof AppError) {
+        throw err;
       }
+
+      const devMessage = `[${this.name}] countAllByField (${String(field)}) : (${String(
+        value
+      )}) → ${err instanceof Error ? err.message : String(err)}`;
+
+      throw new AppError({
+        statusCode: 500,
+        statusText: "Internal Server Error",
+        message:
+          env === "production"
+            ? "Une erreur est survenue lors de la récupération du nombre d'enregistrements."
+            : devMessage,
+      });
     }
   }
 
@@ -247,17 +280,22 @@ abstract class Base extends Model {
 
       return deletedRows;
     } catch (err) {
-      if (env === "production") {
-        throw new Error(
-          "Une erreur est survenue lors de la suppression définitive de l'enregistrement."
-        );
-      } else {
-        throw new Error(
-          `[${this.name}] deleteHardByField (${String(field)}) : (${String(value)}) → ${
-            err instanceof Error ? err.message : String(err)
-          }`
-        );
+      if (err instanceof AppError) {
+        throw err;
       }
+
+      const devMessage = `[${this.name}] deleteHardByField (${String(field)}) : (${String(
+        value
+      )}) → ${err instanceof Error ? err.message : String(err)}`;
+
+      throw new AppError({
+        statusCode: 500,
+        statusText: "Internal Server Error",
+        message:
+          env === "production"
+            ? "Une erreur est survenue lors de la suppression définitive de l'enregistrement."
+            : devMessage,
+      });
     }
   }
 }

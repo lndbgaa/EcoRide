@@ -8,6 +8,7 @@ import errorHandler from "@/middlewares/errorHandler.js";
 import requireAuth from "@/middlewares/requireAuth.js";
 import adminRoutes from "@/routes/admin.route.js";
 import authRoutes from "@/routes/auth.route.js";
+import ridesRoutes from "@/routes/rides.routes.js";
 import userRoutes from "@/routes/user.route.js";
 import AppError from "@/utils/AppError.js";
 
@@ -28,6 +29,7 @@ app.get("/test", requireAuth, (req, res) => {
 app.use("/api/v1/auth", authRoutes); // route pour l'authentification
 app.use("/api/v1/user", userRoutes); // route pour les utilisateurs
 app.use("/api/v1/admin", adminRoutes); // route pour les administrateurs
+app.use("/api/v1/rides", ridesRoutes); // route pour les trajets
 
 app.use((req, res, next) => {
   next(

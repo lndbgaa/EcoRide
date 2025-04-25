@@ -1,13 +1,14 @@
 import { sequelize } from "@/config/mysql.config.js";
+import AppError from "@/utils/AppError.js";
 import { getDuration, toDateOnly, toTimeOnly } from "@/utils/date.utils.js";
-import { DataTypes } from "sequelize";
+import { DataTypes, Transaction } from "sequelize";
 import Base from "./Base.model.js";
 import type { UserPublicDTO } from "./User.model.js";
 import User from "./User.model.js";
 import type { VehiclePrivateDTO, VehiclePublicDTO } from "./Vehicle.model.js";
 import Vehicle from "./Vehicle.model.js";
 
-export type RideStatus = "open" | "full" | "in_progress" | "completed" | "no_show" | "cancelled";
+import type { RideStatus } from "@/types/index.js";
 
 export interface RidePublicDTO {
   id: string;
@@ -41,6 +42,7 @@ class Ride extends Base {
   declare departure_location: string;
   declare arrival_datetime: Date;
   declare arrival_location: string;
+  declare duration: number;
   declare driver_id: string;
   declare vehicle_id: string;
   declare price: number;
@@ -58,7 +60,7 @@ class Ride extends Base {
   /**
    * Liste des transitions autorisées entre les statuts d'un trajet.
    */
-  static readonly allowedTransitions: Record<RideStatus, RideStatus[]> = {
+  private static readonly allowedTransitions: Record<RideStatus, RideStatus[]> = {
     open: ["full", "cancelled", "in_progress"],
     full: ["in_progress", "cancelled", "no_show"],
     in_progress: ["completed"],
@@ -70,7 +72,7 @@ class Ride extends Base {
   /**
    * Vérifie si une transition vers un nouveau statut est autorisée.
    */
-  canTransitionTo(status: RideStatus): boolean {
+  private canTransitionTo(status: RideStatus): boolean {
     const currentStatus: RideStatus = this.status;
     return Ride.allowedTransitions[currentStatus]?.includes(status) ?? false;
   }
@@ -78,11 +80,16 @@ class Ride extends Base {
   /**
    * Applique une transition vers un nouveau statut, si elle est autorisée.
    */
-  async transitionTo(status: RideStatus) {
+  public async transitionTo(status: RideStatus) {
     if (this.status === status) return;
 
-    if (!this.canTransitionTo(status))
-      throw new Error(`Transition de "${this.status}" vers "${status}" non autorisée.`);
+    if (!this.canTransitionTo(status)) {
+      throw new AppError({
+        statusCode: 400,
+        statusText: "Bad Request",
+        message: `Transition de "${this.status}" vers "${status}" non autorisée.`,
+      });
+    }
 
     this.status = status;
     await this.save();
@@ -91,7 +98,7 @@ class Ride extends Base {
   /**
    * Permet d'ajouter des places disponibles à un covoiturage (ex: annulation réservation)
    * */
-  async addSeats(amount: number): Promise<void> {
+  async addSeats(amount: number, options: { transaction?: Transaction }): Promise<void> {
     try {
       if (this.status !== "open") {
         throw new Error(`Le covoiturage est actuellement en statut "${this.status}".`);
@@ -109,7 +116,7 @@ class Ride extends Base {
 
       this.available_seats += amount;
       if (this.available_seats > 0 && this.status !== "open") await this.transitionTo("open");
-      await this.save();
+      await this.save(options);
     } catch (err) {
       const message = `addSeats → ${err instanceof Error ? err.message : String(err)}`;
       throw new Error(message);
@@ -119,7 +126,7 @@ class Ride extends Base {
   /**
    *  Permet de retirer des places disponibles à un covoiturage (ex: création réservation)
    * */
-  async removeSeats(amount: number): Promise<void> {
+  async removeSeats(amount: number, options: { transaction?: Transaction }): Promise<void> {
     try {
       if (!["open", "full"].includes(this.status)) {
         throw new Error(`Le covoiturage est actuellement en statut "${this.status}".`);
@@ -133,33 +140,39 @@ class Ride extends Base {
 
       this.available_seats -= amount;
       if (this.available_seats === 0 && this.status !== "full") await this.transitionTo("full");
-      await this.save();
+      await this.save(options);
     } catch (err) {
       const message = `[Ride] removeSeats → ${err instanceof Error ? err.message : String(err)}`;
       throw new Error(message);
     }
   }
 
-  async markAsInProgress(): Promise<void> {
+  public async markAsInProgress(): Promise<void> {
     await this.transitionTo("in_progress");
   }
 
-  async markAsCompleted(): Promise<void> {
+  public async markAsCompleted(): Promise<void> {
     await this.transitionTo("completed");
   }
 
-  async markAsNoShow(): Promise<void> {
+  public async markAsNoShow(): Promise<void> {
     await this.transitionTo("no_show");
   }
 
-  async markAsCancelled(): Promise<void> {
+  public async markAsCancelled(): Promise<void> {
     await this.transitionTo("cancelled");
+  }
+
+  public isOpen(): boolean {
+    return this.status === "open";
+  }
+
+  public getPrice(): number {
+    return this.price;
   }
 
   /**
    * Retourne une version "publique" du trajet.
-   *
-   * 💡 Utile lorsque le trajet est consulté par un autre utilisateur.
    */
   toPublicDTO(): RidePublicDTO {
     return {
@@ -170,8 +183,8 @@ class Ride extends Base {
       arrival_date: toDateOnly(this.arrival_datetime),
       arrival_location: this.arrival_location,
       arrival_time: toTimeOnly(this.arrival_datetime),
-      duration: getDuration(this.arrival_datetime, this.departure_datetime),
-      driver: this.driver?.toPublicJSON() ?? null,
+      duration: this.duration,
+      driver: this.driver?.toPublicDTO() ?? null,
       vehicle: this.vehicle?.toPublicDTO() ?? null,
       price: this.price,
       available_seats: this.available_seats,
@@ -217,6 +230,10 @@ Ride.init(
       type: DataTypes.STRING(255),
       allowNull: false,
     },
+    duration: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+    },
     driver_id: {
       type: DataTypes.UUID,
       allowNull: false,
@@ -239,11 +256,11 @@ Ride.init(
       validate: {
         min: {
           args: [10],
-          msg: "Le prix doit être supérieur à 10 crédits (1€).",
+          msg: "Le prix doit être au minimum de 10 crédits (1€).",
         },
         max: {
           args: [500],
-          msg: "Le prix ne peut pas dépasser 500 crédits (50 €).",
+          msg: "Le prix doit être au maximum de 500 crédits (50 €).",
         },
       },
     },
@@ -257,7 +274,7 @@ Ride.init(
         },
         max: {
           args: [6],
-          msg: "Le nombre de places proposées ne peut pas dépasser 6.", // sans compter le chauffeur
+          msg: "Le nombre de places proposées doit être au maximum de 6.", // sans compter le chauffeur
         },
       },
     },
@@ -293,27 +310,52 @@ Ride.init(
 );
 
 Ride.beforeValidate((ride: Ride) => {
-  const now = new Date();
+  const now = Date.now();
 
   // Cas 1 : Le départ doit être après maintenant.
-  if (ride.departure_datetime <= now) {
-    throw new Error("La date de départ doit être ultérieure à la date actuelle.");
+  if (ride.departure_datetime.getTime() <= now) {
+    throw new AppError({
+      statusCode: 400,
+      statusText: "Bad Request",
+      message: "La date de départ doit être ultérieure à la date actuelle.",
+    });
   }
 
   // Cas 2 : Le départ doit être antérieur à l'arrivée.
   if (ride.departure_datetime >= ride.arrival_datetime) {
-    throw new Error("La date de départ doit être antérieure à la date d'arrivée.");
+    throw new AppError({
+      statusCode: 400,
+      statusText: "Bad Request",
+      message: "La date de départ doit être antérieure à la date d'arrivée.",
+    });
   }
 
-  // Cas 3 : Les places disponibles ne peuvent pas dépasser les places proposées.
+  // Cas 3 : Le nombre de places proposées doit être au minimum de 1.
+  if (ride.offered_seats < 1) {
+    throw new AppError({
+      statusCode: 400,
+      statusText: "Bad Request",
+      message: "Le nombre de places proposées doit être au minimum de 1.",
+    });
+  }
+
+  // Cas 4 : Les places disponibles ne peuvent pas dépasser les places proposées.
   if (ride.available_seats > ride.offered_seats) {
-    throw new Error("Le nombre de places disponibles ne peut pas dépasser les places proposées.");
+    throw new AppError({
+      statusCode: 400,
+      statusText: "Bad Request",
+      message:
+        "Le nombre de places disponibles ne peut pas dépasser le nombre de places proposées.",
+    });
   }
 });
 
-// Définit par défaut le nombre de places disponibles comme égal aux nombres de places proposées.
 Ride.beforeCreate((ride: Ride) => {
+  // Définit par défaut le nombre de places disponibles comme égal aux nombres de places proposées.
   ride.available_seats = ride.available_seats ?? ride.offered_seats;
+
+  // Définit la durée du trajet en minutes.
+  ride.duration = getDuration(ride.arrival_datetime, ride.departure_datetime);
 });
 
 export default Ride;
