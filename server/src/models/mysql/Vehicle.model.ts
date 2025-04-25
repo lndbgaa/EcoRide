@@ -1,4 +1,4 @@
-import { DataTypes } from "sequelize";
+import { DataTypes, type Includeable } from "sequelize";
 
 import { sequelize } from "@/config/mysql.config.js";
 import Base from "./Base.model.js";
@@ -6,7 +6,13 @@ import VehicleBrand from "./VehicleBrand.model.js";
 import VehicleColor from "./VehicleColor.model.js";
 import VehicleEnergy from "./VehicleEnergy.model.js";
 
-const ECO_ENERGY_IDS = [3, 9];
+export const VEHICLE_ASSOCIATIONS: Includeable[] = [
+  { association: "brand" },
+  { association: "color" },
+  { association: "energy" },
+];
+
+export const ECO_ENERGY_IDS = [3, 9];
 
 export interface VehiclePublicDTO {
   id: string;

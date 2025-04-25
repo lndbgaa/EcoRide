@@ -3,7 +3,12 @@ import { DataTypes, UUIDV4 } from "sequelize";
 import { sequelize } from "@/config/mysql.config.js";
 import Base from "./Base.model.js";
 
-export interface PreferencePublicDTO {
+export const DEFAULT_PREFERENCES = [
+  { label: "Fumeur", value: false, is_custom: false },
+  { label: "Animaux", value: false, is_custom: false },
+] as const;
+
+export interface PreferencePrivateDTO {
   id: string;
   label: string;
   value: boolean;
@@ -28,7 +33,7 @@ class Preference extends Base {
     return !this.is_custom;
   }
 
-  public toPublicDTO(): PreferencePublicDTO {
+  public toPrivateDTO(): PreferencePrivateDTO {
     return {
       id: this.id,
       label: this.label,

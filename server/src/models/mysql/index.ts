@@ -2,6 +2,7 @@ import Account from "./Account.model.js";
 import Admin from "./Admin.model.js";
 import Booking from "./Booking.model.js";
 import Employee from "./Employee.model.js";
+import Preference from "./Preference.model.js";
 import RefreshToken from "./RefreshToken.model.js";
 import Review from "./Review.model.js";
 import Ride from "./Ride.model.js";
@@ -50,6 +51,7 @@ export {
   Admin,
   Booking,
   Employee,
+  Preference,
   RefreshToken,
   Review,
   Ride,

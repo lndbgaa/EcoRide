@@ -1,7 +1,5 @@
 import type { Request, Response } from "express";
 
-import { ACCOUNT_ROLES_LABEL } from "@/constants/index.js";
-import Employee from "@/models/mysql/Employee.model.js";
 import AdminService from "@/services/admin.service.js";
 import AuthService from "@/services/auth.service.js";
 import catchAsync from "@/utils/catchAsync.js";
@@ -10,7 +8,7 @@ import catchAsync from "@/utils/catchAsync.js";
 export const registerEmployee = catchAsync(async (req: Request, res: Response) => {
   const data = req.body;
 
-  await AuthService.register(Employee, ACCOUNT_ROLES_LABEL.EMPLOYEE, data);
+  await AuthService.registerEmployee(data);
 
   return res.status(201).json({ success: true, message: "Compte employé créé avec succès." });
 });

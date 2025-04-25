@@ -1,12 +1,35 @@
-import type { CreateVehicleData, UpdateVehicleData } from "@/types/vehicle.types.js";
-
-import { Vehicle } from "@/models/mysql/index.js";
+import { Vehicle } from "@/models/mysql";
+import { VEHICLE_ASSOCIATIONS } from "@/models/mysql/Vehicle.model.js";
 import UserService from "@/services/user.service.js";
 import AppError from "@/utils/AppError.js";
 
+export type CreateVehicleData = {
+  brandId: number;
+  model: string;
+  colorId: number;
+  energyId: number;
+  seats: number;
+  licensePlate: string;
+  firstRegistration: Date;
+};
+
+export type UpdateVehicleData = {
+  brandId?: number;
+  model?: string;
+  colorId?: number;
+  energyId?: number;
+  seats?: number;
+};
+
 class VehicleService {
+  /**
+   * Vérifie si un véhicule appartient bien à un utilisateur
+   * @param userId - L'id de l'utilisateur
+   * @param vehicleId - L'id du véhicule
+   * @returns Le véhicule trouvé
+   */
   public static async findOwnedVehicleOrThrow(userId: string, vehicleId: string): Promise<Vehicle> {
-    const vehicle = await Vehicle.findOneByField("id", vehicleId);
+    const vehicle: Vehicle | null = await Vehicle.findOneByField("id", vehicleId);
 
     if (!vehicle) {
       throw new AppError({
@@ -34,7 +57,7 @@ class VehicleService {
    */
   public static async getVehicles(userId: string): Promise<Vehicle[]> {
     const vehicles = await Vehicle.findAllByField("owner_id", userId, {
-      include: [{ association: "brand" }, { association: "color" }, { association: "energy" }],
+      include: VEHICLE_ASSOCIATIONS,
     });
 
     return vehicles;
@@ -50,7 +73,7 @@ class VehicleService {
     await UserService.assertUserIsDriverOrThrow(userId);
 
     const doesLicensePlateExist =
-      (await Vehicle.findOneByField("license_plate", data.license_plate)) !== null;
+      (await Vehicle.findOneByField("license_plate", data.licensePlate)) !== null;
 
     if (doesLicensePlateExist) {
       throw new AppError({
@@ -60,9 +83,34 @@ class VehicleService {
       });
     }
 
-    const newVehicle = await Vehicle.createOne({ ...data, owner_id: userId });
+    const { brandId, model, colorId, energyId, seats, licensePlate, firstRegistration } = data;
 
-    return newVehicle;
+    const dataToCreate = {
+      brand_id: brandId,
+      model,
+      color_id: colorId,
+      energy_id: energyId,
+      seats,
+      license_plate: licensePlate,
+      owner_id: userId,
+      first_registration: firstRegistration,
+    };
+
+    const newVehicle = await Vehicle.createOne(dataToCreate);
+
+    const vehicle = await Vehicle.findOneByField("id", newVehicle.id, {
+      include: VEHICLE_ASSOCIATIONS,
+    });
+
+    if (!vehicle) {
+      throw new AppError({
+        statusCode: 500,
+        statusText: "Internal Server Error",
+        message: "Une erreur est survenue lors de la création du véhicule.",
+      });
+    }
+
+    return vehicle;
   }
 
   /**
@@ -76,12 +124,26 @@ class VehicleService {
     userId: string,
     vehicleId: string,
     data: UpdateVehicleData
-  ): Promise<void> {
-    await UserService.assertUserIsDriverOrThrow(userId);
+  ): Promise<Vehicle> {
+    await UserService.assertUserIsDriverOrThrow(userId); // vérifie que l'utilisateur est chauffeur
 
-    const vehicle = await this.findOwnedVehicleOrThrow(userId, vehicleId);
+    await this.findOwnedVehicleOrThrow(userId, vehicleId); // vérifie que le véhicule appartient à l'utilisateur
 
-    await vehicle.update(data);
+    await Vehicle.updateByField("id", vehicleId, data); // met à jour le véhicule
+
+    const updatedVehicle = await Vehicle.findOneByField("id", vehicleId, {
+      include: VEHICLE_ASSOCIATIONS,
+    }); // récupère le véhicule mis à jour avec les associations
+
+    if (!updatedVehicle) {
+      throw new AppError({
+        statusCode: 500,
+        statusText: "Internal Server Error",
+        message: "Une erreur est survenue lors de la mise à jour du véhicule.",
+      });
+    }
+
+    return updatedVehicle;
   }
 
   /**

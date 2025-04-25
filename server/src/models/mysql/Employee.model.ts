@@ -1,5 +1,5 @@
 import { sequelize } from "@/config/mysql.config.js";
-import { ACCOUNT_ROLES_ID } from "@/constants/index.js";
+import { ACCOUNT_ROLES_ID } from "@/models/mysql/Account.model.js";
 import { getAge } from "@/utils/date.utils.js";
 import Account from "./Account.model.js";
 

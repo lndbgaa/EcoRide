@@ -5,6 +5,11 @@ import AppError from "@/utils/AppError.js";
 import uploadImage from "@/utils/upload.utils.js";
 
 class UserService {
+  /**
+   * Vérifie si un utilisateur existe et le retourne
+   * @param userId - L'id de l'utilisateur
+   * @returns Le user trouvé
+   */
   public static async findUserOrThrow(userId: string): Promise<User> {
     const user = await User.findOneByField("id", userId);
 
@@ -12,13 +17,17 @@ class UserService {
       throw new AppError({
         statusCode: 404,
         statusText: "Not Found",
-        message: "Utilisateur non trouvé.",
+        message: "Utilisateur non trouvé. Veuillez vérifier l'id de l'utilisateur.",
       });
     }
 
     return user;
   }
 
+  /**
+   * Vérifie si un utilisateur est chauffeur
+   * @param userId - L'id de l'utilisateur
+   */
   public static async assertUserIsDriverOrThrow(userId: string): Promise<void> {
     const user = await UserService.findUserOrThrow(userId);
 
@@ -26,12 +35,15 @@ class UserService {
       throw new AppError({
         statusCode: 403,
         statusText: "Forbidden",
-        message:
-          "Seuls les utilisateurs chauffeurs peuvent accéder à cette ressource. Veuillez mettre à jour votre profil.",
+        message: "Seuls les utilisateurs chauffeurs peuvent accéder à cette ressource. ",
       });
     }
   }
 
+  /**
+   * Vérifie si un utilisateur est passager
+   * @param userId - L'id de l'utilisateur
+   */
   public static async assertUserIsPassengerOrThrow(userId: string): Promise<void> {
     const user = await UserService.findUserOrThrow(userId);
 
@@ -39,22 +51,31 @@ class UserService {
       throw new AppError({
         statusCode: 403,
         statusText: "Forbidden",
-        message:
-          "Seuls les utilisateurs passagers peuvent accéder à cette ressource. Veuillez mettre à jour votre profil.",
+        message: "Seuls les utilisateurs passagers peuvent accéder à cette ressource.",
       });
     }
   }
 
+  /**
+   * Récupère les informations d'un utilisateur
+   * @param userId - L'id de l'utilisateur
+   * @returns Les informations de l'utilisateur
+   */
   public static async getUserInfo(userId: string): Promise<User> {
     const user = await this.findUserOrThrow(userId);
-
     return user;
   }
 
-  public static async updateInfo(userId: string, data: UpdateUserData): Promise<UpdateUserData> {
+  /**
+   * Met à jour les informations d'un utilisateur
+   * @param userId - L'id de l'utilisateur
+   * @param data - Les données à mettre à jour
+   * @returns Les informations de l'utilisateur mises à jour
+   */
+  public static async updateInfo(userId: string, data: UpdateUserData): Promise<User> {
     await this.findUserOrThrow(userId);
 
-    // formatage des données à mettre à jour avant de les envoyer à la base de données
+    // formatage des données à mettre à jour avant de les envoyer à la BDD
     const dataToUpdate = {
       ...(data.firstName && { first_name: data.firstName }),
       ...(data.lastName && { last_name: data.lastName }),
@@ -66,18 +87,25 @@ class UserService {
 
     await User.updateByField("id", userId, dataToUpdate);
 
-    // formatage des données à retourner avant de les envoyer au client
-    const result: UpdateUserData = {};
-    if (data.firstName) result.firstName = data.firstName;
-    if (data.lastName) result.lastName = data.lastName;
-    if (data.birthDate) result.birthDate = data.birthDate;
-    if (data.phone) result.phone = data.phone;
-    if (data.address) result.address = data.address;
-    if (data.pseudo) result.pseudo = data.pseudo;
+    const updatedUser = await User.findOneByField("id", userId);
 
-    return result;
+    if (!updatedUser) {
+      throw new AppError({
+        statusCode: 500,
+        statusText: "Internal Server Error",
+        message:
+          "Une erreur est survenue lors de la mise à jour des informations de l'utilisateur.",
+      });
+    }
+
+    return updatedUser;
   }
 
+  /**
+   * Met à jour le rôle d'un utilisateur (chauffeur ou passager)
+   * @param role - Le rôle à mettre à jour
+   * @param userId - L'id de l'utilisateur
+   */
   public static async updateRole(role: UserRole, userId: string): Promise<void> {
     const user = await this.findUserOrThrow(userId);
 
@@ -88,6 +116,12 @@ class UserService {
     }
   }
 
+  /**
+   * Met à jour l'avatar d'un utilisateur
+   * @param file - Le fichier du nouvel avatar
+   * @param userId - L'id de l'utilisateur
+   * @returns L'url de l'avatar mis à jour
+   */
   public static async updateAvatar(
     file: Express.Multer.File,
     userId: string

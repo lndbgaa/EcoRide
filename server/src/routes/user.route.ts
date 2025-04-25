@@ -33,11 +33,13 @@ const router = Router();
 router.use(requireAuth);
 router.use(requireRole(["user"]));
 
+// Routes pour les informations de l'utilisateur
 router.get("/me", getUserInfo);
-router.patch("/me/info", validate(updateInfoSchema), updateUserInfo);
+router.patch("/me/infos", validate(updateInfoSchema), updateUserInfo);
 router.patch("/me/roles", validate(updateRoleSchema), updateUserRole);
 router.patch("/me/avatar", multerUploads, updateUserAvatar);
 
+// Routes pour les véhicules
 router.get("/me/vehicles", getUserVehicles);
 router.post("/me/vehicles", validate(addVehicleSchema), addVehicleToProfile);
 router.patch(
@@ -52,6 +54,7 @@ router.delete(
   deleteVehicleFromProfile
 );
 
+// Routes pour les préférences
 router.get("/me/preferences", getUserPreferences);
 router.post("/me/preferences", validate(addPreferenceSchema), addPreferenceToProfile);
 router.patch(

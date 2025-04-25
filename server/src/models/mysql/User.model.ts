@@ -1,7 +1,7 @@
 import { DataTypes } from "sequelize";
 
 import { sequelize } from "@/config/mysql.config.js";
-import { ACCOUNT_ROLES_ID } from "@/constants/index.js";
+import { ACCOUNT_ROLES_ID } from "@/models/mysql/Account.model.js";
 import { getAge, toDateOnly } from "@/utils/date.utils.js";
 import Account from "./Account.model.js";
 import Review from "./Review.model.js";
@@ -9,8 +9,8 @@ import Review from "./Review.model.js";
 export interface UserPublicDTO {
   id: string;
   pseudo: string;
-  age: string | null;
-  profilePicture: string | null;
+  age: number | null;
+  avatar: string | null;
   averageRating: number | null;
   memberSince: number | null;
 }
@@ -21,7 +21,7 @@ export interface UserPrivateDTO extends UserPublicDTO {
   lastName: string;
   phone: string | null;
   address: string | null;
-  birthDate: Date | null;
+  birthDate: string | null;
   isPassenger: boolean;
   isDriver: boolean;
   credits: number;
@@ -105,7 +105,7 @@ class User extends Account {
       id: this.id,
       pseudo: this.pseudo,
       age: this.birth_date ? getAge(this.birth_date) : null,
-      profilePicture: this.profile_picture ?? null,
+      avatar: this.profile_picture ?? null,
       averageRating: this.average_rating ?? null,
       memberSince: this.created_at?.getFullYear() ?? null,
     };
@@ -119,11 +119,11 @@ class User extends Account {
       lastName: this.last_name,
       phone: this.phone ?? null,
       address: this.address ?? null,
-      birthDate: this.birth_date ?? null,
+      birthDate: this.birth_date ? toDateOnly(this.birth_date) : null,
       isPassenger: this.is_passenger,
       isDriver: this.is_driver,
       credits: this.credits,
-      lastLogin: this.last_login ? toDateOnly(this.last_login) : null,
+      lastLogin: this.last_login ? this.last_login.toISOString() : null,
     };
   }
 }

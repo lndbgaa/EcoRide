@@ -1,14 +1,16 @@
+import type { Preference, User, Vehicle } from "@/models/mysql";
 import type { MulterRequest } from "@/types/express.js";
 import type { CreatePreferenceData } from "@/types/preference.types.js";
 import type { UpdateUserData, UserRole } from "@/types/user.types.js";
 import type { CreateVehicleData, UpdateVehicleData } from "@/types/vehicle.types.js";
 import type { Request, Response } from "express";
 
+import AppError from "@/utils/AppError.js";
+import catchAsync from "@/utils/catchAsync.js";
+
 import PreferenceService from "@/services/preference.service.js";
 import UserService from "@/services/user.service.js";
 import VehicleService from "@/services/vehicle.service.js";
-import AppError from "@/utils/AppError.js";
-import catchAsync from "@/utils/catchAsync.js";
 
 /**
  * Gère la récupération des informations de profil d'un utilisateur
@@ -16,7 +18,7 @@ import catchAsync from "@/utils/catchAsync.js";
 export const getUserInfo = catchAsync(async (req: Request, res: Response): Promise<void> => {
   const userId: string = req.user.id;
 
-  const user = await UserService.getUserInfo(userId);
+  const user: User = await UserService.getUserInfo(userId);
 
   res.status(200).json({
     success: true,
@@ -32,12 +34,12 @@ export const updateUserInfo = catchAsync(async (req: Request, res: Response): Pr
   const userId: string = req.user.id;
   const data: UpdateUserData = req.body;
 
-  const updatedData: UpdateUserData = await UserService.updateInfo(userId, data);
+  const user: User = await UserService.updateInfo(userId, data);
 
   res.status(200).json({
     success: true,
     message: "Informations de profil modifiées avec succès.",
-    data: updatedData,
+    data: user.toPrivateDTO(),
   });
 });
 
@@ -86,7 +88,7 @@ export const updateUserAvatar = catchAsync(
 export const getUserVehicles = catchAsync(async (req: Request, res: Response): Promise<void> => {
   const userId: string = req.user.id;
 
-  const vehicles = await VehicleService.getVehicles(userId);
+  const vehicles: Vehicle[] = await VehicleService.getVehicles(userId);
 
   res.status(200).json({
     success: true,
@@ -103,7 +105,7 @@ export const addVehicleToProfile = catchAsync(
     const userId: string = req.user.id;
     const data: CreateVehicleData = req.body;
 
-    const vehicle = await VehicleService.createVehicle(userId, data);
+    const vehicle: Vehicle = await VehicleService.createVehicle(userId, data);
 
     res.status(201).json({
       success: true,
@@ -122,9 +124,13 @@ export const updateVehicleFromProfile = catchAsync(
     const vehicleId: string = req.params.vehicleId;
     const data: UpdateVehicleData = req.body;
 
-    await VehicleService.updateVehicle(userId, vehicleId, data);
+    const updatedVehicle: Vehicle = await VehicleService.updateVehicle(userId, vehicleId, data);
 
-    res.status(200).json({ success: true, message: "Véhicule mis à jour avec succès." });
+    res.status(200).json({
+      success: true,
+      message: "Véhicule mis à jour avec succès.",
+      data: updatedVehicle.toPrivateDTO(),
+    });
   }
 );
 
@@ -148,12 +154,12 @@ export const deleteVehicleFromProfile = catchAsync(
 export const getUserPreferences = catchAsync(async (req: Request, res: Response): Promise<void> => {
   const userId: string = req.user.id;
 
-  const preferences = await PreferenceService.getPreferences(userId);
+  const preferences: Preference[] = await PreferenceService.getPreferences(userId);
 
   res.status(200).json({
     success: true,
     message: "Préférences récupérées avec succès.",
-    data: preferences.map((preference) => preference.toPublicDTO()),
+    data: preferences.map((preference) => preference.toPrivateDTO()),
   });
 });
 
@@ -165,12 +171,12 @@ export const addPreferenceToProfile = catchAsync(
     const userId: string = req.user.id;
     const data: CreatePreferenceData = req.body;
 
-    const preference = await PreferenceService.createPreference(userId, data);
+    const preference: Preference = await PreferenceService.createPreference(userId, data);
 
     res.status(201).json({
       success: true,
       message: "Préférence ajoutée avec succès.",
-      data: preference.toPublicDTO(),
+      data: preference.toPrivateDTO(),
     });
   }
 );
@@ -183,9 +189,16 @@ export const updatePreferenceFromProfile = catchAsync(
     const userId: string = req.user.id;
     const preferenceId: string = req.params.preferenceId;
 
-    await PreferenceService.togglePreferenceValue(userId, preferenceId);
+    const updatedPreference: Preference = await PreferenceService.togglePreferenceValue(
+      userId,
+      preferenceId
+    );
 
-    res.status(200).json({ success: true, message: "Préférence mise à jour avec succès." });
+    res.status(200).json({
+      success: true,
+      message: "Préférence mise à jour avec succès.",
+      data: updatedPreference.toPrivateDTO(),
+    });
   }
 );
 

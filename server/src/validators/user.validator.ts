@@ -42,8 +42,10 @@ export const updateInfoSchema = Joi.object({
     "date.empty": "La date de naissance ne peut pas être vide.",
   }),
 })
+  .min(1)
   .unknown(false)
   .messages({
+    "object.min": "Au moins un champ doit être renseigné.",
     "object.unknown":
       "Seuls les champs 'firstName', 'lastName', 'pseudo', 'phone', 'address', 'birthDate' sont autorisés.",
   });
@@ -53,7 +55,7 @@ export const updateInfoSchema = Joi.object({
  */
 export const updateRoleSchema = Joi.object({
   role: Joi.string().trim().valid("driver", "passenger").required().messages({
-    "any.required": "Le rôle est requis.",
+    "any.required": "Le rôle à mettre à jour est requis.",
     "string.base": "Le rôle doit être une chaîne de caractères.",
     "string.empty": "Le rôle ne peut pas être vide.",
     "any.only": "Le rôle doit être soit 'driver' soit 'passenger'.",

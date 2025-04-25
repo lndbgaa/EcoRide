@@ -5,6 +5,18 @@ import { DataTypes } from "sequelize";
 import Base from "./Base.model.js";
 import Role from "./Role.model.js";
 
+export const ACCOUNT_ROLES_ID = {
+  ADMIN: 1,
+  EMPLOYEE: 2,
+  USER: 3,
+} as const;
+
+export const ACCOUNT_ROLES_LABEL = {
+  ADMIN: "admin",
+  EMPLOYEE: "employee",
+  USER: "user",
+} as const;
+
 type AccountStatus = "active" | "suspended";
 
 /**

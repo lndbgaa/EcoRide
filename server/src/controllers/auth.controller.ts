@@ -3,9 +3,8 @@ import ms from "ms";
 import type { Request, Response } from "express";
 
 import config from "@/config/app.config.js";
-import { ACCOUNT_ROLES_LABEL } from "@/constants/index.js";
-import User from "@/models/mysql/User.model.js";
 import AuthService from "@/services/auth.service.js";
+import PreferenceService from "@/services/preference.service.js";
 import AppError from "@/utils/AppError.js";
 import catchAsync from "@/utils/catchAsync.js";
 
@@ -16,18 +15,18 @@ const { refresh_expiration } = config.jwt;
 export const registerUser = catchAsync(async (req: Request, res: Response): Promise<void> => {
   const data = req.body;
 
-  const { accessToken, refreshToken, expiresIn, expiresAt } = await AuthService.register(
-    User,
-    ACCOUNT_ROLES_LABEL.USER,
-    data
-  );
+  const { accountId, accessToken, refreshToken, expiresIn, expiresAt } =
+    await AuthService.registerUser(data);
 
   res.cookie("refreshToken", refreshToken, {
     httpOnly: true,
     secure: env === "production",
     sameSite: "lax",
+    path: "/",
     maxAge: ms(refresh_expiration),
   });
+
+  await PreferenceService.defineDefaultPreferences(accountId);
 
   res.status(201).json({ success: true, data: { accessToken, expiresIn, expiresAt } });
 });
@@ -36,17 +35,19 @@ export const registerUser = catchAsync(async (req: Request, res: Response): Prom
 export const login = catchAsync(async (req: Request, res: Response): Promise<void> => {
   const { email, password } = req.body;
 
-  const { accessToken, refreshToken, expiresIn, expiresAt } = await AuthService.login(
+  const { accessToken, refreshToken, expiresIn, expiresAt } = await AuthService.login({
     email,
-    password
-  );
+    password,
+  });
 
   res.cookie("refreshToken", refreshToken, {
     httpOnly: true,
     secure: env === "production",
     sameSite: "lax",
+    path: "/",
     maxAge: ms(refresh_expiration),
   });
+
   res.status(200).json({ success: true, data: { accessToken, expiresIn, expiresAt } });
 });
 
@@ -57,8 +58,9 @@ export const logout = catchAsync(async (req: Request, res: Response): Promise<vo
   if (!refreshToken) {
     res.status(200).json({
       success: true,
-      message: "Aucune session active détectée.",
+      message: "Aucune session active détectée. Vous êtes déjà déconnecté.",
     });
+    return;
   }
 
   await AuthService.logout(refreshToken);
@@ -68,14 +70,15 @@ export const logout = catchAsync(async (req: Request, res: Response): Promise<vo
     httpOnly: true,
     secure: env === "production",
     sameSite: "lax",
+    path: "/",
     maxAge: 0,
   });
 
-  res.status(200).json({ success: true, message: "Déconnexion réussie. Session terminée." });
+  res.status(200).json({ success: true, message: "Déconnexion réussie." });
 });
 
 // 🔑 Rafraîchissement d'un jeton d'accès (utilisateur, employé, administrateur)
-export const refreshToken = catchAsync(async (req: Request, res: Response): Promise<void> => {
+export const handleTokenRefresh = catchAsync(async (req: Request, res: Response): Promise<void> => {
   const refreshToken = req.cookies.refreshToken;
 
   if (!refreshToken) {

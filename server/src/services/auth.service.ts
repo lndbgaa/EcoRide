@@ -3,14 +3,11 @@ import { nanoid } from "nanoid";
 
 import config from "@/config/app.config.js";
 import { sequelize } from "@/config/mysql.config.js";
-import { Employee, RefreshToken, User } from "@/models/mysql/index.js";
+import { Employee, RefreshToken, User } from "@/models/mysql";
+import { ACCOUNT_ROLES_LABEL } from "@/models/mysql/Account.model.js";
 import AccountService from "@/services/account.service.js";
 import AppError from "@/utils/AppError.js";
 import { generateToken } from "@/utils/jwt.utils.js";
-
-type AccountModel = typeof User | typeof Employee;
-
-type AccountRole = "user" | "employee";
 
 type RegisterData = {
   email: string;
@@ -20,11 +17,17 @@ type RegisterData = {
   lastName: string;
 };
 
-type RegisterResponse = {
-  accessToken: string | null;
-  refreshToken: string | null;
-  expiresAt: number | null;
-  expiresIn: number | null;
+type RegisterUserResponse = {
+  accountId: string;
+  accessToken: string;
+  refreshToken: string;
+  expiresAt: number;
+  expiresIn: number;
+};
+
+type LoginData = {
+  email: string;
+  password: string;
 };
 
 type LoginResponse = {
@@ -43,21 +46,7 @@ type RefreshAccessTokenResponse = {
 const { access_secret, access_expiration, refresh_expiration } = config.jwt;
 
 class AuthService {
-  /**
-   * Création d'un compte (utilisateur ou employé)
-   *
-   * @param model - Modèle de compte à enregistrer
-   * @param role - Rôle du compte
-   * @param data - Données du compte
-   * @returns Jeton d'accès (access token) et de rafraîchissement (refresh token)
-   */
-  public static async register(
-    model: AccountModel,
-    role: AccountRole,
-    data: RegisterData
-  ): Promise<RegisterResponse> {
-    const { email, pseudo, password, firstName, lastName } = data;
-
+  private static async assertEmailAndPseudoAreUnique(email: string, pseudo: string): Promise<void> {
     const emailExists = await AccountService.doesEmailExist(email);
 
     if (emailExists) {
@@ -77,23 +66,25 @@ class AuthService {
         message: "Le pseudo est déjà pris.",
       });
     }
+  }
 
-    // Un compte employé est créer par un admin = pas de refresh token à l'inscription
-    if (role === "employee") {
-      await model.createOne({
-        email,
-        pseudo,
-        password,
-        first_name: firstName,
-        last_name: lastName,
-      });
+  /**
+   * Création d'un compte (utilisateur)
+   *
+   * @param data - Données du compte (email, pseudo, mot de passe, prénom, nom)
+   * @returns Jeton d'accès (access token) et de rafraîchissement (refresh token)
+   */
+  public static async registerUser(data: RegisterData): Promise<RegisterUserResponse> {
+    const { email, pseudo, password, firstName, lastName } = data;
 
-      return { accessToken: null, refreshToken: null, expiresIn: null, expiresAt: null };
-    }
+    await this.assertEmailAndPseudoAreUnique(email, pseudo);
 
-    // Un compte ne peut pas être créer dans la BDD sans un refresh token et inversement = transaction
+    // Après inscription, l'utilisateur est connecté.
+    // -> Le compte ne peut pas être créé dans la BDD sans un refresh token et inversement = transaction
     return await sequelize.transaction(async (transaction) => {
-      const account = await model.createOne(
+      const now = Date.now();
+
+      const user: User = await User.createOne(
         {
           email,
           pseudo,
@@ -106,32 +97,64 @@ class AuthService {
 
       const refreshToken = await RefreshToken.createOne(
         {
-          account_id: account.id,
+          account_id: user.id,
           token: nanoid(),
-          expires_at: new Date(Date.now() + ms(refresh_expiration)),
+          expires_at: new Date(now + ms(refresh_expiration)),
         },
         { transaction }
       );
 
-      const accessToken = generateToken({ id: account.id, role }, access_secret, access_expiration);
+      const accessToken: string = generateToken(
+        { id: user.id, role: ACCOUNT_ROLES_LABEL.USER },
+        access_secret,
+        access_expiration
+      );
 
       return {
+        accountId: user.id,
         accessToken,
         refreshToken: refreshToken.token,
         expiresIn: ms(access_expiration),
-        expiresAt: Date.now() + ms(access_expiration),
+        expiresAt: now + ms(access_expiration),
       };
     });
   }
 
   /**
+   * Création d'un compte (employé)
+   *
+   * @param data - Données du compte (email, pseudo, mot de passe, prénom, nom)
+   * @returns ID du compte
+   */
+  public static async registerEmployee(data: RegisterData): Promise<{ accountId: string }> {
+    const { email, pseudo, password, firstName, lastName } = data;
+
+    await this.assertEmailAndPseudoAreUnique(email, pseudo);
+
+    // Un compte employé est créé par un administrateur.
+    // -> Pas de connexion automatique : pas de jetons d'accès ni de rafraîchissement.
+    const employee: Employee = await Employee.createOne({
+      email,
+      pseudo,
+      password,
+      first_name: firstName,
+      last_name: lastName,
+    });
+
+    return {
+      accountId: employee.id,
+    };
+  }
+
+  /**
    * Connexion d'un compte (utilisateur, employé, administrateur)
    *
-   * @param email - Email du compte
-   * @param password - Mot de passe du compte
+   * @param data - Données du compte (email, mot de passe)
    * @returns Jeton d'accès (access token) et de rafraîchissement (refresh token)
    */
-  public static async login(email: string, password: string): Promise<LoginResponse> {
+  public static async login(data: LoginData): Promise<LoginResponse> {
+    const { email, password } = data;
+
     const account = await AccountService.findOneByEmail(email);
 
     if (!account || !(await account.checkPassword(password))) {
@@ -150,33 +173,27 @@ class AuthService {
       });
     }
 
-    const role = account.role?.label ?? "user";
+    const role = account.role?.label ?? ACCOUNT_ROLES_LABEL.USER;
+    const now = Date.now();
 
-    return await sequelize.transaction(async (transaction) => {
-      await account.updateLastLogin();
+    await RefreshToken.deleteHardByField("account_id", account.id);
 
-      await RefreshToken.deleteHardByField("account_id", account.id, {
-        transaction,
-      });
-
-      const refreshToken = await RefreshToken.createOne(
-        {
-          account_id: account.id,
-          token: nanoid(),
-          expires_at: new Date(Date.now() + ms(refresh_expiration)),
-        },
-        { transaction }
-      );
-
-      const accessToken = generateToken({ id: account.id, role }, access_secret, access_expiration);
-
-      return {
-        accessToken,
-        refreshToken: refreshToken.token,
-        expiresIn: ms(access_expiration),
-        expiresAt: Date.now() + ms(access_expiration),
-      };
+    const refreshToken = await RefreshToken.createOne({
+      account_id: account.id,
+      token: nanoid(),
+      expires_at: new Date(now + ms(refresh_expiration)),
     });
+
+    const accessToken = generateToken({ id: account.id, role }, access_secret, access_expiration);
+
+    await account.updateLastLogin();
+
+    return {
+      accessToken,
+      refreshToken: refreshToken.token,
+      expiresIn: ms(access_expiration),
+      expiresAt: now + ms(access_expiration),
+    };
   }
 
   /**
@@ -236,7 +253,7 @@ class AuthService {
     }
 
     const newAccessToken = generateToken(
-      { id: account.id, role: account.role?.label ?? "user" },
+      { id: account.id, role: account.role?.label ?? ACCOUNT_ROLES_LABEL.USER },
       access_secret,
       access_expiration
     );

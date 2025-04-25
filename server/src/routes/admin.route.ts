@@ -18,7 +18,7 @@ router.use(requireAuth);
 router.use(requireRole(["admin"]));
 
 router.post("/employees", validate(registerSchema), registerEmployee);
-router.post("/accounts/:id/suspend", validate(idParamSchema, "params"), suspendAccount);
-router.post("/accounts/:id/unsuspend", validate(idParamSchema, "params"), unsuspendAccount);
+router.patch("/accounts/:id/suspend", validate(idParamSchema, "params"), suspendAccount);
+router.patch("/accounts/:id/unsuspend", validate(idParamSchema, "params"), unsuspendAccount);
 
 export default router;
