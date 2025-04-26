@@ -1,4 +1,4 @@
-import { Op } from "sequelize";
+import { Op, type WhereOptions } from "sequelize";
 
 import { sequelize } from "@/config/mysql.config.js";
 import { Booking, Ride, User, Vehicle } from "@/models/mysql";
@@ -28,11 +28,6 @@ interface SearchRidesData {
 }
 
 class RideService {
-  /**
-   * Récupère un trajet par son id
-   * @param rideId - L'id du trajet
-   * @returns Le trajet trouvé
-   */
   public static async findRideOrThrow(rideId: string): Promise<Ride> {
     const ride: Ride | null = await Ride.findOneByField("id", rideId);
 
@@ -41,26 +36,6 @@ class RideService {
         statusCode: 404,
         statusText: "Not Found",
         message: "Aucun trajet trouvé avec l'id spécifié.",
-      });
-    }
-
-    return ride;
-  }
-
-  /**
-   * Vérifie si un trajet appartient bien à un utilisateur
-   * @param userId - L'id de l'utilisateur
-   * @param rideId - L'id du trajet
-   * @returns Le trajet trouvé
-   */
-  public static async findOwnedRideOrThrow(userId: string, rideId: string): Promise<Ride> {
-    const ride: Ride = await this.findRideOrThrow(rideId);
-
-    if (ride.getDriverId() !== userId) {
-      throw new AppError({
-        statusCode: 403,
-        statusText: "Forbidden",
-        message: "Vous n'avez pas les permissions pour accéder à ce trajet.",
       });
     }
 
@@ -126,7 +101,7 @@ class RideService {
    * @returns Les trajets trouvés.
    */
   public static async searchForRides(data: SearchRidesData, userId?: string): Promise<Ride[]> {
-    const conditions: any = {
+    const conditions: WhereOptions<Ride> = {
       departure_location: {
         [Op.like]: `%${data.departureLocation}%`, // recherche par ville de départ
       },
@@ -216,17 +191,31 @@ class RideService {
    * @param userId - L'identifiant de l'utilisateur.
    */
   public static async startRide(rideId: string, userId: string): Promise<void> {
-    const ride: Ride = await this.findOwnedRideOrThrow(userId, rideId);
-
-    if (!ride.isOpen() && !ride.isFull()) {
-      throw new AppError({
-        statusCode: 400,
-        statusText: "Bad Request",
-        message: "Impossible de démarrer ce trajet.",
+    return await sequelize.transaction(async (transaction) => {
+      const ride: Ride | null = await Ride.findOneByField("id", rideId, {
+        where: { driver_id: userId },
+        lock: transaction.LOCK.UPDATE,
+        transaction,
       });
-    }
 
-    await ride.markAsInProgress();
+      if (!ride) {
+        throw new AppError({
+          statusCode: 404,
+          statusText: "Not Found",
+          message: "Aucun trajet trouvé ou vous n'avez pas les permissions pour le démarrer.",
+        });
+      }
+
+      if (!ride.isOpen() && !ride.isFull()) {
+        throw new AppError({
+          statusCode: 400,
+          statusText: "Bad Request",
+          message: "Impossible de démarrer ce trajet car il n'est plus disponible.",
+        });
+      }
+
+      await ride.markAsInProgress({ transaction });
+    });
   }
 
   /**
@@ -235,17 +224,41 @@ class RideService {
    * @param userId - L'identifiant de l'utilisateur.
    */
   public static async endRide(rideId: string, userId: string): Promise<void> {
-    const ride: Ride = await this.findOwnedRideOrThrow(userId, rideId);
-
-    if (!ride.isInProgress()) {
-      throw new AppError({
-        statusCode: 400,
-        statusText: "Bad Request",
-        message: "Impossible de terminer ce trajet.",
+    return await sequelize.transaction(async (transaction) => {
+      const ride: Ride | null = await Ride.findOneByField("id", rideId, {
+        where: { driver_id: userId },
+        lock: transaction.LOCK.UPDATE,
+        transaction,
       });
-    }
 
-    await ride.markAsCompleted();
+      if (!ride) {
+        throw new AppError({
+          statusCode: 404,
+          statusText: "Not Found",
+          message: "Aucun trajet trouvé ou vous n'avez pas les permissions pour le terminer.",
+        });
+      }
+
+      if (!ride.isInProgress()) {
+        throw new AppError({
+          statusCode: 400,
+          statusText: "Bad Request",
+          message: "Impossible de terminer ce trajet car il n'est pas en cours.",
+        });
+      }
+
+      await ride.markAsCompleted({ transaction });
+
+      const bookings: Booking[] = await BookingService.getRideBookings(ride.id);
+
+      if (bookings.length > 0) {
+        await Promise.allSettled(
+          bookings.map((booking) => booking.markAsCompleted({ transaction }))
+        );
+      }
+
+      // TODO : logger les erreurs de changement de statut des réservations
+    });
   }
 
   /**
@@ -254,17 +267,54 @@ class RideService {
    * @param userId - L'identifiant de l'utilisateur.
    */
   public static async cancelRide(rideId: string, userId: string): Promise<void> {
-    const ride: Ride = await this.findOwnedRideOrThrow(userId, rideId);
-
-    if (!ride.isOpen() && !ride.isFull()) {
-      throw new AppError({
-        statusCode: 400,
-        statusText: "Bad Request",
-        message: "Impossible d'annuler ce trajet.",
+    return await sequelize.transaction(async (transaction) => {
+      const ride: Ride | null = await Ride.findOneByField("id", rideId, {
+        where: { driver_id: userId },
+        lock: transaction.LOCK.UPDATE,
+        transaction,
       });
-    }
 
-    await ride.markAsCancelled();
+      if (!ride) {
+        throw new AppError({
+          statusCode: 404,
+          statusText: "Not Found",
+          message: "Aucun trajet trouvé ou vous n'avez pas les permissions pour l'annuler.",
+        });
+      }
+
+      if (!ride.isOpen() && !ride.isFull()) {
+        throw new AppError({
+          statusCode: 400,
+          statusText: "Bad Request",
+          message: "Impossible d'annuler ce trajet.",
+        });
+      }
+
+      await ride.markAsCancelled({ transaction });
+
+      const bookings: Booking[] = await BookingService.getRideBookings(ride.id);
+
+      if (bookings.length > 0) {
+        await Promise.allSettled(
+          bookings.map((booking) => booking.markAsCancelled({ transaction }))
+        );
+      }
+
+      // TODO : logger les erreurs de changement de statut des réservations
+    });
+  }
+
+  /**
+   * Récupère les trajets d'un utilisateur.
+   * @param userId - L'identifiant de l'utilisateur.
+   * @returns Les trajets de l'utilisateur.
+   */
+  public static async getUserRides(userId: string): Promise<Ride[]> {
+    const rides: Ride[] = await Ride.findAllByField("driver_id", userId, {
+      include: [{ association: "vehicle", include: VEHICLE_ASSOCIATIONS }],
+    });
+
+    return rides;
   }
 }
 

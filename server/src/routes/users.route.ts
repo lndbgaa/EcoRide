@@ -18,8 +18,10 @@ import {
   addVehicleToProfile,
   deletePreferenceFromProfile,
   deleteVehicleFromProfile,
+  getUserBookings,
   getUserInfo,
   getUserPreferences,
+  getUserRides,
   getUserVehicles,
   updatePreferenceFromProfile,
   updateUserAvatar,
@@ -34,12 +36,14 @@ router.use(requireAuth);
 router.use(requireRole(["user"]));
 
 // Routes pour les informations de l'utilisateur
+
 router.get("/me", getUserInfo);
 router.patch("/me/infos", validate(updateInfoSchema), updateUserInfo);
 router.patch("/me/roles", validate(updateRoleSchema), updateUserRole);
 router.patch("/me/avatar", multerUploads, updateUserAvatar);
 
 // Routes pour les véhicules
+
 router.get("/me/vehicles", getUserVehicles);
 router.post("/me/vehicles", validate(addVehicleSchema), addVehicleToProfile);
 router.patch(
@@ -55,6 +59,7 @@ router.delete(
 );
 
 // Routes pour les préférences
+
 router.get("/me/preferences", getUserPreferences);
 router.post("/me/preferences", validate(addPreferenceSchema), addPreferenceToProfile);
 router.patch(
@@ -67,5 +72,10 @@ router.delete(
   validate(preferenceIdParamSchema, "params"),
   deletePreferenceFromProfile
 );
+
+// Routes pour les historiques des trajets et des réservations
+
+router.get("/me/rides", getUserRides);
+router.get("/me/bookings", getUserBookings);
 
 export default router;

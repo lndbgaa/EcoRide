@@ -1,4 +1,5 @@
-import { Vehicle } from "@/models/mysql";
+import { sequelize } from "@/config/mysql.config.js";
+import { User, Vehicle } from "@/models/mysql";
 import { VEHICLE_ASSOCIATIONS } from "@/models/mysql/Vehicle.model.js";
 import UserService from "@/services/user.service.js";
 import AppError from "@/utils/AppError.js";
@@ -50,11 +51,11 @@ class VehicleService {
   public static async findOwnedVehicleOrThrow(userId: string, vehicleId: string): Promise<Vehicle> {
     const vehicle: Vehicle = await this.findVehicleOrThrow(vehicleId);
 
-    if (vehicle.owner_id !== userId) {
+    if (vehicle.getOwnerId() !== userId) {
       throw new AppError({
         statusCode: 403,
         statusText: "Forbidden",
-        message: "Vous n'avez pas les permissions pour accéder à ce véhicule.",
+        message: "Vous n'êtes pas le propriétaire de ce véhicule.",
       });
     }
 
@@ -66,7 +67,7 @@ class VehicleService {
    * @param userId - L'id de l'utilisateur
    * @returns Les véhicules de l'utilisateur
    */
-  public static async getVehicles(userId: string): Promise<Vehicle[]> {
+  public static async getUserVehicles(userId: string): Promise<Vehicle[]> {
     const vehicles = await Vehicle.findAllByField("owner_id", userId, {
       include: VEHICLE_ASSOCIATIONS,
     });
@@ -83,7 +84,7 @@ class VehicleService {
   public static async createVehicle(userId: string, data: CreateVehicleData): Promise<Vehicle> {
     await UserService.assertUserIsDriverOrThrow(userId);
 
-    const doesLicensePlateExist =
+    const doesLicensePlateExist: boolean =
       (await Vehicle.findOneByField("license_plate", data.licensePlate)) !== null;
 
     if (doesLicensePlateExist) {
@@ -94,7 +95,7 @@ class VehicleService {
       });
     }
 
-    const dataToCreate = {
+    const dataToCreate: Partial<Vehicle> = {
       brand_id: data.brandId,
       model: data.model,
       color_id: data.colorId,
@@ -105,21 +106,24 @@ class VehicleService {
       first_registration: data.firstRegistration,
     };
 
-    const newVehicle = await Vehicle.createOne(dataToCreate);
+    return await sequelize.transaction(async (transaction) => {
+      const newVehicle: Vehicle = await Vehicle.createOne(dataToCreate, { transaction });
 
-    const vehicle = await Vehicle.findOneByField("id", newVehicle.id, {
-      include: VEHICLE_ASSOCIATIONS,
-    });
-
-    if (!vehicle) {
-      throw new AppError({
-        statusCode: 500,
-        statusText: "Internal Server Error",
-        message: "Une erreur est survenue lors de la création du véhicule.",
+      const createdVehicle: Vehicle | null = await Vehicle.findOneByField("id", newVehicle.id, {
+        transaction,
+        include: VEHICLE_ASSOCIATIONS,
       });
-    }
 
-    return vehicle;
+      if (!createdVehicle) {
+        throw new AppError({
+          statusCode: 500,
+          statusText: "Internal Server Error",
+          message: "Une erreur est survenue lors de la création du véhicule.",
+        });
+      }
+
+      return createdVehicle;
+    });
   }
 
   /**
@@ -134,25 +138,36 @@ class VehicleService {
     vehicleId: string,
     data: UpdateVehicleData
   ): Promise<Vehicle> {
-    await UserService.assertUserIsDriverOrThrow(userId); // vérifie que l'utilisateur est chauffeur
+    const user: User = await UserService.assertUserIsDriverOrThrow(userId);
 
-    await this.findOwnedVehicleOrThrow(userId, vehicleId); // vérifie que le véhicule appartient à l'utilisateur
+    const vehicle: Vehicle = await this.findOwnedVehicleOrThrow(user.id, vehicleId);
 
-    await Vehicle.updateByField("id", vehicleId, data); // met à jour le véhicule
+    const dataToUpdate: Partial<Vehicle> = {
+      brand_id: data.brandId,
+      model: data.model,
+      color_id: data.colorId,
+      energy_id: data.energyId,
+      seats: data.seats,
+    };
 
-    const updatedVehicle = await Vehicle.findOneByField("id", vehicleId, {
-      include: VEHICLE_ASSOCIATIONS,
-    }); // récupère le véhicule mis à jour avec les associations
+    return await sequelize.transaction(async (transaction) => {
+      await Vehicle.updateByField("id", vehicle.id, dataToUpdate, { transaction });
 
-    if (!updatedVehicle) {
-      throw new AppError({
-        statusCode: 500,
-        statusText: "Internal Server Error",
-        message: "Une erreur est survenue lors de la mise à jour du véhicule.",
+      const updatedVehicle: Vehicle | null = await Vehicle.findOneByField("id", vehicle.id, {
+        transaction,
+        include: VEHICLE_ASSOCIATIONS,
       });
-    }
 
-    return updatedVehicle;
+      if (!updatedVehicle) {
+        throw new AppError({
+          statusCode: 500,
+          statusText: "Internal Server Error",
+          message: "Une erreur est survenue lors de la mise à jour du véhicule.",
+        });
+      }
+
+      return updatedVehicle;
+    });
   }
 
   /**
@@ -161,9 +176,9 @@ class VehicleService {
    * @param vehicleId - L'id du véhicule à supprimer
    */
   public static async deleteVehicle(userId: string, vehicleId: string): Promise<void> {
-    await UserService.assertUserIsDriverOrThrow(userId);
+    const user: User = await UserService.findUserOrThrow(userId);
 
-    const vehicle = await this.findOwnedVehicleOrThrow(userId, vehicleId);
+    const vehicle: Vehicle = await this.findOwnedVehicleOrThrow(user.id, vehicleId);
 
     await vehicle.destroy();
   }

@@ -8,8 +8,9 @@ import errorHandler from "@/middlewares/errorHandler.js";
 import requireAuth from "@/middlewares/requireAuth.js";
 import adminRoutes from "@/routes/admin.route.js";
 import authRoutes from "@/routes/auth.route.js";
+import bookingsRoutes from "@/routes/bookings.routes.js";
 import ridesRoutes from "@/routes/rides.routes.js";
-import userRoutes from "@/routes/user.route.js";
+import usersRoutes from "@/routes/users.route.js";
 import AppError from "@/utils/AppError.js";
 
 const app = express();
@@ -26,10 +27,12 @@ app.get("/test", requireAuth, (req, res) => {
   res.send("Bienvenue!");
 });
 
-app.use("/api/v1/auth", authRoutes); // route pour l'authentification
-app.use("/api/v1/user", userRoutes); // route pour les utilisateurs
-app.use("/api/v1/admin", adminRoutes); // route pour les administrateurs
-app.use("/api/v1/rides", ridesRoutes); // route pour les trajets
+app.use("/api/v1/auth", authRoutes);
+app.use("/api/v1/users", usersRoutes);
+app.use("/api/v1/admin", adminRoutes);
+//app.use("/api/v1/employees", employeeRoutes);
+app.use("/api/v1/rides", ridesRoutes);
+app.use("/api/v1/bookings", bookingsRoutes);
 
 app.use((req, res, next) => {
   next(

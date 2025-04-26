@@ -35,6 +35,8 @@ CREATE TABLE accounts (
   FOREIGN KEY (role_id) REFERENCES roles(id) ON UPDATE CASCADE ON DELETE RESTRICT
 );
 
+CREATE INDEX idx_role_id ON accounts(role_id);
+
 -- TABLE REFRESH_TOKENS
 CREATE TABLE refresh_tokens (
   id INT AUTO_INCREMENT PRIMARY KEY,
@@ -44,7 +46,9 @@ CREATE TABLE refresh_tokens (
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   FOREIGN KEY (account_id) REFERENCES accounts(id) ON DELETE CASCADE
-);
+); 
+
+CREATE INDEX idx_account_id ON refresh_tokens(account_id);
 
 -- TABLE VEHICLE_BRANDS
 CREATE TABLE vehicle_brands (
@@ -83,6 +87,8 @@ CREATE TABLE vehicles (
   FOREIGN KEY (owner_id) REFERENCES accounts(id) ON DELETE CASCADE
 );
 
+CREATE INDEX idx_owner_id ON vehicles(owner_id);
+
 -- TABLE PREFERENCES
 CREATE TABLE preferences (
   id CHAR(36) NOT NULL PRIMARY KEY,
@@ -94,18 +100,20 @@ CREATE TABLE preferences (
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   FOREIGN KEY (user_id) REFERENCES accounts(id) ON DELETE CASCADE,
   UNIQUE (user_id, label)
-);
+); 
+
+CREATE INDEX idx_user_id ON preferences(user_id);
 
 -- TABLE RIDES
 CREATE TABLE rides (
-  id CHAR(36) NOT NULL PRIMARY KEY,
+  id CHAR(36) NOT NULL PRIMARY KEY,  
   departure_datetime DATETIME NOT NULL,
   departure_location VARCHAR(255) NOT NULL,
   arrival_datetime DATETIME NOT NULL,
   arrival_location VARCHAR(255) NOT NULL,
   duration INT NOT NULL,
-  driver_id CHAR(36) NULL,
-  vehicle_id CHAR(36) NULL,
+  driver_id CHAR(36) NOT NULL,
+  vehicle_id CHAR(36) NOT NULL,
   price INT NOT NULL CHECK (price BETWEEN 10 AND 500), -- crédits (1 crédit = 0,10€)
   offered_seats INT NOT NULL CHECK (offered_seats BETWEEN 1 AND 6 ), 
   available_seats INT NOT NULL CHECK (available_seats >= 0),
@@ -113,9 +121,12 @@ CREATE TABLE rides (
   status ENUM('open', 'full', 'in_progress', 'completed', 'cancelled') DEFAULT 'open',
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  FOREIGN KEY (driver_id) REFERENCES accounts(id) ON DELETE SET NULL, 
-  FOREIGN KEY (vehicle_id) REFERENCES vehicles(id) ON DELETE SET NULL
+  FOREIGN KEY (driver_id) REFERENCES accounts(id) ON DELETE RESTRICT, 
+  FOREIGN KEY (vehicle_id) REFERENCES vehicles(id) ON DELETE RESTRICT
 );
+
+CREATE INDEX idx_driver_id ON rides(driver_id);
+CREATE INDEX idx_departure_datetime ON rides(status, departure_datetime);
 
 -- TABLE BOOKINGS
 CREATE TABLE bookings (
@@ -126,10 +137,12 @@ CREATE TABLE bookings (
   status ENUM('confirmed','completed','cancelled') DEFAULT 'confirmed',
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  FOREIGN KEY (ride_id) REFERENCES rides(id) ON DELETE SET NULL, 
-  FOREIGN KEY (passenger_id) REFERENCES accounts(id) ON DELETE SET NULL, 
-  UNIQUE (ride_id, passenger_id)
+  FOREIGN KEY (ride_id) REFERENCES rides(id) ON DELETE RESTRICT, 
+  FOREIGN KEY (passenger_id) REFERENCES accounts(id) ON DELETE RESTRICT, 
 );
+
+CREATE INDEX idx_passenger_id ON bookings(passenger_id);
+CREATE INDEX idx_ride_id ON bookings(ride_id);
 
 -- TABLE REVIEWS
 CREATE TABLE reviews (
@@ -150,3 +163,5 @@ CREATE TABLE reviews (
   UNIQUE (ride_id, author_id, target_id)
 );
 
+CREATE INDEX idx_author_id ON reviews(author_id);
+CREATE INDEX idx_target_id ON reviews(target_id);

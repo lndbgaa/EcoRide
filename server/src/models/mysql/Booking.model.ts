@@ -2,7 +2,7 @@ import { DataTypes, UUIDV4 } from "sequelize";
 
 import type { BookingStatus } from "@/types/index.js";
 import type { SaveOptions } from "sequelize";
-import type { RidePublicDTO } from "./Ride.model.js";
+import type { RidePreviewDTO } from "./Ride.model.js";
 import type { UserPublicDTO } from "./User.model.js";
 
 import { sequelize } from "@/config/mysql.config.js";
@@ -18,7 +18,7 @@ interface BookingPublicDTO {
 
 interface BookingPrivateDTO {
   id: string;
-  ride: RidePublicDTO | null;
+  ride: RidePreviewDTO | null;
   seatsBooked: number;
   status: BookingStatus;
   createdAt: string;
@@ -90,7 +90,7 @@ class Booking extends Base {
   public toPrivateDTO(): BookingPrivateDTO {
     return {
       id: this.id,
-      ride: this.ride?.toPublicDTO() ?? null,
+      ride: this.ride?.toPreviewDTO() ?? null,
       seatsBooked: this.seats_booked,
       status: this.status,
       createdAt: toDateOnly(this.created_at),
@@ -172,7 +172,7 @@ Booking.init(
     indexes: [
       {
         unique: true,
-        fields: ["ride_id", "passenger_id"],
+        fields: ["ride_id", "passenger_id", "status"],
       },
     ],
   }

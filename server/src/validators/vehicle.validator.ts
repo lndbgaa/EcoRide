@@ -8,7 +8,7 @@ export const vehicleIdParamSchema = Joi.object({
     "any.required": "L'id du véhicule est requis.",
     "string.base": "L'id du véhicule doit être une chaîne de caractères.",
     "string.empty": "L'id du véhicule est requis.",
-    "string.guid": "L'id du véhicule doit être un UUID valide.",
+    "string.guid": "L'id du véhicule doit être un identifiant valide.",
   }),
 });
 
@@ -16,28 +16,33 @@ export const vehicleIdParamSchema = Joi.object({
  * Validation des données passées pour l'ajout d'un véhicule par un utilisateur
  */
 export const addVehicleSchema = Joi.object({
-  brandId: Joi.number().strict().required().messages({
+  brandId: Joi.number().integer().min(1).strict().required().messages({
     "any.required": "L'id de la marque est requis.",
     "number.base": "L'id de la marque doit être un nombre.",
+    "number.min": "L'id de la marque doit être supérieur à 0.",
   }),
-  model: Joi.string().trim().required().messages({
+  model: Joi.string().trim().min(2).max(50).required().messages({
     "any.required": "Le modèle est requis.",
-    "string.base": "Le modèle doit être une chaîne de caractères.",
-    "string.empty": "Le modèle ne peut pas être vide.",
+    "string.base": "Le modèle doit être une chaîne de caractères non vide.",
+    "string.empty": "Le modèle doit être une chaîne de caractères non vide.",
+    "string.min": "Le modèle doit contenir au moins 2 caractères.",
+    "string.max": "Le modèle doit contenir maximum 50 caractères.",
   }),
-  colorId: Joi.number().strict().required().messages({
+  colorId: Joi.number().integer().min(1).strict().required().messages({
     "any.required": "L'id de la couleur est requis.",
-    "number.base": "L'id de la couleur doit être un nombre.",
+    "number.base": "L'id de la couleur doit être un nombre entier.",
+    "number.min": "L'id de la couleur doit être supérieur à 0.",
   }),
-  energyId: Joi.number().strict().required().messages({
+  energyId: Joi.number().integer().min(1).strict().required().messages({
     "any.required": "L'id de l'énergie est requis.",
-    "number.base": "L'id de l'énergie doit être un nombre.",
+    "number.base": "L'id de l'énergie doit être un nombre entier.",
+    "number.min": "L'id de l'énergie doit être supérieur à 0.",
   }),
-  seats: Joi.number().strict().min(2).max(7).required().messages({
+  seats: Joi.number().integer().strict().min(2).max(7).required().messages({
     "any.required": "Le nombre de sièges est requis.",
-    "number.base": "Le nombre de sièges doit être un nombre.",
-    "number.min": "Le nombre de sièges doit être supérieur ou égal à 2.",
-    "number.max": "Le nombre de sièges doit être inférieur ou égal à 7.",
+    "number.base": "Le nombre de sièges doit être un nombre entier.",
+    "number.min": "Le nombre de sièges pour une voiture doit être minimum 2.",
+    "number.max": "Le nombre de sièges pour une voiture doit être maximum 7.",
   }),
   licensePlate: Joi.string()
     .trim()
@@ -45,49 +50,41 @@ export const addVehicleSchema = Joi.object({
     .pattern(/^[A-Z]{2}-\d{3}-[A-Z]{2}$/i)
     .messages({
       "any.required": "La plaque d'immatriculation est requise.",
-      "string.base": "La plaque d'immatriculation doit être une chaîne de caractères.",
-      "string.empty": "La plaque d'immatriculation ne peut pas être vide.",
+      "string.base": "La plaque d'immatriculation doit être une chaîne de caractères non vide.",
+      "string.empty": "La plaque d'immatriculation doit être une chaîne de caractères non vide.",
       "string.pattern.base": "Format de plaque invalide. Format attendu : AB-123-CD",
     }),
   firstRegistration: Joi.date().required().messages({
     "any.required": "La date de première mise en circulation est requise.",
     "date.base": "La date de première mise en circulation doit être une date valide.",
   }),
-})
-
-  .unknown(false)
-  .messages({
-    "object.unknown":
-      "Seuls les champs 'brandId', 'model', 'colorId', 'energyId', 'seats', 'licensePlate', 'firstRegistration' sont autorisés.",
-  });
+}).options({ stripUnknown: true });
 
 /**
  * Validation des données passées pour la mise à jour d'un véhicule par un utilisateur
  */
 export const updateVehicleSchema = Joi.object({
-  brandId: Joi.number().strict().optional().messages({
-    "number.base": "L'id de la marque doit être un nombre.",
+  brandId: Joi.number().integer().min(1).strict().optional().messages({
+    "number.base": "L'id de la marque doit être un nombre entier.",
+    "number.min": "L'id de la marque doit être supérieur à 0.",
   }),
-  model: Joi.string().trim().optional().messages({
+  model: Joi.string().trim().min(2).max(50).optional().messages({
     "string.base": "Le modèle doit être une chaîne de caractères.",
-    "string.empty": "Le modèle ne peut pas être vide.",
+    "string.empty": "Le modèle doit être une chaîne de caractères non vide.",
+    "string.min": "Le modèle doit contenir au moins 2 caractères.",
+    "string.max": "Le modèle doit contenir maximum 50 caractères.",
   }),
-  colorId: Joi.number().strict().optional().messages({
-    "number.base": "L'id de la couleur doit être un nombre.",
+  colorId: Joi.number().integer().min(1).strict().optional().messages({
+    "number.base": "L'id de la couleur doit être un nombre entier.",
+    "number.min": "L'id de la couleur doit être supérieur à 0.",
   }),
-  energyId: Joi.number().strict().optional().messages({
-    "number.base": "L'id de l'énergie doit être un nombre.",
+  energyId: Joi.number().integer().min(1).strict().optional().messages({
+    "number.base": "L'id de l'énergie doit être un nombre entier.",
+    "number.min": "L'id de l'énergie doit être supérieur à 0.",
   }),
-  seats: Joi.number().strict().min(2).max(7).optional().messages({
-    "number.base": "Le nombre de sièges doit être un nombre.",
-    "number.min": "Le nombre de sièges doit être supérieur ou égal à 2.",
-    "number.max": "Le nombre de sièges doit être inférieur ou égal à 7.",
+  seats: Joi.number().integer().min(2).max(7).optional().messages({
+    "number.base": "Le nombre de sièges doit être un nombre entier.",
+    "number.min": "Le nombre de sièges pour une voiture doit être minimum 2.",
+    "number.max": "Le nombre de sièges pour une voiture doit être maximum 7.",
   }),
-})
-  .min(1)
-  .unknown(false)
-  .messages({
-    "object.min": "Au moins un champ doit être renseigné.",
-    "object.unknown":
-      "Seuls les champs 'brandId', 'model', 'colorId', 'energyId', 'seats' sont autorisés.",
-  });
+}).options({ stripUnknown: true });

@@ -1,14 +1,13 @@
-import type { Preference, User, Vehicle } from "@/models/mysql";
+import type { Booking, Preference, Ride, User, Vehicle } from "@/models/mysql";
 import type { MulterRequest } from "@/types/express.js";
-import type { CreatePreferenceData } from "@/types/preference.types.js";
-import type { UpdateUserData, UserRole } from "@/types/user.types.js";
-import type { CreateVehicleData, UpdateVehicleData } from "@/types/vehicle.types.js";
 import type { Request, Response } from "express";
 
 import AppError from "@/utils/AppError.js";
 import catchAsync from "@/utils/catchAsync.js";
 
+import BookingService from "@/services/booking.service";
 import PreferenceService from "@/services/preference.service.js";
+import RideService from "@/services/ride.service";
 import UserService from "@/services/user.service.js";
 import VehicleService from "@/services/vehicle.service.js";
 
@@ -16,7 +15,7 @@ import VehicleService from "@/services/vehicle.service.js";
  * Gère la récupération des informations de profil d'un utilisateur
  */
 export const getUserInfo = catchAsync(async (req: Request, res: Response): Promise<void> => {
-  const userId: string = req.user.id;
+  const userId = req.user.id;
 
   const user: User = await UserService.getUserInfo(userId);
 
@@ -31,8 +30,8 @@ export const getUserInfo = catchAsync(async (req: Request, res: Response): Promi
  * Gère la mise à jour des informations de profil d'un utilisateur
  */
 export const updateUserInfo = catchAsync(async (req: Request, res: Response): Promise<void> => {
-  const userId: string = req.user.id;
-  const data: UpdateUserData = req.body;
+  const userId = req.user.id;
+  const data = req.body;
 
   const user: User = await UserService.updateInfo(userId, data);
 
@@ -47,8 +46,8 @@ export const updateUserInfo = catchAsync(async (req: Request, res: Response): Pr
  * Gère la mise à jour du rôle d'un utilisateur
  */
 export const updateUserRole = catchAsync(async (req: Request, res: Response): Promise<void> => {
-  const userId: string = req.user.id;
-  const { role }: { role: UserRole } = req.body;
+  const userId = req.user.id;
+  const { role } = req.body;
 
   await UserService.updateRole(role, userId);
 
@@ -60,7 +59,7 @@ export const updateUserRole = catchAsync(async (req: Request, res: Response): Pr
  */
 export const updateUserAvatar = catchAsync(
   async (req: MulterRequest, res: Response): Promise<void> => {
-    const userId: string = req.user.id;
+    const userId = req.user.id;
 
     const { file } = req;
 
@@ -86,9 +85,9 @@ export const updateUserAvatar = catchAsync(
  * Gère la récupération des véhicules d'un utilisateur (chauffeur)
  */
 export const getUserVehicles = catchAsync(async (req: Request, res: Response): Promise<void> => {
-  const userId: string = req.user.id;
+  const userId = req.user.id;
 
-  const vehicles: Vehicle[] = await VehicleService.getVehicles(userId);
+  const vehicles: Vehicle[] = await VehicleService.getUserVehicles(userId);
 
   res.status(200).json({
     success: true,
@@ -102,8 +101,8 @@ export const getUserVehicles = catchAsync(async (req: Request, res: Response): P
  */
 export const addVehicleToProfile = catchAsync(
   async (req: Request, res: Response): Promise<void> => {
-    const userId: string = req.user.id;
-    const data: CreateVehicleData = req.body;
+    const userId = req.user.id;
+    const data = req.body;
 
     const vehicle: Vehicle = await VehicleService.createVehicle(userId, data);
 
@@ -120,9 +119,9 @@ export const addVehicleToProfile = catchAsync(
  */
 export const updateVehicleFromProfile = catchAsync(
   async (req: Request, res: Response): Promise<void> => {
-    const userId: string = req.user.id;
-    const vehicleId: string = req.params.vehicleId;
-    const data: UpdateVehicleData = req.body;
+    const userId = req.user.id;
+    const vehicleId = req.params.vehicleId;
+    const data = req.body;
 
     const updatedVehicle: Vehicle = await VehicleService.updateVehicle(userId, vehicleId, data);
 
@@ -139,8 +138,8 @@ export const updateVehicleFromProfile = catchAsync(
  */
 export const deleteVehicleFromProfile = catchAsync(
   async (req: Request, res: Response): Promise<void> => {
-    const userId: string = req.user.id;
-    const vehicleId: string = req.params.vehicleId;
+    const userId = req.user.id;
+    const vehicleId = req.params.vehicleId;
 
     await VehicleService.deleteVehicle(userId, vehicleId);
 
@@ -152,7 +151,7 @@ export const deleteVehicleFromProfile = catchAsync(
  * Gère la récupération des préférences d'un utilisateur (chauffeur)
  */
 export const getUserPreferences = catchAsync(async (req: Request, res: Response): Promise<void> => {
-  const userId: string = req.user.id;
+  const userId = req.user.id;
 
   const preferences: Preference[] = await PreferenceService.getPreferences(userId);
 
@@ -168,8 +167,8 @@ export const getUserPreferences = catchAsync(async (req: Request, res: Response)
  */
 export const addPreferenceToProfile = catchAsync(
   async (req: Request, res: Response): Promise<void> => {
-    const userId: string = req.user.id;
-    const data: CreatePreferenceData = req.body;
+    const userId = req.user.id;
+    const data = req.body;
 
     const preference: Preference = await PreferenceService.createPreference(userId, data);
 
@@ -186,8 +185,8 @@ export const addPreferenceToProfile = catchAsync(
  */
 export const updatePreferenceFromProfile = catchAsync(
   async (req: Request, res: Response): Promise<void> => {
-    const userId: string = req.user.id;
-    const preferenceId: string = req.params.preferenceId;
+    const userId = req.user.id;
+    const preferenceId = req.params.preferenceId;
 
     const updatedPreference: Preference = await PreferenceService.togglePreferenceValue(
       userId,
@@ -207,11 +206,41 @@ export const updatePreferenceFromProfile = catchAsync(
  */
 export const deletePreferenceFromProfile = catchAsync(
   async (req: Request, res: Response): Promise<void> => {
-    const userId: string = req.user.id;
-    const preferenceId: string = req.params.preferenceId;
+    const userId = req.user.id;
+    const preferenceId = req.params.preferenceId;
 
     await PreferenceService.deletePreference(userId, preferenceId);
 
     res.status(200).json({ success: true, message: "Préférence supprimée avec succès." });
   }
 );
+
+/**
+ * Gère la récupération des trajets d'un utilisateur (chauffeur)
+ */
+export const getUserRides = catchAsync(async (req: Request, res: Response): Promise<void> => {
+  const userId = req.user.id;
+
+  const rides: Ride[] = await RideService.getUserRides(userId);
+
+  res.status(200).json({
+    success: true,
+    message: "Historique des trajets récupérés avec succès.",
+    data: rides.map((ride) => ride.toPrivateDTO()),
+  });
+});
+
+/**
+ * Gère la récupération des réservations d'un utilisateur (passager)
+ */
+export const getUserBookings = catchAsync(async (req: Request, res: Response): Promise<void> => {
+  const userId = req.user.id;
+
+  const bookings: Booking[] = await BookingService.getUserBookings(userId);
+
+  res.status(200).json({
+    success: true,
+    message: "Historique des réservations récupéré avec succès.",
+    data: bookings.map((booking) => booking.toPrivateDTO()),
+  });
+});

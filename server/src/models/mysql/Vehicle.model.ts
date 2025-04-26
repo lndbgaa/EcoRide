@@ -79,6 +79,10 @@ class Vehicle extends Base {
   public getSeats(): number {
     return this.seats;
   }
+
+  public getOwnerId(): string {
+    return this.owner_id;
+  }
 }
 
 Vehicle.init(

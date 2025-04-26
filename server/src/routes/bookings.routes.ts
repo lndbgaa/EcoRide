@@ -13,6 +13,6 @@ router.use(requireAuth);
 router.use(requireRole([ACCOUNT_ROLES_LABEL.USER]));
 
 router.post("/", validate(createBookingSchema), createBooking);
-router.patch("/:bookingId/cancel", validate(bookingIdParamSchema), cancelBooking);
+router.patch("/:bookingId/cancel", validate(bookingIdParamSchema, "params"), cancelBooking);
 
 export default router;

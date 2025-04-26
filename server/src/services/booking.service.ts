@@ -74,6 +74,7 @@ class BookingService {
     const hasUserAlreadyBooked: boolean = !!(await Booking.findOneByField("ride_id", rideId, {
       where: {
         passenger_id: userId,
+        status: "confirmed",
       },
     }));
 
@@ -81,7 +82,7 @@ class BookingService {
       throw new AppError({
         statusCode: 403,
         statusText: "Forbidden",
-        message: "Vous avez déjà réservé ce trajet.",
+        message: "Vous avez une réservation en cours pour ce trajet.",
       });
     }
 
@@ -149,6 +150,19 @@ class BookingService {
     const bookings: Booking[] = await Booking.findAllByField("ride_id", ride.id, {
       where: { status: "confirmed" },
       include: [{ association: "passenger" }],
+    });
+
+    return bookings;
+  }
+
+  /**
+   * Récupère toutes les réservations d'un utilisateur
+   * @param userId - L'id de l'utilisateur
+   * @returns Les réservations trouvées
+   */
+  public static async getUserBookings(userId: string): Promise<Booking[]> {
+    const bookings: Booking[] = await Booking.findAllByField("passenger_id", userId, {
+      include: [{ association: "ride" }],
     });
 
     return bookings;
