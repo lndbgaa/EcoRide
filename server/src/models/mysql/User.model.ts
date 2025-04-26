@@ -76,7 +76,7 @@ class User extends Account {
   /**
    *  Ajoute des crédits au compte utilisateur.
    */
-  async addCredits(amount: number, options: { transaction?: Transaction }): Promise<void> {
+  async addCredits(amount: number, options?: { transaction?: Transaction }): Promise<void> {
     if (amount <= 0) throw new Error("Le montant doit être supérieur à 0.");
     this.credits += amount;
     await this.save(options);
@@ -85,7 +85,7 @@ class User extends Account {
   /**
    * Retire des crédits du compte utilisateur.
    */
-  async removeCredits(amount: number, options: { transaction?: Transaction }): Promise<void> {
+  async removeCredits(amount: number, options?: { transaction?: Transaction }): Promise<void> {
     if (amount <= 0) throw new Error("Le montant doit être supérieur à 0.");
     if (this.credits < amount) throw new Error("Crédits insuffisants.");
     this.credits -= amount;

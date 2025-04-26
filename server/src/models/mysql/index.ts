@@ -1,5 +1,6 @@
 import Account from "./Account.model.js";
 import Admin from "./Admin.model.js";
+import Base from "./Base.model.js";
 import Booking from "./Booking.model.js";
 import Employee from "./Employee.model.js";
 import Preference from "./Preference.model.js";
@@ -12,7 +13,6 @@ import Vehicle from "./Vehicle.model.js";
 import VehicleBrand from "./VehicleBrand.model.js";
 import VehicleColor from "./VehicleColor.model.js";
 import VehicleEnergy from "./VehicleEnergy.model.js";
-
 // === Associations ===
 
 // Rôles pour les différents types de comptes
@@ -49,6 +49,7 @@ Booking.belongsTo(User, { foreignKey: "passenger_id", as: "passenger" });
 export {
   Account,
   Admin,
+  Base,
   Booking,
   Employee,
   Preference,

@@ -1,16 +1,16 @@
+import { DataTypes } from "sequelize";
+
+import type { RideStatus } from "@/types/index.js";
+import type { SaveOptions } from "sequelize";
+import type { UserPublicDTO } from "./User.model.js";
+import type { VehiclePrivateDTO, VehiclePublicDTO } from "./Vehicle.model.js";
+
 import { sequelize } from "@/config/mysql.config.js";
 import AppError from "@/utils/AppError.js";
 import { getDuration, toDateOnly, toTimeOnly } from "@/utils/date.utils.js";
-import { DataTypes, Transaction } from "sequelize";
-import Base from "./Base.model.js";
-import type { UserPublicDTO } from "./User.model.js";
-import User from "./User.model.js";
-import type { VehiclePrivateDTO, VehiclePublicDTO } from "./Vehicle.model.js";
-import Vehicle from "./Vehicle.model.js";
+import { Base, User, Vehicle } from "./index.js";
 
-import type { RideStatus } from "@/types/index.js";
-
-export interface RidePublicDTO {
+export interface RidePreviewDTO {
   id: string;
   departure_date: string;
   departure_location: string;
@@ -19,16 +19,21 @@ export interface RidePublicDTO {
   arrival_location: string;
   arrival_time: string;
   duration: number;
-  driver: UserPublicDTO | null;
-  vehicle: VehiclePublicDTO | null;
   is_eco_friendly: boolean;
   price: number;
   available_seats: number;
+  driver: UserPublicDTO | null;
 }
 
-export interface RidePrivateDTO extends Omit<RidePublicDTO, "driver" | "vehicle"> {
-  offered_seats: number;
+export interface RideDetailedDTO extends RidePreviewDTO {
+  vehicle: VehiclePublicDTO | null;
+  passengers: UserPublicDTO[];
+}
+
+export interface RidePrivateDTO extends Omit<RidePreviewDTO, "driver"> {
   vehicle: VehiclePrivateDTO | null;
+  passengers: UserPublicDTO[];
+  offered_seats: number;
 }
 
 /**
@@ -53,6 +58,8 @@ class Ride extends Base {
   declare created_at: Date;
   declare updated_at: Date;
 
+  declare passengers?: User[];
+
   // Associations chargées dynamiquement via Sequelize (si `include` est utilisé).
   declare driver?: User;
   declare vehicle?: Vehicle;
@@ -62,15 +69,16 @@ class Ride extends Base {
    */
   private static readonly allowedTransitions: Record<RideStatus, RideStatus[]> = {
     open: ["full", "cancelled", "in_progress"],
-    full: ["in_progress", "cancelled", "no_show"],
+    full: ["in_progress", "cancelled"],
     in_progress: ["completed"],
     completed: [],
     cancelled: [],
-    no_show: [],
-  };
+  } as const;
 
   /**
    * Vérifie si une transition vers un nouveau statut est autorisée.
+   * @param status - Le nouveau statut à vérifier.
+   * @returns `true` si la transition est autorisée, `false` sinon.
    */
   private canTransitionTo(status: RideStatus): boolean {
     const currentStatus: RideStatus = this.status;
@@ -79,8 +87,10 @@ class Ride extends Base {
 
   /**
    * Applique une transition vers un nouveau statut, si elle est autorisée.
+   * @param status - Le nouveau statut à appliquer.
+   * @param options - Options de la transaction.
    */
-  public async transitionTo(status: RideStatus) {
+  private async transitionTo(status: RideStatus, options?: SaveOptions): Promise<void> {
     if (this.status === status) return;
 
     if (!this.canTransitionTo(status)) {
@@ -92,89 +102,138 @@ class Ride extends Base {
     }
 
     this.status = status;
-    await this.save();
+    await this.save(options);
   }
 
   /**
    * Permet d'ajouter des places disponibles à un covoiturage (ex: annulation réservation)
-   * */
-  async addSeats(amount: number, options: { transaction?: Transaction }): Promise<void> {
-    try {
-      if (this.status !== "open") {
-        throw new Error(`Le covoiturage est actuellement en statut "${this.status}".`);
-      }
-
-      if (amount <= 0) {
-        throw new Error("Le nombre de places à ajouter doit être supérieur à 0.");
-      }
-
-      if (this.available_seats + amount > this.offered_seats) {
-        throw new Error(
-          `Impossible d'ajouter ${amount} place(s) : la capacité maximale est de ${this.offered_seats}.`
-        );
-      }
-
-      this.available_seats += amount;
-      if (this.available_seats > 0 && this.status !== "open") await this.transitionTo("open");
-      await this.save(options);
-    } catch (err) {
-      const message = `addSeats → ${err instanceof Error ? err.message : String(err)}`;
-      throw new Error(message);
+   *
+   * @param amount - Le nombre de places à ajouter.
+   * @param options - Options de sauvegarde sequelize.
+   */
+  public async addSeats(amount: number, options?: SaveOptions): Promise<void> {
+    if (this.status !== "open") {
+      throw new AppError({
+        statusCode: 400,
+        statusText: "Bad Request",
+        message: `Le covoiturage est actuellement en statut "${this.status}".`,
+      });
     }
+
+    if (amount <= 0) {
+      throw new AppError({
+        statusCode: 400,
+        statusText: "Bad Request",
+        message: "Le nombre de places à ajouter doit être supérieur à 0.",
+      });
+    }
+
+    if (this.available_seats + amount > this.offered_seats) {
+      throw new AppError({
+        statusCode: 400,
+        statusText: "Bad Request",
+        message: `Impossible d'ajouter ${amount} place(s) : la capacité maximale est de ${this.offered_seats}.`,
+      });
+    }
+
+    this.available_seats += amount;
+    if (this.available_seats > 0 && this.status !== "open") await this.transitionTo("open");
+    await this.save(options);
   }
 
   /**
-   *  Permet de retirer des places disponibles à un covoiturage (ex: création réservation)
-   * */
-  async removeSeats(amount: number, options: { transaction?: Transaction }): Promise<void> {
-    try {
-      if (!["open", "full"].includes(this.status)) {
-        throw new Error(`Le covoiturage est actuellement en statut "${this.status}".`);
-      }
-
-      if (amount <= 0) {
-        throw new Error("Le nombre de places à retirer doit être supérieur à 0.");
-      }
-      if (amount > this.available_seats)
-        throw new Error(`Seulement ${this.available_seats} disponibles pour ce covoiturage.`);
-
-      this.available_seats -= amount;
-      if (this.available_seats === 0 && this.status !== "full") await this.transitionTo("full");
-      await this.save(options);
-    } catch (err) {
-      const message = `[Ride] removeSeats → ${err instanceof Error ? err.message : String(err)}`;
-      throw new Error(message);
+   * Permet de retirer des places disponibles à un covoiturage (ex: création réservation)
+   *
+   * @param amount - Le nombre de places à retirer.
+   * @param options - Options de sauvegarde sequelize.
+   */
+  public async removeSeats(amount: number, options?: SaveOptions): Promise<void> {
+    if (!["open", "full"].includes(this.status)) {
+      throw new AppError({
+        statusCode: 400,
+        statusText: "Bad Request",
+        message: `Le covoiturage est actuellement en statut "${this.status}".`,
+      });
     }
+
+    if (amount <= 0) {
+      throw new AppError({
+        statusCode: 400,
+        statusText: "Bad Request",
+        message: "Le nombre de places à retirer doit être supérieur à 0.",
+      });
+    }
+
+    if (amount > this.available_seats) {
+      throw new AppError({
+        statusCode: 400,
+        statusText: "Bad Request",
+        message: `Seulement ${this.available_seats} disponibles pour ce covoiturage.`,
+      });
+    }
+
+    this.available_seats -= amount;
+    if (this.available_seats === 0 && this.status !== "full") await this.transitionTo("full");
+    await this.save(options);
   }
 
-  public async markAsInProgress(): Promise<void> {
-    await this.transitionTo("in_progress");
+  public setPassengers(passengers: User[]): void {
+    this.passengers = passengers;
   }
 
-  public async markAsCompleted(): Promise<void> {
-    await this.transitionTo("completed");
+  public async markAsInProgress(options?: SaveOptions): Promise<void> {
+    await this.transitionTo("in_progress", options);
   }
 
-  public async markAsNoShow(): Promise<void> {
-    await this.transitionTo("no_show");
+  public async markAsCompleted(options?: SaveOptions): Promise<void> {
+    await this.transitionTo("completed", options);
   }
 
-  public async markAsCancelled(): Promise<void> {
-    await this.transitionTo("cancelled");
+  public async markAsCancelled(options?: SaveOptions): Promise<void> {
+    await this.transitionTo("cancelled", options);
   }
 
   public isOpen(): boolean {
     return this.status === "open";
   }
 
+  public isFull(): boolean {
+    return this.status === "full";
+  }
+
+  public isInProgress(): boolean {
+    return this.status === "in_progress";
+  }
+
+  public isCompleted(): boolean {
+    return this.status === "completed";
+  }
+
+  public isCancelled(): boolean {
+    return this.status === "cancelled";
+  }
+
+  public getDriverId(): string {
+    return this.driver_id;
+  }
+
+  public getVehicleId(): string {
+    return this.vehicle_id;
+  }
+
   public getPrice(): number {
     return this.price;
   }
 
-  /**
-   * Retourne une version "publique" du trajet.
-   */
-  toPublicDTO(): RidePublicDTO {
+  public getAvailableSeats(): number {
+    return this.available_seats;
+  }
+
+  public getOfferedSeats(): number {
+    return this.offered_seats;
+  }
+
+  toPreviewDTO(): RidePreviewDTO {
     return {
       id: this.id,
       departure_date: toDateOnly(this.departure_datetime),
@@ -184,24 +243,27 @@ class Ride extends Base {
       arrival_location: this.arrival_location,
       arrival_time: toTimeOnly(this.arrival_datetime),
       duration: this.duration,
-      driver: this.driver?.toPublicDTO() ?? null,
-      vehicle: this.vehicle?.toPublicDTO() ?? null,
       price: this.price,
       available_seats: this.available_seats,
       is_eco_friendly: this.is_eco_friendly,
+      driver: this.driver?.toPublicDTO() ?? null,
     };
   }
 
-  /**
-   * Retourne une version "privée" du trajet.
-   *
-   * 💡 Utile lorsque le chauffeur consulte son covoiturage.
-   */
+  toDetailedDTO(): RideDetailedDTO {
+    return {
+      ...this.toPreviewDTO(),
+      vehicle: this.vehicle?.toPublicDTO() ?? null,
+      passengers: this.passengers?.map((passenger) => passenger.toPublicDTO()) ?? [],
+    };
+  }
+
   toPrivateDTO(): RidePrivateDTO {
-    const { driver, ...publicDTOWithoutDriver } = this.toPublicDTO();
+    const { driver, ...publicDTOWithoutDriver } = this.toPreviewDTO();
     return {
       ...publicDTOWithoutDriver,
       vehicle: this.vehicle?.toPrivateDTO() ?? null,
+      passengers: this.passengers?.map((passenger) => passenger.toPublicDTO()) ?? [],
       offered_seats: this.offered_seats,
     };
   }
@@ -294,7 +356,7 @@ Ride.init(
     },
     status: {
       type: DataTypes.ENUM(
-        ...(["open", "full", "in_progress", "completed", "no_show", "cancelled"] as RideStatus[])
+        ...(["open", "full", "in_progress", "completed", "cancelled"] as RideStatus[])
       ),
       defaultValue: "open",
     },

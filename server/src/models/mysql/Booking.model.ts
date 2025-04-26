@@ -1,22 +1,27 @@
 import { DataTypes, UUIDV4 } from "sequelize";
 
-import type { FindOptions } from "sequelize";
+import type { BookingStatus } from "@/types/index.js";
+import type { SaveOptions } from "sequelize";
+import type { RidePublicDTO } from "./Ride.model.js";
+import type { UserPublicDTO } from "./User.model.js";
 
 import { sequelize } from "@/config/mysql.config.js";
-import Base from "./Base.model.js";
-import Ride, { type RidePublicDTO } from "./Ride.model.js";
-import User, { type UserPublicDTO } from "./User.model.js";
-
-type BookingStatus = "confirmed" | "completed" | "cancelled";
+import AppError from "@/utils/AppError.js";
+import { toDateOnly } from "@/utils/date.utils.js";
+import { Base, Ride, User } from "./index.js";
 
 interface BookingPublicDTO {
   id: string;
   passenger: UserPublicDTO | null;
+  seatsBooked: number;
 }
 
 interface BookingPrivateDTO {
   id: string;
   ride: RidePublicDTO | null;
+  seatsBooked: number;
+  status: BookingStatus;
+  createdAt: string;
 }
 
 /**
@@ -28,6 +33,7 @@ class Booking extends Base {
   declare id: string;
   declare ride_id: string;
   declare passenger_id: string;
+  declare seats_booked: number;
   declare status: BookingStatus;
   declare created_at: Date;
   declare updated_at: Date;
@@ -37,91 +43,82 @@ class Booking extends Base {
   declare passenger?: User;
 
   /**
-   * Récupère toutes les réservations faites sur un covoiturage à partir d'un id.
-   */
-  static async findAllByRide(
-    rideId: string,
-    options: FindOptions<Booking> = {}
-  ): Promise<Booking[]> {
-    if (!rideId || typeof rideId !== "string") {
-      throw new Error("ID de covoiturage invalide.");
-    }
-
-    return await this.findAllByField("ride_id", rideId, options);
-  }
-
-  /**
-   * Récupère toutes les réservations d'un passager à partir d'un id.
-   */
-  static async findAllByPassenger(
-    passengerId: string,
-    options: FindOptions<Booking> = {}
-  ): Promise<Booking[]> {
-    if (!passengerId || typeof passengerId !== "string") {
-      throw new Error("ID de passager invalide.");
-    }
-
-    return await this.findAllByField("passenger_id", passengerId, options);
-  }
-
-  /**
    * Liste des transitions autorisées entre les statuts d'une réservation.
    */
-  static readonly allowedTransitions: Record<BookingStatus, BookingStatus[]> = {
+  private static readonly allowedTransitions: Record<BookingStatus, BookingStatus[]> = {
     confirmed: ["completed", "cancelled"],
     completed: [],
     cancelled: [],
-  };
+  } as const;
 
   /**
    * Vérifie si une transition vers un nouveau statut est autorisée.
+   * @param status - Le nouveau statut à vérifier.
+   * @returns `true` si la transition est autorisée, `false` sinon.
    */
-  canTransitionTo(status: BookingStatus): boolean {
+  private canTransitionTo(status: BookingStatus): boolean {
     const currentStatus: BookingStatus = this.status;
     return Booking.allowedTransitions[currentStatus]?.includes(status) ?? false;
   }
 
   /**
    * Applique une transition vers un nouveau statut, si elle est autorisée.
+   * @param status - Le nouveau statut à appliquer.
+   * @param options - Options de sauvegarde sequelize.
    */
-  async transitionTo(status: BookingStatus) {
-    if (!this.canTransitionTo(status))
-      throw new Error(`Transition de "${this.status}" vers "${status}" non autorisée.`);
+  private async transitionTo(status: BookingStatus, options?: SaveOptions): Promise<void> {
+    if (!this.canTransitionTo(status)) {
+      throw new AppError({
+        statusCode: 400,
+        statusText: "Bad Request",
+        message: `Transition de "${this.status}" vers "${status}" non autorisée.`,
+      });
+    }
 
     this.status = status;
-    await this.save();
+    await this.save(options);
   }
 
-  async markAsCompleted() {
-    await this.transitionTo("completed");
-  }
-
-  async markAsCancelled() {
-    await this.transitionTo("cancelled");
-  }
-
-  /**
-   * Retourne une version "publique" de la réservation.
-   *
-   * 💡 Utile pour lister les passagers d'un covoiturage.
-   */
-  toPublicDTO(): BookingPublicDTO {
+  public toPublicDTO(): BookingPublicDTO {
     return {
       id: this.id,
-      passenger: this.passenger?.toPublicJSON() ?? null,
+      passenger: this.passenger?.toPublicDTO() ?? null,
+      seatsBooked: this.seats_booked,
     };
   }
 
-  /**
-   * Retourne une version "privée" de la réservation.
-   *
-   * 💡 Utile pour lister les réservations d'un utilisateur.
-   */
-  toPrivateDTO(): BookingPrivateDTO {
+  public toPrivateDTO(): BookingPrivateDTO {
     return {
       id: this.id,
       ride: this.ride?.toPublicDTO() ?? null,
+      seatsBooked: this.seats_booked,
+      status: this.status,
+      createdAt: toDateOnly(this.created_at),
     };
+  }
+
+  public async markAsCompleted(options?: SaveOptions): Promise<void> {
+    await this.transitionTo("completed", options);
+  }
+
+  public async markAsCancelled(options?: SaveOptions): Promise<void> {
+    await this.transitionTo("cancelled", options);
+  }
+
+  public getRideId(): string {
+    return this.ride_id;
+  }
+
+  public getPassengerId(): string {
+    return this.passenger_id;
+  }
+
+  public getSeatsBooked(): number {
+    return this.seats_booked;
+  }
+
+  public getPassenger(): User | null {
+    return this.passenger ?? null;
   }
 }
 
@@ -150,6 +147,16 @@ Booking.init(
       },
       onDelete: "SET NULL",
     },
+    seats_booked: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+      validate: {
+        min: {
+          args: [1],
+          msg: "Le nombre de places réservées doit être supérieur à 0.",
+        },
+      },
+    },
     status: {
       type: DataTypes.ENUM(...(["confirmed", "completed", "cancelled"] as BookingStatus[])),
       defaultValue: "confirmed",
@@ -165,7 +172,7 @@ Booking.init(
     indexes: [
       {
         unique: true,
-        fields: ["ride_id", "passenger_id"], // une reservation par trajet par passager
+        fields: ["ride_id", "passenger_id"],
       },
     ],
   }

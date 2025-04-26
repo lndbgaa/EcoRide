@@ -1,10 +1,10 @@
-import type { RideStatus } from "@/types/index.js";
+import { Op } from "sequelize";
 
+import { sequelize } from "@/config/mysql.config";
 import { Ride, Vehicle } from "@/models/mysql";
 import { VEHICLE_ASSOCIATIONS } from "@/models/mysql/Vehicle.model.js";
 import VehicleService from "@/services/vehicle.service.js";
 import AppError from "@/utils/AppError.js";
-import { Op } from "sequelize";
 
 interface CreateRideData {
   departureDatetime: Date;
@@ -27,6 +27,11 @@ interface SearchRidesData {
 }
 
 class RideService {
+  /**
+   * Récupère un trajet par son id
+   * @param rideId - L'id du trajet
+   * @returns Le trajet trouvé
+   */
   public static async findRideOrThrow(rideId: string): Promise<Ride> {
     const ride: Ride | null = await Ride.findOneByField("id", rideId);
 
@@ -42,15 +47,35 @@ class RideService {
   }
 
   /**
+   * Vérifie si un trajet appartient bien à un utilisateur
+   * @param userId - L'id de l'utilisateur
+   * @param rideId - L'id du trajet
+   * @returns Le trajet trouvé
+   */
+  public static async findOwnedRideOrThrow(userId: string, rideId: string): Promise<Ride> {
+    const ride: Ride = await this.findRideOrThrow(rideId);
+
+    if (ride.getDriverId() !== userId) {
+      throw new AppError({
+        statusCode: 403,
+        statusText: "Forbidden",
+        message: "Vous n'avez pas les permissions pour accéder à ce trajet.",
+      });
+    }
+
+    return ride;
+  }
+
+  /**
    * Crée un nouveau trajet.
-   * @param userId - L'identifiant de l'utilisateur.
+   * @param userId - L'identifiant de l'utilisateur qui crée le trajet.
    * @param data - Les données du trajet.
    * @returns Le trajet créé.
    */
   public static async createRide(userId: string, data: CreateRideData): Promise<Ride> {
     const vehicle: Vehicle = await VehicleService.findOwnedVehicleOrThrow(userId, data.vehicleId);
 
-    const availablePassengerSeats: number = vehicle.seats - 1;
+    const availablePassengerSeats: number = vehicle.getSeats() - 1;
 
     if (availablePassengerSeats < data.offeredSeats) {
       throw new AppError({
@@ -73,29 +98,33 @@ class RideService {
       is_eco_friendly: vehicle.isEcoVehicle(),
     };
 
-    const newRide: Ride = await Ride.createOne(dataToCreate);
+    return await sequelize.transaction(async (transaction) => {
+      const newRide: Ride = await Ride.createOne(dataToCreate, { transaction });
 
-    const ride: Ride | null = await Ride.findOneByField("id", newRide.id, {
-      include: [{ association: "vehicle", include: VEHICLE_ASSOCIATIONS }],
-    });
-
-    if (!ride) {
-      throw new AppError({
-        statusCode: 500,
-        statusText: "Internal Server Error",
-        message: "Une erreur est survenue lors de la création du trajet.",
+      const createdRide: Ride | null = await Ride.findOneByField("id", newRide.id, {
+        transaction,
+        include: [{ association: "vehicle", include: VEHICLE_ASSOCIATIONS }],
       });
-    }
 
-    return ride;
+      if (!createdRide) {
+        throw new AppError({
+          statusCode: 500,
+          statusText: "Internal Server Error",
+          message: "Une erreur est survenue lors de la création du trajet.",
+        });
+      }
+
+      return createdRide;
+    });
   }
 
   /**
    * Recherche des trajets.
    * @param data - Les données de la recherche.
+   * @param userId - L'id de l'utilisateur connecté. (optionnel)
    * @returns Les trajets trouvés.
    */
-  public static async searchForRides(userId: string, data: SearchRidesData): Promise<Ride[]> {
+  public static async searchForRides(data: SearchRidesData, userId?: string): Promise<Ride[]> {
     const conditions: any = {
       departure_location: {
         [Op.like]: `%${data.departureLocation}%`, // recherche par ville de départ
@@ -109,17 +138,18 @@ class RideService {
           new Date(`${data.departureDate}T23:59:59`),
         ], // recherche par date de départ
       },
-      driver_id: {
-        [Op.ne]: userId, // ne propose pas ses propres trajets à l'utilisateur
-      },
       status: "open", // ne retourne que les trajets ouverts et avec des places disponibles
     };
 
-    if (data.isEcoFriendly !== undefined) {
-      conditions.is_eco_friendly = data.isEcoFriendly; // filtre par véhicule éco-friendly
+    if (userId) {
+      conditions.driver_id = { [Op.ne]: userId }; // ne propose pas ses propres trajets à l'utilisateur connecté
     }
 
-    if (data.maxPrice) {
+    if (data.isEcoFriendly === true) {
+      conditions.is_eco_friendly = true; // filtre par véhicule éco-friendly
+    }
+
+    if (data.maxPrice !== undefined) {
       conditions.price = { [Op.lte]: data.maxPrice }; // filtre par prix maximum
     }
 
@@ -173,22 +203,60 @@ class RideService {
   }
 
   /**
-   * Modifie le statut d'un trajet.
-   * @param rideId - L'identifiant du trajet.
-   * @param status - Le nouveau statut du trajet.
+   * Démarre un trajet.
+   * @param rideId - L'identifiant du trajet à démarrer.
+   * @param userId - L'identifiant de l'utilisateur.
    */
-  public static async changeRideStatus(rideId: string, status: RideStatus): Promise<void> {
-    const ride: Ride = await this.findRideOrThrow(rideId);
+  public static async startRide(rideId: string, userId: string): Promise<void> {
+    const ride: Ride = await this.findOwnedRideOrThrow(userId, rideId);
 
-    if (status === "in_progress") {
-      await ride.markAsInProgress();
-    } else if (status === "completed") {
-      await ride.markAsCompleted();
-    } else if (status === "no_show") {
-      await ride.markAsNoShow();
-    } else if (status === "cancelled") {
-      await ride.markAsCancelled();
+    if (!ride.isOpen() && !ride.isFull()) {
+      throw new AppError({
+        statusCode: 400,
+        statusText: "Bad Request",
+        message: "Impossible de démarrer ce trajet.",
+      });
     }
+
+    await ride.markAsInProgress();
+  }
+
+  /**
+   * Termine un trajet.
+   * @param rideId - L'identifiant du trajet à terminer.
+   * @param userId - L'identifiant de l'utilisateur.
+   */
+  public static async endRide(rideId: string, userId: string): Promise<void> {
+    const ride: Ride = await this.findOwnedRideOrThrow(userId, rideId);
+
+    if (!ride.isInProgress()) {
+      throw new AppError({
+        statusCode: 400,
+        statusText: "Bad Request",
+        message: "Impossible de terminer ce trajet.",
+      });
+    }
+
+    await ride.markAsCompleted();
+  }
+
+  /**
+   * Annule un trajet.
+   * @param rideId - L'identifiant du trajet à annuler.
+   * @param userId - L'identifiant de l'utilisateur.
+   */
+  public static async cancelRide(rideId: string, userId: string): Promise<void> {
+    const ride: Ride = await this.findOwnedRideOrThrow(userId, rideId);
+
+    if (!ride.isOpen() && !ride.isFull()) {
+      throw new AppError({
+        statusCode: 400,
+        statusText: "Bad Request",
+        message: "Impossible d'annuler ce trajet.",
+      });
+    }
+
+    await ride.markAsCancelled();
   }
 }
 

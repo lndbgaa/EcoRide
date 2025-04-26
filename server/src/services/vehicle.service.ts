@@ -23,12 +23,11 @@ export type UpdateVehicleData = {
 
 class VehicleService {
   /**
-   * Vérifie si un véhicule appartient bien à un utilisateur
-   * @param userId - L'id de l'utilisateur
+   * Récupère un véhicule par son id
    * @param vehicleId - L'id du véhicule
    * @returns Le véhicule trouvé
    */
-  public static async findOwnedVehicleOrThrow(userId: string, vehicleId: string): Promise<Vehicle> {
+  public static async findVehicleOrThrow(vehicleId: string): Promise<Vehicle> {
     const vehicle: Vehicle | null = await Vehicle.findOneByField("id", vehicleId);
 
     if (!vehicle) {
@@ -38,6 +37,18 @@ class VehicleService {
         message: "Véhicule non trouvé. Veuillez vérifier l'id du véhicule.",
       });
     }
+
+    return vehicle;
+  }
+
+  /**
+   * Vérifie si un véhicule appartient bien à un utilisateur
+   * @param userId - L'id de l'utilisateur
+   * @param vehicleId - L'id du véhicule
+   * @returns Le véhicule trouvé
+   */
+  public static async findOwnedVehicleOrThrow(userId: string, vehicleId: string): Promise<Vehicle> {
+    const vehicle: Vehicle = await this.findVehicleOrThrow(vehicleId);
 
     if (vehicle.owner_id !== userId) {
       throw new AppError({

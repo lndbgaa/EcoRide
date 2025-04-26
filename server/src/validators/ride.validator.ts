@@ -13,7 +13,7 @@ export const rideIdParamSchema = Joi.object({
 });
 
 export const createRideSchema = Joi.object({
-  departureLocation: Joi.string().max(255).required().messages({
+  departureLocation: Joi.string().trim().max(255).required().messages({
     "any.required": "Le lieu de départ est requis.",
     "string.base": "Le lieu de départ doit être une chaîne de caractères.",
     "string.empty": "Le lieu de départ est requis.",
@@ -24,7 +24,7 @@ export const createRideSchema = Joi.object({
     "date.base": "La date et l'heure de départ doivent être une date valide.",
     "date.empty": "La date et l'heure de départ sont requises.",
   }),
-  arrivalLocation: Joi.string().max(255).required().messages({
+  arrivalLocation: Joi.string().trim().max(255).required().messages({
     "any.required": "Le lieu d'arrivée est requis.",
     "string.base": "Le lieu d'arrivée doit être une chaîne de caractères.",
     "string.empty": "Le lieu d'arrivée est requis.",

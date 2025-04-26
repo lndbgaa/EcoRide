@@ -53,10 +53,6 @@ class Vehicle extends Base {
   declare color?: VehicleColor;
   declare energy?: VehicleEnergy;
 
-  public isEcoVehicle(): boolean {
-    return ECO_ENERGY_IDS.includes(this.energy_id);
-  }
-
   public toPublicDTO(): VehiclePublicDTO {
     return {
       id: this.id,
@@ -74,6 +70,14 @@ class Vehicle extends Base {
       license_plate: this.license_plate,
       first_registration: toDateOnly(this.first_registration),
     };
+  }
+
+  public isEcoVehicle(): boolean {
+    return ECO_ENERGY_IDS.includes(this.energy_id);
+  }
+
+  public getSeats(): number {
+    return this.seats;
   }
 }
 

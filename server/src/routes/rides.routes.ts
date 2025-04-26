@@ -12,7 +12,6 @@ import {
 } from "@/validators/ride.validator.js";
 
 import {
-  bookRide,
   cancelRide,
   createRide,
   endRide,
@@ -23,17 +22,19 @@ import {
 
 const router = Router();
 
+// Routes publiques
+
+router.post("/search", validate(searchRidesSchema), searchForRides);
+router.get("/:rideId", validate(rideIdParamSchema, "params"), getRideDetails);
+
+// Routes privées
+
 router.use(requireAuth);
 router.use(requireRole([ACCOUNT_ROLES_LABEL.USER]));
 
-router.post("/search", validate(searchRidesSchema), searchForRides);
 router.post("/", validate(createRideSchema), createRide);
-router.get("/:rideId", validate(rideIdParamSchema, "params"), getRideDetails);
-
 router.patch("/:rideId/cancel", validate(rideIdParamSchema, "params"), cancelRide);
 router.patch("/:rideId/start", validate(rideIdParamSchema, "params"), startRide);
 router.patch("/:rideId/end", validate(rideIdParamSchema, "params"), endRide);
-
-router.post("/:rideId/book", validate(rideIdParamSchema, "params"), bookRide);
 
 export default router;
