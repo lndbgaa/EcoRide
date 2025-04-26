@@ -33,6 +33,7 @@ router.use(requireAuth);
 router.use(requireRole([ACCOUNT_ROLES_LABEL.USER]));
 
 router.post("/", validate(createRideSchema), createRide);
+
 router.patch("/:rideId/cancel", validate(rideIdParamSchema, "params"), cancelRide);
 router.patch("/:rideId/start", validate(rideIdParamSchema, "params"), startRide);
 router.patch("/:rideId/end", validate(rideIdParamSchema, "params"), endRide);

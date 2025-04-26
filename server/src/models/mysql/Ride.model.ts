@@ -111,7 +111,7 @@ class Ride extends Base {
    * @param amount - Le nombre de places à ajouter.
    * @param options - Options de sauvegarde sequelize.
    */
-  public async addSeats(amount: number, options?: SaveOptions): Promise<void> {
+  public async addAvailableSeats(amount: number, options?: SaveOptions): Promise<void> {
     if (this.status !== "open") {
       throw new AppError({
         statusCode: 400,
@@ -147,7 +147,7 @@ class Ride extends Base {
    * @param amount - Le nombre de places à retirer.
    * @param options - Options de sauvegarde sequelize.
    */
-  public async removeSeats(amount: number, options?: SaveOptions): Promise<void> {
+  public async removeAvailableSeats(amount: number, options?: SaveOptions): Promise<void> {
     if (!["open", "full"].includes(this.status)) {
       throw new AppError({
         statusCode: 400,
@@ -412,12 +412,12 @@ Ride.beforeValidate((ride: Ride) => {
   }
 });
 
-Ride.beforeCreate((ride: Ride) => {
-  // Définit par défaut le nombre de places disponibles comme égal aux nombres de places proposées.
+function setRideDefaults(ride: Ride) {
   ride.available_seats = ride.available_seats ?? ride.offered_seats;
-
-  // Définit la durée du trajet en minutes.
   ride.duration = getDuration(ride.arrival_datetime, ride.departure_datetime);
-});
+}
+
+Ride.beforeCreate(setRideDefaults);
+Ride.beforeUpdate(setRideDefaults);
 
 export default Ride;

@@ -1,8 +1,9 @@
 import { Op } from "sequelize";
 
-import { sequelize } from "@/config/mysql.config";
-import { Ride, Vehicle } from "@/models/mysql";
+import { sequelize } from "@/config/mysql.config.js";
+import { Booking, Ride, User, Vehicle } from "@/models/mysql";
 import { VEHICLE_ASSOCIATIONS } from "@/models/mysql/Vehicle.model.js";
+import BookingService from "@/services/booking.service.js";
 import VehicleService from "@/services/vehicle.service.js";
 import AppError from "@/utils/AppError.js";
 
@@ -198,6 +199,13 @@ class RideService {
         message: "Aucun trajet trouvé avec l'id spécifié.",
       });
     }
+
+    const bookings: Booking[] = await BookingService.getRideBookings(ride.id);
+    const passengers: User[] = bookings
+      .map((booking) => booking.getPassenger())
+      .filter((passenger): passenger is User => passenger !== null);
+
+    ride.setPassengers(passengers);
 
     return ride;
   }
