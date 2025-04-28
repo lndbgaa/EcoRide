@@ -203,7 +203,10 @@ class RideService {
   public static async getRidePassengers(rideId: string): Promise<User[]> {
     try {
       const ride = await this.findRideOrThrow(rideId);
-      const bookings = await BookingService.getRideBookings(ride.id);
+      const bookings = await BookingService.getRideBookings(ride.id, {
+        where: { status: "confirmed" },
+      });
+
       const passengers = bookings
         .map((booking) => booking.getPassenger())
         .filter((passenger): passenger is User => passenger !== null);

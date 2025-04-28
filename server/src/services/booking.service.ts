@@ -157,12 +157,12 @@ class BookingService {
    * @param rideId - L'id du trajet
    * @returns Les réservations trouvées
    */
-  public static async getRideBookings(rideId: string): Promise<Booking[]> {
+  public static async getRideBookings(rideId: string, options?: FindOptions): Promise<Booking[]> {
     const ride = await RideService.findRideOrThrow(rideId);
 
     const bookings = await Booking.findAllByField("ride_id", ride.id, {
-      where: { status: "confirmed" },
       include: [{ association: "passenger" }],
+      ...options,
     });
 
     return bookings;

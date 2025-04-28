@@ -205,6 +205,10 @@ class Ride extends Base {
     return this.id;
   }
 
+  public getStatus(): RideStatus {
+    return this.status;
+  }
+
   public getDriverId(): string {
     return this.driver_id;
   }
