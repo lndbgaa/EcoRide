@@ -32,7 +32,7 @@ class RideService {
   /**
    * Vérifie si un trajet existe et le retourne.
    * @param rideId - L'id du trajet.
-   * @param options - Les options de la recherche.
+   * @param options - Options sequelize
    * @returns Le trajet trouvé.
    */
   public static async findRideOrThrow(rideId: string, options?: FindOptions): Promise<Ride> {
@@ -53,7 +53,7 @@ class RideService {
    * Vérifie que l'utilisateur est bien le chauffeur du trajet.
    * @param userId - L'id de l'utilisateur.
    * @param rideId - L'id du trajet.
-   * @param options - Les options de la recherche.
+   * @param options - Options sequelize
    * @returns Le trajet trouvé.
    */
   public static async findOwnedRideOrThrow(

@@ -1,9 +1,9 @@
-import { sequelize } from "@/config/mysql.config.js";
 import { DataTypes, UUIDV4 } from "sequelize";
-import Base from "./Base.model.js";
-import Ride from "./Ride.model.js";
+
 import type { UserPublicDTO } from "./User.model.js";
-import User from "./User.model.js";
+
+import { sequelize } from "@/config/mysql.config.js";
+import { Base, Ride, User } from "@/models/mysql/";
 
 type ReviewStatus = "pending" | "approved" | "rejected";
 
@@ -53,45 +53,50 @@ class Review extends Base {
   declare target?: User;
   declare ride?: Ride;
 
-  /**
-   * Récupère tous les avis rédigés par un utilisateur spécifique.
-   */
-  static async findAllByAuthor(authorId: string): Promise<Review[]> {
-    return await this.findAllByField("author_id", authorId, {
-      include: [{ association: "target" }, { association: "ride" }],
-    });
+  public getRating(): number {
+    return this.rating;
   }
 
-  /**
-   * Récupère les avis obtenus par un utilisateur donné.
-   */
-  static async findAllByTarget(targetId: string): Promise<Review[]> {
-    return await this.findAllByField("target_id", targetId, {
-      include: [{ association: "author" }, { association: "ride" }],
-    });
+  public getComment(): string {
+    return this.comment;
   }
 
-  /**
-   *  Modère un avis : change son statut en 'approved' ou 'rejected'.
-   */
-  async moderate(status: Exclude<ReviewStatus, "pending">, moderatorId: string) {
-    if (this.status !== "pending") throw new Error("L'avis a déjà été traité.");
+  public getAuthorId(): string | null {
+    return this.author_id;
+  }
 
-    if (!["approved", "rejected"].includes(status)) {
-      throw new Error("Statut invalide pour la modération.");
-    }
+  public getTargetId(): string | null {
+    return this.target_id;
+  }
 
-    this.status = status;
-    this.moderator_id = moderatorId;
-    await this.save();
+  public getRideId(): string | null {
+    return this.ride_id;
+  }
+
+  public getStatus(): ReviewStatus {
+    return this.status;
+  }
+
+  public isPending(): boolean {
+    return this.status === "pending";
+  }
+
+  public isApproved(): boolean {
+    return this.status === "approved";
+  }
+
+  public isRejected(): boolean {
+    return this.status === "rejected";
+  }
+
+  public getModeratorId(): string | null {
+    return this.moderator_id;
   }
 
   /**
    * Renvoie la version "public" d'un avis.
-   *
-   * 💡 Utile pour visionner les avis obtenu par un utilisateur (ex : publique ou historique).
    */
-  toPublicDTO(): ReviewPublicDTO {
+  public toPublicDTO(): ReviewPublicDTO {
     return {
       id: this.id,
       rating: this.rating,
@@ -102,10 +107,8 @@ class Review extends Base {
 
   /**
    * Renvoie la version "privée" d'un avis.
-   *
-   * 💡 Utile pour qu'un utilisateur visionne les avis qu'il a laissé (ex: historique)
    */
-  toPrivateDTO(): ReviewPrivateDTO {
+  public toPrivateDTO(): ReviewPrivateDTO {
     return {
       id: this.id,
       rating: this.rating,
@@ -116,10 +119,8 @@ class Review extends Base {
 
   /**
    * Renvoie la version "administrative" d'un avis.
-   *
-   * 💡 Utile pour la validation des avis par un employé.
    */
-  toAdminDTO(): ReviewAdminDTO {
+  public toAdminDTO(): ReviewAdminDTO {
     return {
       id: this.id,
       rating: this.rating,

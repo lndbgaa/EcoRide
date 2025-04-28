@@ -12,6 +12,7 @@ import bookingsRoutes from "@/routes/bookings.routes.js";
 import ridesRoutes from "@/routes/rides.routes.js";
 import usersRoutes from "@/routes/users.route.js";
 import AppError from "@/utils/AppError.js";
+import employeesRoutes from "./routes/employees.routes.js";
 import reviewsRoutes from "./routes/reviews.routes.js";
 
 const app = express();
@@ -31,7 +32,7 @@ app.get("/test", requireAuth, (req, res) => {
 app.use("/api/v1/auth", authRoutes);
 app.use("/api/v1/users", usersRoutes);
 app.use("/api/v1/admin", adminRoutes);
-//app.use("/api/v1/employees", employeeRoutes);
+app.use("/api/v1/employees", employeesRoutes);
 app.use("/api/v1/rides", ridesRoutes);
 app.use("/api/v1/bookings", bookingsRoutes);
 app.use("/api/v1/reviews", reviewsRoutes);
@@ -44,7 +45,6 @@ app.use((req, res, next) => {
       message: "La ressource demandée n'a pas été trouvée.",
       details: {
         path: req.originalUrl,
-
         method: req.method,
       },
     })

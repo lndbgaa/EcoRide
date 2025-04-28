@@ -1,9 +1,10 @@
 import type { UserRole } from "@/types/index.js";
-import type { FindOptions } from "sequelize";
+import type { FindOptions, Transaction } from "sequelize";
 
 import User from "@/models/mysql/User.model.js";
 import UploadService from "@/services/upload.service.js";
 import AppError from "@/utils/AppError.js";
+import ReviewService from "./review.service";
 
 class UserService {
   /**
@@ -151,6 +152,25 @@ class UserService {
     });
 
     return { url: secure_url };
+  }
+
+  /**
+   * Met à jour la note moyenne d'un utilisateur
+   * @param userId - L'id de l'utilisateur
+   */
+  public static async updateAverageRating(userId: string, options?: { transaction?: Transaction }) {
+    const reviews = await ReviewService.getUserReceivedReviews(userId, {
+      ...options,
+    });
+
+    if (reviews.length === 0) {
+      await User.updateByField("id", userId, { average_rating: null }, options);
+      return;
+    }
+
+    const averageRating = reviews.reduce((acc, review) => acc + review.rating, 0) / reviews.length;
+
+    await User.updateByField("id", userId, { average_rating: averageRating }, options);
   }
 }
 

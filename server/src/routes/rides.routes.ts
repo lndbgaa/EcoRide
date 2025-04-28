@@ -3,7 +3,6 @@ import { Router } from "express";
 import requireAuth from "@/middlewares/requireAuth.js";
 import requireRole from "@/middlewares/requireRole.js";
 import validate from "@/middlewares/validateData.js";
-import { ACCOUNT_ROLES_LABEL } from "@/models/mysql/Account.model.js";
 
 import {
   createRideSchema,
@@ -30,7 +29,7 @@ router.get("/:rideId", validate(rideIdParamSchema, "params"), getRideDetails);
 // Routes privées
 
 router.use(requireAuth);
-router.use(requireRole([ACCOUNT_ROLES_LABEL.USER]));
+router.use(requireRole(["user"]));
 
 router.post("/", validate(createRideSchema), createRide);
 
