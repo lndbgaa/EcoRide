@@ -1,4 +1,4 @@
-import type { Booking, Preference, Ride, User, Vehicle } from "@/models/mysql";
+import type { Booking, Preference, Review, Ride, User, Vehicle } from "@/models/mysql";
 import type { MulterRequest } from "@/types/express.js";
 import type { Request, Response } from "express";
 
@@ -7,6 +7,7 @@ import catchAsync from "@/utils/catchAsync.js";
 
 import BookingService from "@/services/booking.service";
 import PreferenceService from "@/services/preference.service.js";
+import ReviewService from "@/services/review.service";
 import RideService from "@/services/ride.service";
 import UserService from "@/services/user.service.js";
 import VehicleService from "@/services/vehicle.service.js";
@@ -216,7 +217,7 @@ export const deletePreferenceFromProfile = catchAsync(
 );
 
 /**
- * Gère la récupération des trajets d'un utilisateur (chauffeur)
+ * Gère la récupération des trajets d'un utilisateur
  */
 export const getUserRides = catchAsync(async (req: Request, res: Response): Promise<void> => {
   const userId = req.user.id;
@@ -231,7 +232,7 @@ export const getUserRides = catchAsync(async (req: Request, res: Response): Prom
 });
 
 /**
- * Gère la récupération des réservations d'un utilisateur (passager)
+ * Gère la récupération des réservations d'un utilisateur
  */
 export const getUserBookings = catchAsync(async (req: Request, res: Response): Promise<void> => {
   const userId = req.user.id;
@@ -244,3 +245,37 @@ export const getUserBookings = catchAsync(async (req: Request, res: Response): P
     data: bookings.map((booking) => booking.toPrivateDTO()),
   });
 });
+
+/**
+ * Gère la récupération des avis reçus par un utilisateur
+ */
+export const getUserReceivedReviews = catchAsync(
+  async (req: Request, res: Response): Promise<void> => {
+    const userId = req.user.id;
+
+    const reviews: Review[] = await ReviewService.getUserReceivedReviews(userId);
+
+    res.status(200).json({
+      success: true,
+      message: "Historique des avis reçus récupéré avec succès.",
+      data: reviews.map((review) => review.toPrivateDTO()),
+    });
+  }
+);
+
+/**
+ * Gère la récupération des avis écrits par un utilisateur
+ */
+export const getUserWrittenReviews = catchAsync(
+  async (req: Request, res: Response): Promise<void> => {
+    const userId = req.user.id;
+
+    const reviews: Review[] = await ReviewService.getUserWrittenReviews(userId);
+
+    res.status(200).json({
+      success: true,
+      message: "Historique des avis écrits récupéré avec succès.",
+      data: reviews.map((review) => review.toPrivateDTO()),
+    });
+  }
+);

@@ -21,8 +21,10 @@ import {
   getUserBookings,
   getUserInfo,
   getUserPreferences,
+  getUserReceivedReviews,
   getUserRides,
   getUserVehicles,
+  getUserWrittenReviews,
   updatePreferenceFromProfile,
   updateUserAvatar,
   updateUserInfo,
@@ -77,5 +79,10 @@ router.delete(
 
 router.get("/me/rides", getUserRides);
 router.get("/me/bookings", getUserBookings);
+
+// Routes pour les historiques des avis reçus et écrits
+
+router.get("/me/reviews/received", getUserReceivedReviews);
+router.get("/me/reviews/written", getUserWrittenReviews);
 
 export default router;

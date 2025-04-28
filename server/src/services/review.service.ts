@@ -10,7 +10,7 @@ interface CreateReviewData {
 }
 
 class ReviewService {
-  public static async createReview(userId: string, data: CreateReviewData) {
+  public static async createReview(userId: string, data: CreateReviewData): Promise<void> {
     const ride = await RideService.findRideOrThrow(data.rideId);
 
     if (ride.getDriverId() === userId) {
@@ -67,6 +67,34 @@ class ReviewService {
       rating: data.rating,
       comment: data.comment,
     });
+  }
+
+  /**
+   * Récupère les avis reçus par un utilisateur
+   * @param userId - L'id de l'utilisateur
+   * @returns Les avis reçus
+   */
+  public static async getUserReceivedReviews(userId: string): Promise<Review[]> {
+    const reviews = await Review.findAllByField("target_id", userId, {
+      where: { status: "approved" },
+      include: [{ association: "author" }],
+    });
+
+    return reviews;
+  }
+
+  /**
+   * Récupère les avis écrits par un utilisateur
+   * @param userId - L'id de l'utilisateur
+   * @returns Les avis écrits
+   */
+  public static async getUserWrittenReviews(userId: string): Promise<Review[]> {
+    const reviews = await Review.findAllByField("author_id", userId, {
+      where: { status: "approved" },
+      include: [{ association: "target" }],
+    });
+
+    return reviews;
   }
 }
 
