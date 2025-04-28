@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Covoiturage annulé ❌</title>
+
+    <style>
+      @media only screen and (max-width: 600px) {
+        .container {
+          width: 100% !important;
+          padding: 20px !important;
+        }
+        h2 {
+          font-size: 24px !important;
+        }
+        p,
+        a {
+          font-size: 18px !important;
+        }
+      }
+    </style>
+  </head>
+
+  <body style="margin: 0; padding: 0; background-color: #f9f9f9; font-family: Arial, sans-serif">
+    <table
+      width="100%"
+      cellpadding="0"
+      cellspacing="0"
+      border="0"
+      style="background-color: #f9f9f9; padding: 20px"
+    >
+      <tr>
+        <td align="center">
+          <table
+            width="600"
+            cellpadding="0"
+            cellspacing="0"
+            border="0"
+            style="background: #ffffff; border-radius: 8px; padding: 40px"
+          >
+            <tr>
+              <td align="center" style="padding-bottom: 20px">
+                <h2 style="color: #db4a3d; font-size: 28px; margin: 0">Covoiturage annulé ❌</h2>
+              </td>
+            </tr>
+
+            <tr>
+              <td style="font-size: 18px; color: #555555; text-align: center; padding-bottom: 20px">
+                Salut <strong style="color: #073b3a"><%= passenger %></strong> 👋,
+              </td>
+            </tr>
+
+            <tr>
+              <td style="font-size: 16px; color: #555555; text-align: center; padding-bottom: 20px">
+                Nous avons une petite mauvaise nouvelle :
+                <br /><br />
+                Votre trajet de
+                <strong style="color: #073b3a"><%= departureLocation %></strong> à
+                <strong style="color: #073b3a"><%= arrivalLocation %></strong> prévu le
+                <strong style="color: #073b3a"><%= departureDatetime %></strong>
+                a été annulé par ton chauffeur
+                <strong style="color: #073b3a"><%= driver %></strong>.
+              </td>
+            </tr>
+
+            <tr>
+              <td style="font-size: 16px; color: #555555; text-align: center; padding-bottom: 30px">
+                Mais pas de panique 😎, il y a plein d'autres trajets disponibles ! Retrouves vite
+                une nouvelle opportunité pour continuer à rouler écolo 🌿.
+              </td>
+            </tr>
+
+            <tr>
+              <td align="center">
+                <table role="presentation" border="0" cellpadding="0" cellspacing="0">
+                  <tr>
+                    <td align="center" bgcolor="#45A861" style="border-radius: 8px">
+                      <!-- TODO: add link to search for new rides -->
+                      <a
+                        href=""
+                        target="_blank"
+                        style="
+                          display: inline-block;
+                          padding: 12px 24px;
+                          font-family: Arial, sans-serif;
+                          font-size: 16px;
+                          color: #ffffff;
+                          text-decoration: none;
+                        "
+                      >
+                        🔎 Chercher un nouveau trajet
+                      </a>
+                    </td>
+                  </tr>
+                </table>
+              </td>
+            </tr>
+
+            <tr>
+              <td
+                style="
+                  font-size: 14px;
+                  color: #5c7a71;
+                  text-align: center;
+                  padding-top: 30px;
+                  line-height: 1.5;
+                "
+              >
+                Merci de faire partie de la communauté EcoRide 💚<br />
+                À très vite sur la route !
+              </td>
+            </tr>
+
+            <tr>
+              <td style="font-size: 12px; color: #c4c4c4; text-align: center; padding-top: 20px">
+                L'équipe EcoRide 🌱
+              </td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+    </table>
+  </body>
+</html>

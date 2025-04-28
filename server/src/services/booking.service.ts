@@ -1,17 +1,21 @@
 import { sequelize } from "@/config/mysql.config.js";
-import { Booking, Ride, User } from "@/models/mysql";
+import { Booking } from "@/models/mysql";
 import RideService from "@/services/ride.service.js";
 import UserService from "@/services/user.service.js";
 import AppError from "@/utils/AppError.js";
+import type { FindOptions } from "sequelize";
 
 class BookingService {
   /**
-   * Récupère une réservation par son id
+   * Vérifie si une réservation existe et la retourne
    * @param bookingId - L'id de la réservation
    * @returns La réservation trouvée
    */
-  public static async findBookingOrThrow(bookingId: string) {
-    const booking: Booking | null = await Booking.findOneByField("id", bookingId);
+  public static async findBookingOrThrow(
+    bookingId: string,
+    options?: FindOptions
+  ): Promise<Booking> {
+    const booking = await Booking.findOneByField("id", bookingId, options);
 
     if (!booking) {
       throw new AppError({
@@ -30,8 +34,12 @@ class BookingService {
    * @param bookingId - L'id de la réservation
    * @returns La réservation trouvée
    */
-  public static async findOwnedBookingOrThrow(userId: string, bookingId: string) {
-    const booking: Booking = await this.findBookingOrThrow(bookingId);
+  public static async findOwnedBookingOrThrow(
+    userId: string,
+    bookingId: string,
+    options?: FindOptions
+  ): Promise<Booking> {
+    const booking = await this.findBookingOrThrow(bookingId, options);
 
     if (booking.getPassengerId() !== userId) {
       throw new AppError({
@@ -51,9 +59,13 @@ class BookingService {
    * @param seatsBooked - Le nombre de places réservées
    * @returns La réservation créée
    */
-  public static async createBooking(userId: string, rideId: string, seatsBooked: number) {
-    const user: User = await UserService.assertUserIsPassengerOrThrow(userId);
-    const ride: Ride = await RideService.findRideOrThrow(rideId);
+  public static async createBooking(
+    userId: string,
+    rideId: string,
+    seatsBooked: number
+  ): Promise<Booking> {
+    const user = await UserService.assertUserIsPassengerOrThrow(userId);
+    const ride = await RideService.findRideOrThrow(rideId);
 
     if (!ride.isOpen()) {
       throw new AppError({
@@ -71,7 +83,7 @@ class BookingService {
       });
     }
 
-    const hasUserAlreadyBooked: boolean = !!(await Booking.findOneByField("ride_id", rideId, {
+    const hasUserAlreadyBooked = !!(await Booking.findOneByField("ride_id", rideId, {
       where: {
         passenger_id: userId,
         status: "confirmed",
@@ -82,7 +94,7 @@ class BookingService {
       throw new AppError({
         statusCode: 403,
         statusText: "Forbidden",
-        message: "Vous avez une réservation en cours pour ce trajet.",
+        message: "Vous avez déjà une réservation en cours pour ce trajet.",
       });
     }
 
@@ -94,10 +106,11 @@ class BookingService {
       });
     }
 
-    const ridePrice: number = ride.getPrice();
-    const userCredits: number = user.getCredits();
+    const ridePrice = ride.getPrice();
+    const totalPrice = ridePrice * seatsBooked;
+    const userCredits = user.getCredits();
 
-    if (userCredits < ridePrice) {
+    if (userCredits < totalPrice) {
       throw new AppError({
         statusCode: 403,
         statusText: "Forbidden",
@@ -106,7 +119,7 @@ class BookingService {
     }
 
     return await sequelize.transaction(async (transaction) => {
-      const booking: Booking = await Booking.createOne(
+      const booking = await Booking.createOne(
         {
           ride_id: rideId,
           passenger_id: userId,
@@ -115,8 +128,8 @@ class BookingService {
         { transaction }
       );
 
-      await user.removeCredits(ridePrice, { transaction });
       await ride.removeAvailableSeats(seatsBooked, { transaction });
+      await user.removeCredits(totalPrice, { transaction });
 
       return booking;
     });
@@ -127,15 +140,15 @@ class BookingService {
    * @param userId - L'id de l'utilisateur
    * @param bookingId - L'id de la réservation
    */
-  public static async cancelBooking(userId: string, bookingId: string) {
-    const user: User = await UserService.findUserOrThrow(userId);
-    const booking: Booking = await this.findOwnedBookingOrThrow(userId, bookingId);
-    const ride: Ride = await RideService.findRideOrThrow(booking.getRideId());
+  public static async cancelBooking(userId: string, bookingId: string): Promise<void> {
+    const user = await UserService.findUserOrThrow(userId);
+    const booking = await this.findOwnedBookingOrThrow(userId, bookingId);
+    const ride = await RideService.findRideOrThrow(booking.getRideId());
 
     await sequelize.transaction(async (transaction) => {
       await booking.markAsCancelled({ transaction });
       await ride.addAvailableSeats(booking.getSeatsBooked(), { transaction });
-      await user.addCredits(ride.getPrice(), { transaction });
+      await user.addCredits(ride.getPrice() * booking.getSeatsBooked(), { transaction });
     });
   }
 
@@ -145,9 +158,9 @@ class BookingService {
    * @returns Les réservations trouvées
    */
   public static async getRideBookings(rideId: string): Promise<Booking[]> {
-    const ride: Ride = await RideService.findRideOrThrow(rideId);
+    const ride = await RideService.findRideOrThrow(rideId);
 
-    const bookings: Booking[] = await Booking.findAllByField("ride_id", ride.id, {
+    const bookings = await Booking.findAllByField("ride_id", ride.id, {
       where: { status: "confirmed" },
       include: [{ association: "passenger" }],
     });
@@ -161,7 +174,7 @@ class BookingService {
    * @returns Les réservations trouvées
    */
   public static async getUserBookings(userId: string): Promise<Booking[]> {
-    const bookings: Booking[] = await Booking.findAllByField("passenger_id", userId, {
+    const bookings = await Booking.findAllByField("passenger_id", userId, {
       include: [{ association: "ride" }],
     });
 

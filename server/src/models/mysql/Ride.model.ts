@@ -68,8 +68,8 @@ class Ride extends Base {
    * Liste des transitions autorisées entre les statuts d'un trajet.
    */
   private static readonly allowedTransitions: Record<RideStatus, RideStatus[]> = {
-    open: ["full", "cancelled", "in_progress"],
-    full: ["in_progress", "cancelled"],
+    open: ["full", "in_progress", "cancelled"],
+    full: ["open", "in_progress", "cancelled"],
     in_progress: ["completed"],
     completed: [],
     cancelled: [],
@@ -112,7 +112,7 @@ class Ride extends Base {
    * @param options - Options de sauvegarde sequelize.
    */
   public async addAvailableSeats(amount: number, options?: SaveOptions): Promise<void> {
-    if (this.status !== "open") {
+    if (this.status !== "open" && this.status !== "full") {
       throw new AppError({
         statusCode: 400,
         statusText: "Bad Request",
@@ -137,7 +137,11 @@ class Ride extends Base {
     }
 
     this.available_seats += amount;
-    if (this.available_seats > 0 && this.status !== "open") await this.transitionTo("open");
+
+    if (this.available_seats > 0 && this.status === "full") {
+      await this.transitionTo("open", options);
+    }
+
     await this.save(options);
   }
 
@@ -148,11 +152,11 @@ class Ride extends Base {
    * @param options - Options de sauvegarde sequelize.
    */
   public async removeAvailableSeats(amount: number, options?: SaveOptions): Promise<void> {
-    if (!["open", "full"].includes(this.status)) {
+    if (this.status !== "open") {
       throw new AppError({
         statusCode: 400,
         statusText: "Bad Request",
-        message: `Le covoiturage est actuellement en statut "${this.status}".`,
+        message: `Impossible de retirer des places : le covoiturage est "${this.status}" (aucune place disponible).`,
       });
     }
 
@@ -168,12 +172,16 @@ class Ride extends Base {
       throw new AppError({
         statusCode: 400,
         statusText: "Bad Request",
-        message: `Seulement ${this.available_seats} disponibles pour ce covoiturage.`,
+        message: `Seulement ${this.available_seats} place(s) disponible(s) pour ce covoiturage.`,
       });
     }
 
     this.available_seats -= amount;
-    if (this.available_seats === 0 && this.status !== "full") await this.transitionTo("full");
+
+    if (this.available_seats === 0) {
+      await this.transitionTo("full", options);
+    }
+
     await this.save(options);
   }
 
@@ -193,24 +201,8 @@ class Ride extends Base {
     await this.transitionTo("cancelled", options);
   }
 
-  public isOpen(): boolean {
-    return this.status === "open";
-  }
-
-  public isFull(): boolean {
-    return this.status === "full";
-  }
-
-  public isInProgress(): boolean {
-    return this.status === "in_progress";
-  }
-
-  public isCompleted(): boolean {
-    return this.status === "completed";
-  }
-
-  public isCancelled(): boolean {
-    return this.status === "cancelled";
+  public getId(): string {
+    return this.id;
   }
 
   public getDriverId(): string {
@@ -231,6 +223,26 @@ class Ride extends Base {
 
   public getOfferedSeats(): number {
     return this.offered_seats;
+  }
+
+  public isOpen(): boolean {
+    return this.status === "open";
+  }
+
+  public isFull(): boolean {
+    return this.status === "full";
+  }
+
+  public isInProgress(): boolean {
+    return this.status === "in_progress";
+  }
+
+  public isCompleted(): boolean {
+    return this.status === "completed";
+  }
+
+  public isCancelled(): boolean {
+    return this.status === "cancelled";
   }
 
   toPreviewDTO(): RidePreviewDTO {

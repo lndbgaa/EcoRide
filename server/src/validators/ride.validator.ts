@@ -7,10 +7,10 @@ export const rideIdParamSchema = Joi.object({
   rideId: Joi.string().uuid().required().messages({
     "any.required": "L'id du trajet est requis.",
     "string.base": "L'id du trajet doit être une chaîne de caractères.",
-    "string.empty": "L'id du trajet est requis.",
-    "string.guid": "L'id du trajet doit être un identifiant valide.",
+    "string.empty": "L'id du trajet doit être une chaîne de caractères non vide.",
+    "string.uuid": "L'id du trajet doit être un identifiant valide.",
   }),
-});
+}).options({ stripUnknown: true });
 
 export const createRideSchema = Joi.object({
   departureLocation: Joi.string().trim().max(255).required().messages({

@@ -1,11 +1,13 @@
 import { Router } from "express";
 
-import { cancelBooking, createBooking } from "@/controllers/booking.controllers.js";
 import requireAuth from "@/middlewares/requireAuth.js";
 import requireRole from "@/middlewares/requireRole.js";
 import validate from "@/middlewares/validateData.js";
 import { ACCOUNT_ROLES_LABEL } from "@/models/mysql/Account.model.js";
+
 import { bookingIdParamSchema, createBookingSchema } from "@/validators/booking.validator.js";
+
+import { cancelBooking, createBooking } from "@/controllers/booking.controllers.js";
 
 const router = Router();
 

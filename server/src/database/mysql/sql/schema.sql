@@ -131,18 +131,19 @@ CREATE INDEX idx_departure_datetime ON rides(status, departure_datetime);
 -- TABLE BOOKINGS
 CREATE TABLE bookings (
   id CHAR(36) NOT NULL PRIMARY KEY,
-  ride_id CHAR(36) NULL, 
-  passenger_id CHAR(36) NULL, 
+  ride_id CHAR(36) NOT NULL,
+  passenger_id CHAR(36) NOT NULL,
   seats_booked INT NOT NULL CHECK (seats_booked BETWEEN 1 AND 6),
-  status ENUM('confirmed','completed','cancelled') DEFAULT 'confirmed',
+  status ENUM('confirmed', 'completed', 'cancelled') DEFAULT 'confirmed',
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   FOREIGN KEY (ride_id) REFERENCES rides(id) ON DELETE RESTRICT, 
-  FOREIGN KEY (passenger_id) REFERENCES accounts(id) ON DELETE RESTRICT, 
+  FOREIGN KEY (passenger_id) REFERENCES accounts(id) ON DELETE RESTRICT
 );
 
 CREATE INDEX idx_passenger_id ON bookings(passenger_id);
 CREATE INDEX idx_ride_id ON bookings(ride_id);
+CREATE INDEX idx_status ON bookings(status);
 
 -- TABLE REVIEWS
 CREATE TABLE reviews (

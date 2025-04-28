@@ -17,7 +17,7 @@ export const createBookingSchema = Joi.object({
     "any.required": "L'id du trajet à réserver est requis.",
     "string.uuid": "L'id du trajet à réserver doit être un identifiant valide.",
   }),
-  seats: Joi.number().integer().min(1).max(1).required().messages({
+  seats: Joi.number().integer().min(1).required().messages({
     "any.required": "Le nombre de places à réserver est requis.",
     "number.integer": "Le nombre de places à réserver doit être un nombre entier.",
     "number.min": "Le nombre de places à réserver doit être supérieur à 0.",

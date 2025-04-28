@@ -63,7 +63,7 @@ export const startRide = catchAsync(async (req: Request, res: Response): Promise
 
   await RideService.startRide(rideId, userId);
 
-  res.status(200).json({ success: true, message: "Trajet commencé avec succès." });
+  res.status(200).json({ success: true, message: "Trajet démarré avec succès." });
 });
 
 /**

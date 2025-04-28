@@ -169,12 +169,6 @@ Booking.init(
     timestamps: true,
     createdAt: "created_at",
     updatedAt: "updated_at",
-    indexes: [
-      {
-        unique: true,
-        fields: ["ride_id", "passenger_id", "status"],
-      },
-    ],
   }
 );
 

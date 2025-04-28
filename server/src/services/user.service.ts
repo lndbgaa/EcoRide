@@ -1,8 +1,9 @@
 import type { UserRole } from "@/types/index.js";
+import type { FindOptions } from "sequelize";
 
 import User from "@/models/mysql/User.model.js";
+import UploadService from "@/services/upload.service.js";
 import AppError from "@/utils/AppError.js";
-import uploadImage from "@/utils/upload.utils.js";
 
 class UserService {
   /**
@@ -10,8 +11,8 @@ class UserService {
    * @param userId - L'id de l'utilisateur
    * @returns Le user trouvé
    */
-  public static async findUserOrThrow(userId: string): Promise<User> {
-    const user = await User.findOneByField("id", userId);
+  public static async findUserOrThrow(userId: string, options?: FindOptions): Promise<User> {
+    const user = await User.findOneByField("id", userId, options);
 
     if (!user) {
       throw new AppError({
@@ -29,8 +30,11 @@ class UserService {
    * @param userId - L'id de l'utilisateur
    * @returns Le user trouvé
    */
-  public static async assertUserIsDriverOrThrow(userId: string): Promise<User> {
-    const user = await UserService.findUserOrThrow(userId);
+  public static async assertUserIsDriverOrThrow(
+    userId: string,
+    options?: FindOptions
+  ): Promise<User> {
+    const user = await UserService.findUserOrThrow(userId, options);
 
     if (!user.isDriver()) {
       throw new AppError({
@@ -48,8 +52,11 @@ class UserService {
    * @param userId - L'id de l'utilisateur
    * @returns Le user trouvé
    */
-  public static async assertUserIsPassengerOrThrow(userId: string): Promise<User> {
-    const user = await UserService.findUserOrThrow(userId);
+  public static async assertUserIsPassengerOrThrow(
+    userId: string,
+    options?: FindOptions
+  ): Promise<User> {
+    const user = await UserService.findUserOrThrow(userId, options);
 
     if (!user.isPassenger()) {
       throw new AppError({
@@ -134,7 +141,10 @@ class UserService {
   ): Promise<{ url: string }> {
     await this.findUserOrThrow(userId);
 
-    const { secure_url } = await uploadImage(file, `ecoride/users/${userId}/profile-picture`);
+    const { secure_url } = await UploadService.uploadImage(
+      file,
+      `ecoride/users/${userId}/profile-picture`
+    );
 
     await User.updateByField("id", userId, {
       profile_picture: secure_url,

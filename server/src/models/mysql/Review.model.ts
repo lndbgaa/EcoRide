@@ -96,7 +96,7 @@ class Review extends Base {
       id: this.id,
       rating: this.rating,
       comment: this.comment,
-      author: this.author?.toPublicJSON() ?? null,
+      author: this.author?.toPublicDTO() ?? null,
     };
   }
 
@@ -110,7 +110,7 @@ class Review extends Base {
       id: this.id,
       rating: this.rating,
       comment: this.comment,
-      target: this.target?.toPublicJSON() ?? null,
+      target: this.target?.toPublicDTO() ?? null,
     };
   }
 
@@ -124,8 +124,8 @@ class Review extends Base {
       id: this.id,
       rating: this.rating,
       comment: this.comment,
-      author: this.author?.toPublicJSON() ?? null,
-      target: this.target?.toPublicJSON() ?? null,
+      author: this.author?.toPublicDTO() ?? null,
+      target: this.target?.toPublicDTO() ?? null,
       status: this.status,
       created_at: this.created_at,
     };

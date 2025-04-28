@@ -92,6 +92,14 @@ class User extends Account {
     await this.save(options);
   }
 
+  getEmail(): string {
+    return this.email;
+  }
+
+  getFirstName(): string {
+    return this.first_name;
+  }
+
   getCredits(): number {
     return this.credits;
   }
