@@ -9,12 +9,12 @@ import requireAuth from "@/middlewares/requireAuth.js";
 import adminRoutes from "@/routes/admin.route.js";
 import authRoutes from "@/routes/auth.route.js";
 import bookingsRoutes from "@/routes/bookings.routes.js";
+import employeesRoutes from "@/routes/employees.routes.js";
 import incidentsRoutes from "@/routes/incidents.routes.js";
 import reviewsRoutes from "@/routes/reviews.routes.js";
 import ridesRoutes from "@/routes/rides.routes.js";
 import usersRoutes from "@/routes/users.route.js";
 import AppError from "@/utils/AppError.js";
-
 const app = express();
 const PORT = config.server.port;
 
@@ -36,7 +36,7 @@ app.use("/api/v1/rides", ridesRoutes);
 app.use("/api/v1/bookings", bookingsRoutes);
 app.use("/api/v1/reviews", reviewsRoutes);
 app.use("/api/v1/incidents", incidentsRoutes);
-
+app.use("/api/v1/employees", employeesRoutes);
 app.use((req, res, next) => {
   next(
     new AppError({

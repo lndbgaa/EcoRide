@@ -14,7 +14,7 @@ const requireRole = (allowedRoles: string[]) => {
         new AppError({
           statusCode: 403,
           statusText: "Forbidden",
-          message: "Accès refusé",
+          message: "Vous n'êtes pas autorisé à accéder à cette ressource.",
         })
       );
     }

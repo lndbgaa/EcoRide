@@ -3,12 +3,7 @@ import { v4 as uuid } from "uuid";
 
 const { Schema } = mongoose;
 
-export type IncidentType =
-  | "delay"
-  | "cancellation"
-  | "danger"
-  | "behavior"
-  | "other";
+export type IncidentStatus = "pending" | "assigned" | "resolved";
 
 export interface RideEmbedded {
   id: string;
@@ -24,21 +19,41 @@ export interface UserEmbedded {
 
 export interface IncidentDocument extends Document {
   _id: string;
-  type: IncidentType;
+  description: string;
   ride: RideEmbedded;
   passenger: UserEmbedded;
   driver: UserEmbedded;
-  description: string;
   createdAt: Date;
   updatedAt: Date;
-  status?: "pending" | "under_review" | "resolved";
+  status?: IncidentStatus;
   assignedTo?: string;
   closure?: {
     at: Date;
     note: string;
   };
+
+  isPending(): boolean;
+  isAssigned(): boolean;
+  isResolved(): boolean;
+  getAssignedTo(): string | undefined;
+  markAsAssigned(employeeId: string): void;
+  markAsResolved(note: string): void;
+  toEmployeeDTO(): IncidentEmployeeDTO;
 }
 
+export interface IncidentPreviewDTO {
+  id: string;
+  description: string;
+  createdAt: Date;
+}
+
+export interface IncidentEmployeeDTO extends IncidentPreviewDTO {
+  ride: RideEmbedded;
+  passenger: UserEmbedded;
+  driver: UserEmbedded;
+}
+
+// Sous-schema pour les informations des utilisateurs impliqués
 const userSchema = new Schema(
   {
     pseudo: {
@@ -53,6 +68,7 @@ const userSchema = new Schema(
   { _id: false }
 );
 
+// Sous-schema pour les informations du trajet impliqué
 const rideSchema = new Schema(
   {
     id: {
@@ -98,11 +114,6 @@ const incidentSchema = new Schema<IncidentDocument>(
       required: true,
       default: uuid,
     },
-    type: {
-      type: String,
-      enum: ["delay", "cancellation", "danger", "behavior", "other"],
-      required: true,
-    },
     description: {
       type: String,
       required: true,
@@ -121,11 +132,14 @@ const incidentSchema = new Schema<IncidentDocument>(
     },
     status: {
       type: String,
-      enum: ["pending", "under_review", "resolved"],
+      enum: ["pending", "assigned", "resolved"],
+      default: "pending",
     },
     assignedTo: {
       type: String,
-      default: null,
+      required: function (this: IncidentDocument): boolean {
+        return this.status === "assigned";
+      },
     },
     closure: {
       type: resolutionSchema,
@@ -136,6 +150,66 @@ const incidentSchema = new Schema<IncidentDocument>(
   },
   { timestamps: true, collection: "incidents" }
 );
+
+incidentSchema.methods.isPending = function (this: IncidentDocument): boolean {
+  return this.status === "pending";
+};
+
+incidentSchema.methods.isAssigned = function (this: IncidentDocument): boolean {
+  return this.status === "assigned";
+};
+
+incidentSchema.methods.isResolved = function (this: IncidentDocument): boolean {
+  return this.status === "resolved";
+};
+
+incidentSchema.methods.markAsAssigned = function (
+  this: IncidentDocument,
+  employeeId: string
+): void {
+  this.status = "assigned";
+  this.assignedTo = employeeId;
+};
+
+incidentSchema.methods.markAsResolved = function (
+  this: IncidentDocument,
+  note: string
+): void {
+  this.status = "resolved";
+  this.closure = {
+    at: new Date(),
+    note,
+  };
+};
+
+incidentSchema.methods.getAssignedTo = function (
+  this: IncidentDocument
+): string | undefined {
+  return this.assignedTo;
+};
+
+incidentSchema.methods.toPreviewDTO = function (
+  this: IncidentDocument
+): IncidentPreviewDTO {
+  return {
+    id: this._id,
+    description: this.description,
+    createdAt: this.createdAt,
+  };
+};
+
+incidentSchema.methods.toEmployeeDTO = function (
+  this: IncidentDocument
+): IncidentEmployeeDTO {
+  return {
+    id: this._id,
+    description: this.description,
+    ride: this.ride,
+    passenger: this.passenger,
+    driver: this.driver,
+    createdAt: this.createdAt,
+  };
+};
 
 const Incident = mongoose.model<IncidentDocument>("Incident", incidentSchema);
 
