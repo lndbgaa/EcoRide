@@ -46,7 +46,6 @@ abstract class Account extends Base {
   declare created_at: Date;
   declare updated_at: Date;
   declare suspended_at: Date | null;
-  declare deleted_at: Date | null;
 
   // Associations chargées dynamiquement via Sequelize (si `include` est utilisé)
   declare role?: Role;

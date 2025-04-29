@@ -23,7 +23,10 @@ Employee.belongsTo(Role, { foreignKey: "role_id", as: "role" });
 // Un compte a un jeton de rafraîchissement (auth)
 User.hasOne(RefreshToken, { foreignKey: "account_id", as: "refresh_tokens" });
 Admin.hasOne(RefreshToken, { foreignKey: "account_id", as: "refresh_tokens" });
-Employee.hasOne(RefreshToken, { foreignKey: "account_id", as: "refresh_tokens" });
+Employee.hasOne(RefreshToken, {
+  foreignKey: "account_id",
+  as: "refresh_tokens",
+});
 
 // Un utilisateur peut avoir plusieurs véhicules
 User.hasMany(Vehicle, { foreignKey: "owner_id", as: "vehicles" });
@@ -41,6 +44,7 @@ Ride.belongsTo(Vehicle, { foreignKey: "vehicle_id", as: "vehicle" });
 Review.belongsTo(User, { foreignKey: "author_id", as: "author" });
 Review.belongsTo(User, { foreignKey: "target_id", as: "target" });
 Review.belongsTo(Ride, { foreignKey: "ride_id", as: "ride" });
+Review.belongsTo(Employee, { foreignKey: "moderator_id", as: "moderator" });
 
 // Réservation lié à un passager et à un covoiturage
 Booking.belongsTo(Ride, { foreignKey: "ride_id", as: "ride" });

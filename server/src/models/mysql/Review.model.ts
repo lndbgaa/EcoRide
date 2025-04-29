@@ -1,33 +1,36 @@
 import { DataTypes, UUIDV4 } from "sequelize";
 
-import type { UserPublicDTO } from "./User.model.js";
+import type { EmployeePublicDTO } from "@/models/mysql/Employee.model.js";
+import type { RidePreviewDTO } from "@/models/mysql/Ride.model.js";
+import type { UserPublicDTO } from "@/models/mysql/User.model.js";
 
 import { sequelize } from "@/config/mysql.config.js";
-import { Base, Ride, User } from "@/models/mysql/";
+import { Base, Employee, Ride, User } from "@/models/mysql";
 
-type ReviewStatus = "pending" | "approved" | "rejected";
+export type ReviewStatus = "pending" | "approved" | "rejected";
 
-interface ReviewPublicDTO {
+export interface ReviewPublicDTO {
   id: string;
   rating: number;
   comment: string;
   author: UserPublicDTO | null;
 }
 
-interface ReviewPrivateDTO {
+export interface ReviewPrivateDTO {
   id: string;
   rating: number;
   comment: string;
   target: UserPublicDTO | null;
 }
 
-interface ReviewAdminDTO {
+export interface ReviewAdminDTO {
   id: string;
   rating: number;
   comment: string;
   author: UserPublicDTO | null;
   target: UserPublicDTO | null;
-  status: ReviewStatus;
+  ride: RidePreviewDTO | null;
+  moderator: EmployeePublicDTO | null;
   created_at: Date;
 }
 
@@ -52,6 +55,7 @@ class Review extends Base {
   declare author?: User;
   declare target?: User;
   declare ride?: Ride;
+  declare moderator?: Employee;
 
   public getRating(): number {
     return this.rating;
@@ -77,6 +81,10 @@ class Review extends Base {
     return this.status;
   }
 
+  public getModeratorId(): string | null {
+    return this.moderator_id;
+  }
+
   public isPending(): boolean {
     return this.status === "pending";
   }
@@ -87,10 +95,6 @@ class Review extends Base {
 
   public isRejected(): boolean {
     return this.status === "rejected";
-  }
-
-  public getModeratorId(): string | null {
-    return this.moderator_id;
   }
 
   /**
@@ -127,7 +131,8 @@ class Review extends Base {
       comment: this.comment,
       author: this.author?.toPublicDTO() ?? null,
       target: this.target?.toPublicDTO() ?? null,
-      status: this.status,
+      ride: this.ride?.toPreviewDTO() ?? null,
+      moderator: this.moderator?.toPublicDTO() ?? null,
       created_at: this.created_at,
     };
   }
@@ -189,7 +194,9 @@ Review.init(
       onDelete: "SET NULL",
     },
     status: {
-      type: DataTypes.ENUM(...(["pending", "approved", "rejected"] as ReviewStatus[])),
+      type: DataTypes.ENUM(
+        ...(["pending", "approved", "rejected"] as ReviewStatus[])
+      ),
       defaultValue: "pending",
     },
     moderator_id: {

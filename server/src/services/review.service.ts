@@ -1,3 +1,4 @@
+import type { ReviewStatus } from "@/models/mysql/Review.model.js";
 import type { FindOptions } from "sequelize";
 
 import { sequelize } from "@/config/mysql.config.js";
@@ -15,7 +16,7 @@ interface CreateReviewData {
 
 class ReviewService {
   public static async findReviewOrThrow(reviewId: string): Promise<Review> {
-    const review = await Review.findByPk(reviewId);
+    const review = await Review.findOneByField("id", reviewId);
 
     if (!review) {
       throw new AppError({
@@ -33,7 +34,10 @@ class ReviewService {
    * @param userId - L'id de l'utilisateur qui crée l'avis
    * @param data - Les données de l'avis à créer
    */
-  public static async createReview(userId: string, data: CreateReviewData): Promise<void> {
+  public static async createReview(
+    userId: string,
+    data: CreateReviewData
+  ): Promise<void> {
     const ride = await RideService.findRideOrThrow(data.rideId);
 
     if (ride.getDriverId() === userId) {
@@ -59,7 +63,9 @@ class ReviewService {
       where: { status: "completed" },
     });
 
-    const isRidePassenger = rideBookings.some((booking) => booking.getPassengerId() === userId);
+    const isRidePassenger = rideBookings.some(
+      (booking) => booking.getPassengerId() === userId
+    );
 
     if (!isRidePassenger) {
       throw new AppError({
@@ -69,13 +75,13 @@ class ReviewService {
       });
     }
 
-    const hasAlreadyReviewed = await Review.findOneByField("ride_id", data.rideId, {
+    const reviewCount = await Review.countAllByField("ride_id", data.rideId, {
       where: {
         author_id: userId,
       },
     });
 
-    if (hasAlreadyReviewed) {
+    if (reviewCount > 0) {
       throw new AppError({
         statusCode: 409,
         statusText: "Conflict",
@@ -93,41 +99,82 @@ class ReviewService {
   }
 
   /**
-   * Récupère les avis reçus par un utilisateur
-   * @param userId - L'id de l'utilisateur
-   * @param options - Options sequelize
-   * @returns Les avis reçus
+   * Récupère les avis en fonction du statut
+   * @param status - Le statut des avis à récupérer
+   * @returns Liste des avis trouvés
    */
-  public static async getUserReceivedReviews(
-    userId: string,
-    options?: FindOptions
-  ): Promise<Review[]> {
-    const reviews = await Review.findAllByField("target_id", userId, {
-      where: { status: "approved" },
-      include: [{ association: "author" }],
-      ...options,
+  public static async getReviews(
+    status: ReviewStatus,
+    page: number,
+    limit: number
+  ): Promise<{ count: number; reviews: Review[] }> {
+    const filter = status ? { status } : {};
+    const offset = (page - 1) * limit;
+
+    const { count, rows: reviews } = await Review.findAndCountAll({
+      where: filter,
+      order: [["created_at", "DESC"]],
+      include: [
+        { association: "author", required: false },
+        { association: "target", required: false },
+        { association: "ride", required: false },
+        { association: "moderator", required: false },
+      ],
+      offset,
+      limit,
     });
 
-    return reviews;
+    return { count, reviews };
   }
 
   /**
-   * Récupère les avis écrits par un utilisateur
+   * Récupère les avis (validés) reçus par un utilisateur
    * @param userId - L'id de l'utilisateur
    * @param options - Options sequelize
-   * @returns Les avis écrits
+   * @returns Liste des avis reçus
+   */
+  public static async getUserReceivedReviews(
+    userId: string,
+    page: number,
+    limit: number,
+    options?: FindOptions
+  ): Promise<{ count: number; reviews: Review[] }> {
+    const offset = (page - 1) * limit;
+
+    const { count, rows: reviews } = await Review.findAndCountAll({
+      where: { target_id: userId, status: "approved" },
+      include: [{ association: "author" }],
+      ...options,
+      offset,
+      limit,
+    });
+
+    return { count, reviews };
+  }
+
+  /**
+   * Récupère les avis (validés) écrits par un utilisateur
+   * @param userId - L'id de l'utilisateur
+   * @param options - Options sequelize
+   * @returns Liste des avis écrits
    */
   public static async getUserWrittenReviews(
     userId: string,
+    page: number,
+    limit: number,
     options?: FindOptions
-  ): Promise<Review[]> {
-    const reviews = await Review.findAllByField("author_id", userId, {
-      where: { status: "approved" },
+  ): Promise<{ count: number; reviews: Review[] }> {
+    const offset = (page - 1) * limit;
+
+    const { count, rows: reviews } = await Review.findAndCountAll({
+      where: { author_id: userId, status: "approved" },
       include: [{ association: "target" }],
       ...options,
+      offset,
+      limit,
     });
 
-    return reviews;
+    return { count, reviews };
   }
 
   /**
@@ -139,7 +186,7 @@ class ReviewService {
   public static async moderateReview(
     reviewId: string,
     employeeId: string,
-    status: "approved" | "rejected"
+    status: Omit<ReviewStatus, "pending">
   ): Promise<void> {
     const review = await this.findReviewOrThrow(reviewId);
 
@@ -147,7 +194,7 @@ class ReviewService {
       throw new AppError({
         statusCode: 403,
         statusText: "Forbidden",
-        message: "Cet avis à déjà été modéré.",
+        message: "Cet avis a déjà été modéré.",
       });
     }
 

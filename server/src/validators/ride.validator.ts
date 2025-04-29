@@ -1,17 +1,5 @@
 import Joi from "joi";
 
-/**
- * Schéma de validation pour l'id d'un trajet
- */
-export const rideIdParamSchema = Joi.object({
-  rideId: Joi.string().uuid().required().messages({
-    "any.required": "L'id du trajet est requis.",
-    "string.base": "L'id du trajet doit être une chaîne de caractères.",
-    "string.empty": "L'id du trajet doit être une chaîne de caractères non vide.",
-    "string.uuid": "L'id du trajet doit être un identifiant valide.",
-  }),
-}).options({ stripUnknown: true });
-
 export const createRideSchema = Joi.object({
   departureLocation: Joi.string().trim().max(255).required().messages({
     "any.required": "Le lieu de départ est requis.",
@@ -50,8 +38,10 @@ export const createRideSchema = Joi.object({
   offeredSeats: Joi.number().integer().strict().min(1).max(6).required().messages({
     "any.required": "Le nombre de places proposées est requis.",
     "number.integer": "Le nombre de places proposées doit être un nombre entier.",
-    "number.min": "Le nombre de places proposées pour un trajet doit être au minimum de 1.",
-    "number.max": "Le nombre de places proposées pour un trajet doit être au maximum de 6.",
+    "number.min":
+      "Le nombre de places proposées pour un trajet doit être au minimum de 1.",
+    "number.max":
+      "Le nombre de places proposées pour un trajet doit être au maximum de 6.",
   }),
 }).options({ stripUnknown: true });
 

@@ -3,6 +3,7 @@ import { Router } from "express";
 import requireAuth from "@/middlewares/requireAuth.js";
 import requireRole from "@/middlewares/requireRole.js";
 import validate from "@/middlewares/validateData.js";
+
 import { registerSchema } from "@/validators/auth.validator.js";
 import { idParamSchema } from "@/validators/common.validator.js";
 
@@ -10,7 +11,7 @@ import {
   registerEmployee,
   suspendAccount,
   unsuspendAccount,
-} from "@/controllers/admin.controller.js";
+} from "@/controllers/admin.controllers.js";
 
 const router = Router();
 
@@ -19,6 +20,10 @@ router.use(requireRole(["admin"]));
 
 router.post("/employees", validate(registerSchema), registerEmployee);
 router.patch("/accounts/:id/suspend", validate(idParamSchema, "params"), suspendAccount);
-router.patch("/accounts/:id/unsuspend", validate(idParamSchema, "params"), unsuspendAccount);
+router.patch(
+  "/accounts/:id/unsuspend",
+  validate(idParamSchema, "params"),
+  unsuspendAccount
+);
 
 export default router;

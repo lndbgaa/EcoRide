@@ -4,11 +4,8 @@ import requireAuth from "@/middlewares/requireAuth.js";
 import requireRole from "@/middlewares/requireRole.js";
 import validate from "@/middlewares/validateData.js";
 
-import {
-  createRideSchema,
-  rideIdParamSchema,
-  searchRidesSchema,
-} from "@/validators/ride.validator.js";
+import { idParamSchema } from "@/validators/common.validator.js";
+import { createRideSchema, searchRidesSchema } from "@/validators/ride.validator.js";
 
 import {
   cancelRide,
@@ -24,7 +21,7 @@ const router = Router();
 // Routes publiques
 
 router.post("/search", validate(searchRidesSchema), searchForRides);
-router.get("/:rideId", validate(rideIdParamSchema, "params"), getRideDetails);
+router.get("/:id", validate(idParamSchema, "params"), getRideDetails);
 
 // Routes privées
 
@@ -32,9 +29,8 @@ router.use(requireAuth);
 router.use(requireRole(["user"]));
 
 router.post("/", validate(createRideSchema), createRide);
-
-router.patch("/:rideId/cancel", validate(rideIdParamSchema, "params"), cancelRide);
-router.patch("/:rideId/start", validate(rideIdParamSchema, "params"), startRide);
-router.patch("/:rideId/end", validate(rideIdParamSchema, "params"), endRide);
+router.patch("/:id/cancel", validate(idParamSchema, "params"), cancelRide);
+router.patch("/:id/start", validate(idParamSchema, "params"), startRide);
+router.patch("/:id/end", validate(idParamSchema, "params"), endRide);
 
 export default router;

@@ -3,7 +3,12 @@ import { Router } from "express";
 import validate from "@/middlewares/validateData.js";
 import { loginSchema, registerSchema } from "@/validators/auth.validator.js";
 
-import { handleTokenRefresh, login, logout, registerUser } from "@/controllers/auth.controller.js";
+import {
+  handleTokenRefresh,
+  login,
+  logout,
+  registerUser,
+} from "@/controllers/auth.controllers.js";
 
 const router = Router();
 

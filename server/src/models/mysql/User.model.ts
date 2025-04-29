@@ -2,9 +2,9 @@ import { DataTypes, Transaction } from "sequelize";
 
 import { sequelize } from "@/config/mysql.config.js";
 import { ACCOUNT_ROLES_ID } from "@/models/mysql/Account.model.js";
+import AppError from "@/utils/AppError.js";
 import { getAge, toDateOnly } from "@/utils/date.utils.js";
 import Account from "./Account.model.js";
-import Review from "./Review.model.js";
 
 export interface UserPublicDTO {
   id: string;
@@ -44,9 +44,33 @@ class User extends Account {
   declare credits: number;
 
   /**
+   * Récupère le type de profil de l'utilisateur.
+   */
+  public async getUserProfileType() {
+    const isDriver = this.is_driver;
+    const isPassenger = this.is_passenger;
+
+    if (isDriver && isPassenger) {
+      return "both";
+    }
+    if (isDriver) {
+      return "driver";
+    }
+    if (isPassenger) {
+      return "passenger";
+    }
+
+    throw new AppError({
+      statusCode: 500,
+      statusText: "Internal Server Error",
+      message: "Impossible de déterminer le type de profil de l'utilisateur.",
+    });
+  }
+
+  /**
    * Active ou désactive le mode conducteur.
    */
-  async toggleDriver(): Promise<void> {
+  public async toggleDriver(): Promise<void> {
     this.is_driver = !this.is_driver;
     await this.save();
   }
@@ -54,29 +78,18 @@ class User extends Account {
   /**
    * Active ou désactive le mode passager.
    */
-  async togglePassenger(): Promise<void> {
+  public async togglePassenger(): Promise<void> {
     this.is_passenger = !this.is_passenger;
-    await this.save();
-  }
-
-  /**
-   * Met à jour la note moyenne de l'utilisateur à partir des avis reçus.
-   */
-  async updateAverageRating(): Promise<void> {
-    const result = (await Review.findOne({
-      where: { target_id: this.id },
-      attributes: [[sequelize.fn("AVG", sequelize.col("rating")), "avg"]],
-      raw: true,
-    })) as { avg: string | null } | null;
-
-    this.average_rating = parseFloat(result?.avg ?? "0");
     await this.save();
   }
 
   /**
    *  Ajoute des crédits au compte utilisateur.
    */
-  async addCredits(amount: number, options?: { transaction?: Transaction }): Promise<void> {
+  public async addCredits(
+    amount: number,
+    options?: { transaction?: Transaction }
+  ): Promise<void> {
     if (amount <= 0) throw new Error("Le montant doit être supérieur à 0.");
     this.credits += amount;
     await this.save(options);
@@ -85,34 +98,37 @@ class User extends Account {
   /**
    * Retire des crédits du compte utilisateur.
    */
-  async removeCredits(amount: number, options?: { transaction?: Transaction }): Promise<void> {
+  public async removeCredits(
+    amount: number,
+    options?: { transaction?: Transaction }
+  ): Promise<void> {
     if (amount <= 0) throw new Error("Le montant doit être supérieur à 0.");
     if (this.credits < amount) throw new Error("Crédits insuffisants.");
     this.credits -= amount;
     await this.save(options);
   }
 
-  getEmail(): string {
+  public getEmail(): string {
     return this.email;
   }
 
-  getFirstName(): string {
+  public getFirstName(): string {
     return this.first_name;
   }
 
-  getCredits(): number {
+  public getCredits(): number {
     return this.credits;
   }
 
-  isDriver(): boolean {
+  public isDriver(): boolean {
     return this.is_driver;
   }
 
-  isPassenger(): boolean {
+  public isPassenger(): boolean {
     return this.is_passenger;
   }
 
-  toPublicDTO(): UserPublicDTO {
+  public toPublicDTO(): UserPublicDTO {
     return {
       id: this.id,
       pseudo: this.pseudo,
@@ -123,7 +139,7 @@ class User extends Account {
     };
   }
 
-  toPrivateDTO(): UserPrivateDTO {
+  public toPrivateDTO(): UserPrivateDTO {
     return {
       ...this.toPublicDTO(),
       email: this.email,

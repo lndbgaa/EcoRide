@@ -14,7 +14,7 @@ function getEnvVar(name: string): string {
 const config = {
   server: {
     env: process.env.NODE_ENV ?? "development",
-    port: Number(process.env.PORT ?? 8080),
+    port: process.env.MYSQL_DB_PORT ? Number(process.env.MYSQL_DB_PORT) : 8080,
     url: process.env.SERVER_URL ?? "http://localhost:8080",
   },
   jwt: {
@@ -23,7 +23,7 @@ const config = {
     refresh_expiration: (process.env.JWT_REFRESH_EXPIRATION as StringValue) ?? "7d", // 7 jours
   },
   mysql: {
-    port: Number(process.env.MYSQL_DB_PORT) || 3306,
+    port: process.env.MYSQL_DB_PORT ? Number(process.env.MYSQL_DB_PORT) : 3306,
     host: getEnvVar("MYSQL_DB_HOST"),
     user: getEnvVar("MYSQL_DB_USER"),
     password: getEnvVar("MYSQL_DB_PWD"),
@@ -35,3 +35,4 @@ const config = {
 };
 
 export default config;
+export { getEnvVar };

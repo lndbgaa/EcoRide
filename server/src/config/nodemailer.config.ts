@@ -3,16 +3,15 @@ dotenv.config();
 
 import nodemailer from "nodemailer";
 
+import { getEnvVar } from "@/config/app.config.js";
+
 const transporter = nodemailer.createTransport({
-  host: process.env.SMTP_HOST as string,
-  port: parseInt(process.env.SMTP_PORT ?? "587"),
+  host: getEnvVar("SMTP_HOST"),
+  port: parseInt(getEnvVar("SMTP_PORT")),
   secure: false,
   auth: {
-    user: process.env.SMTP_USER as string,
-    pass: process.env.SMTP_PASSWORD as string,
-  },
-  tls: {
-    rejectUnauthorized: false,
+    user: getEnvVar("SMTP_USER"),
+    pass: getEnvVar("SMTP_PASSWORD"),
   },
 });
 

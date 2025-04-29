@@ -1,18 +1,6 @@
 import Joi from "joi";
 
 /**
- * Schéma de validation pour l'id d'un véhicule
- */
-export const vehicleIdParamSchema = Joi.object({
-  vehicleId: Joi.string().uuid().required().messages({
-    "any.required": "L'id du véhicule est requis.",
-    "string.base": "L'id du véhicule doit être une chaîne de caractères.",
-    "string.empty": "L'id du véhicule est requis.",
-    "string.guid": "L'id du véhicule doit être un identifiant valide.",
-  }),
-});
-
-/**
  * Validation des données passées pour l'ajout d'un véhicule par un utilisateur
  */
 export const addVehicleSchema = Joi.object({
@@ -50,8 +38,10 @@ export const addVehicleSchema = Joi.object({
     .pattern(/^[A-Z]{2}-\d{3}-[A-Z]{2}$/i)
     .messages({
       "any.required": "La plaque d'immatriculation est requise.",
-      "string.base": "La plaque d'immatriculation doit être une chaîne de caractères non vide.",
-      "string.empty": "La plaque d'immatriculation doit être une chaîne de caractères non vide.",
+      "string.base":
+        "La plaque d'immatriculation doit être une chaîne de caractères non vide.",
+      "string.empty":
+        "La plaque d'immatriculation doit être une chaîne de caractères non vide.",
       "string.pattern.base": "Format de plaque invalide. Format attendu : AB-123-CD",
     }),
   firstRegistration: Joi.date().required().messages({

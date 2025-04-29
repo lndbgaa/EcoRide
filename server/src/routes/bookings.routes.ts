@@ -4,9 +4,10 @@ import requireAuth from "@/middlewares/requireAuth.js";
 import requireRole from "@/middlewares/requireRole.js";
 import validate from "@/middlewares/validateData.js";
 
-import { bookingIdParamSchema, createBookingSchema } from "@/validators/booking.validator.js";
+import { createBookingSchema } from "@/validators/booking.validator.js";
+import { idParamSchema } from "@/validators/common.validator.js";
 
-import { cancelBooking, createBooking } from "@/controllers/booking.controllers.js";
+import { cancelBooking, createBooking } from "@/controllers/bookings.controllers.js";
 
 const router = Router();
 
@@ -14,6 +15,6 @@ router.use(requireAuth);
 router.use(requireRole(["user"]));
 
 router.post("/", validate(createBookingSchema), createBooking);
-router.patch("/:bookingId/cancel", validate(bookingIdParamSchema, "params"), cancelBooking);
+router.patch("/:id/cancel", validate(idParamSchema, "params"), cancelBooking);
 
 export default router;

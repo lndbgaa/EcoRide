@@ -1,9 +1,14 @@
 import { sequelize } from "@/config/mysql.config.js";
 import { ACCOUNT_ROLES_ID } from "@/models/mysql/Account.model.js";
-import { getAge } from "@/utils/date.utils.js";
 import Account from "./Account.model.js";
 
-interface EmployeePrivateDTO {
+export interface EmployeePublicDTO {
+  id: string;
+  firstName: string;
+  lastName: string;
+}
+
+export interface EmployeePrivateDTO {
   id: string;
   email: string;
   firstName: string;
@@ -11,7 +16,7 @@ interface EmployeePrivateDTO {
   phone: string | null;
   address: string | null;
   birthDate: Date | null;
-  age: string | null;
+  //age: string | null;
   profilePicture: string | null;
   memberSince: number | null;
 }
@@ -36,9 +41,17 @@ class Employee extends Account {
       phone: this.phone ?? null,
       address: this.address ?? null,
       birthDate: this.birth_date ?? null,
-      age: this.birth_date ? getAge(this.birth_date) : null,
+      //age: this.birth_date ? getAge(this.birth_date) : null,
       profilePicture: this.profile_picture ?? null,
       memberSince: this.created_at?.getFullYear() ?? null,
+    };
+  }
+
+  toPublicDTO(): EmployeePublicDTO {
+    return {
+      id: this.id,
+      firstName: this.first_name,
+      lastName: this.last_name,
     };
   }
 }

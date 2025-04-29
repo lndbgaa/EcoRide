@@ -1,10 +1,9 @@
 import type { UserRole } from "@/types/index.js";
 import type { FindOptions, Transaction } from "sequelize";
 
-import User from "@/models/mysql/User.model.js";
+import { Review, User } from "@/models/mysql/index.js";
 import UploadService from "@/services/upload.service.js";
 import AppError from "@/utils/AppError.js";
-import ReviewService from "./review.service";
 
 class UserService {
   /**
@@ -12,14 +11,18 @@ class UserService {
    * @param userId - L'id de l'utilisateur
    * @returns Le user trouvé
    */
-  public static async findUserOrThrow(userId: string, options?: FindOptions): Promise<User> {
+  public static async findUserOrThrow(
+    userId: string,
+    options?: FindOptions
+  ): Promise<User> {
     const user = await User.findOneByField("id", userId, options);
 
     if (!user) {
       throw new AppError({
         statusCode: 404,
         statusText: "Not Found",
-        message: "Utilisateur non trouvé. Veuillez vérifier l'id de l'utilisateur.",
+        message:
+          "Utilisateur non trouvé. Veuillez vérifier l'id de l'utilisateur.",
       });
     }
 
@@ -41,7 +44,8 @@ class UserService {
       throw new AppError({
         statusCode: 403,
         statusText: "Forbidden",
-        message: "Seuls les utilisateurs chauffeurs peuvent accéder à cette ressource. ",
+        message:
+          "Seuls les utilisateurs chauffeurs peuvent accéder à cette ressource. ",
       });
     }
 
@@ -63,7 +67,8 @@ class UserService {
       throw new AppError({
         statusCode: 403,
         statusText: "Forbidden",
-        message: "Seuls les utilisateurs passagers peuvent accéder à cette ressource.",
+        message:
+          "Seuls les utilisateurs passagers peuvent accéder à cette ressource.",
       });
     }
 
@@ -120,7 +125,10 @@ class UserService {
    * @param role - Le rôle à mettre à jour
    * @param userId - L'id de l'utilisateur
    */
-  public static async updateRole(role: UserRole, userId: string): Promise<void> {
+  public static async updateRole(
+    role: UserRole,
+    userId: string
+  ): Promise<void> {
     const user = await this.findUserOrThrow(userId);
 
     if (role === "driver") {
@@ -158,8 +166,11 @@ class UserService {
    * Met à jour la note moyenne d'un utilisateur
    * @param userId - L'id de l'utilisateur
    */
-  public static async updateAverageRating(userId: string, options?: { transaction?: Transaction }) {
-    const reviews = await ReviewService.getUserReceivedReviews(userId, {
+  public static async updateAverageRating(
+    userId: string,
+    options?: { transaction?: Transaction }
+  ) {
+    const reviews = await Review.findAllByField("target_id", userId, {
       ...options,
     });
 
@@ -168,9 +179,15 @@ class UserService {
       return;
     }
 
-    const averageRating = reviews.reduce((acc, review) => acc + review.rating, 0) / reviews.length;
+    const averageRating =
+      reviews.reduce((acc, review) => acc + review.rating, 0) / reviews.length;
 
-    await User.updateByField("id", userId, { average_rating: averageRating }, options);
+    await User.updateByField(
+      "id",
+      userId,
+      { average_rating: averageRating },
+      options
+    );
   }
 }
 
