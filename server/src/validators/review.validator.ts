@@ -1,6 +1,6 @@
 import Joi from "joi";
 
-const createReviewSchema = Joi.object({
+export const createReviewSchema = Joi.object({
   rideId: Joi.string().uuid().required().messages({
     "any.required": "L'id du trajet à évaluer est requis.",
     "string.base":
@@ -24,5 +24,3 @@ const createReviewSchema = Joi.object({
     "string.max": "Le commentaire ne peut pas contenir plus de 255 caractères.",
   }),
 }).options({ stripUnknown: true });
-
-export default createReviewSchema;
