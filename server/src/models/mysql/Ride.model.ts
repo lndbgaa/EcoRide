@@ -67,13 +67,14 @@ class Ride extends Base {
   /**
    * Liste des transitions autorisées entre les statuts d'un trajet.
    */
-  private static readonly allowedTransitions: Record<RideStatus, RideStatus[]> = {
-    open: ["full", "in_progress", "cancelled"],
-    full: ["open", "in_progress", "cancelled"],
-    in_progress: ["completed"],
-    completed: [],
-    cancelled: [],
-  } as const;
+  private static readonly allowedTransitions: Record<RideStatus, RideStatus[]> =
+    {
+      open: ["full", "in_progress", "cancelled"],
+      full: ["open", "in_progress", "cancelled"],
+      in_progress: ["completed"],
+      completed: [],
+      cancelled: [],
+    } as const;
 
   /**
    * Vérifie si une transition vers un nouveau statut est autorisée.
@@ -90,7 +91,10 @@ class Ride extends Base {
    * @param status - Le nouveau statut à appliquer.
    * @param options - Options de la transaction.
    */
-  private async transitionTo(status: RideStatus, options?: SaveOptions): Promise<void> {
+  private async transitionTo(
+    status: RideStatus,
+    options?: SaveOptions
+  ): Promise<void> {
     if (this.status === status) return;
 
     if (!this.canTransitionTo(status)) {
@@ -111,7 +115,10 @@ class Ride extends Base {
    * @param amount - Le nombre de places à ajouter.
    * @param options - Options de sauvegarde sequelize.
    */
-  public async addAvailableSeats(amount: number, options?: SaveOptions): Promise<void> {
+  public async addAvailableSeats(
+    amount: number,
+    options?: SaveOptions
+  ): Promise<void> {
     if (this.status !== "open" && this.status !== "full") {
       throw new AppError({
         statusCode: 400,
@@ -151,7 +158,10 @@ class Ride extends Base {
    * @param amount - Le nombre de places à retirer.
    * @param options - Options de sauvegarde sequelize.
    */
-  public async removeAvailableSeats(amount: number, options?: SaveOptions): Promise<void> {
+  public async removeAvailableSeats(
+    amount: number,
+    options?: SaveOptions
+  ): Promise<void> {
     if (this.status !== "open") {
       throw new AppError({
         statusCode: 400,
@@ -229,6 +239,18 @@ class Ride extends Base {
     return this.offered_seats;
   }
 
+  public getDepartureLocation(): string {
+    return this.departure_location;
+  }
+
+  public getArrivalLocation(): string {
+    return this.arrival_location;
+  }
+
+  public getDepartureDate(): Date {
+    return this.departure_datetime;
+  }
+
   public isOpen(): boolean {
     return this.status === "open";
   }
@@ -270,7 +292,8 @@ class Ride extends Base {
     return {
       ...this.toPreviewDTO(),
       vehicle: this.vehicle?.toPublicDTO() ?? null,
-      passengers: this.passengers?.map((passenger) => passenger.toPublicDTO()) ?? [],
+      passengers:
+        this.passengers?.map((passenger) => passenger.toPublicDTO()) ?? [],
     };
   }
 
@@ -279,7 +302,8 @@ class Ride extends Base {
     return {
       ...publicDTOWithoutDriver,
       vehicle: this.vehicle?.toPrivateDTO() ?? null,
-      passengers: this.passengers?.map((passenger) => passenger.toPublicDTO()) ?? [],
+      passengers:
+        this.passengers?.map((passenger) => passenger.toPublicDTO()) ?? [],
       offered_seats: this.offered_seats,
     };
   }
@@ -372,7 +396,13 @@ Ride.init(
     },
     status: {
       type: DataTypes.ENUM(
-        ...(["open", "full", "in_progress", "completed", "cancelled"] as RideStatus[])
+        ...([
+          "open",
+          "full",
+          "in_progress",
+          "completed",
+          "cancelled",
+        ] as RideStatus[])
       ),
       defaultValue: "open",
     },

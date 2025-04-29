@@ -112,6 +112,10 @@ class User extends Account {
     return this.email;
   }
 
+  public getPseudo(): string {
+    return this.pseudo;
+  }
+
   public getFirstName(): string {
     return this.first_name;
   }

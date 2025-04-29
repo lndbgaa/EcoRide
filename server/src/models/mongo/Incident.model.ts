@@ -1,32 +1,83 @@
 import mongoose, { Document } from "mongoose";
+import { v4 as uuid } from "uuid";
 
 const { Schema } = mongoose;
 
-type IncidentType = "delay" | "cancellation" | "danger" | "behavior" | "other";
+export type IncidentType =
+  | "delay"
+  | "cancellation"
+  | "danger"
+  | "behavior"
+  | "other";
+
+export interface RideEmbedded {
+  id: string;
+  departureLocation: string;
+  arrivalLocation: string;
+  departureDate: Date;
+}
+
+export interface UserEmbedded {
+  pseudo: string;
+  email: string;
+}
 
 export interface IncidentDocument extends Document {
   _id: string;
   type: IncidentType;
-  rideId: string;
-  passengerId: string;
-  driverId: string;
+  ride: RideEmbedded;
+  passenger: UserEmbedded;
+  driver: UserEmbedded;
   description: string;
   createdAt: Date;
+  updatedAt: Date;
   status?: "pending" | "under_review" | "resolved";
+  assignedTo?: string;
   closure?: {
-    by: string;
-    note: string;
     at: Date;
+    note: string;
   };
 }
+
+const userSchema = new Schema(
+  {
+    pseudo: {
+      type: String,
+      required: true,
+    },
+    email: {
+      type: String,
+      required: true,
+    },
+  },
+  { _id: false }
+);
+
+const rideSchema = new Schema(
+  {
+    id: {
+      type: String,
+      required: true,
+    },
+    departureLocation: {
+      type: String,
+      required: true,
+    },
+    arrivalLocation: {
+      type: String,
+      required: true,
+    },
+    departureDate: {
+      type: Date,
+      required: true,
+    },
+  },
+  { _id: false }
+);
 
 // Sous-schema pour la clôture de l'incident, utilisé uniquement si l'incident est "resolved"
 const resolutionSchema = new Schema(
   {
-    by: {
-      type: String,
-      required: true,
-    },
     at: {
       type: Date,
       default: Date.now,
@@ -45,32 +96,36 @@ const incidentSchema = new Schema<IncidentDocument>(
     _id: {
       type: String,
       required: true,
+      default: uuid,
     },
     type: {
       type: String,
       enum: ["delay", "cancellation", "danger", "behavior", "other"],
       required: true,
     },
-    rideId: {
-      type: String,
-      required: true,
-    },
-    passengerId: {
-      type: String,
-      required: true,
-    },
-    driverId: {
-      type: String,
-      required: true,
-    },
     description: {
       type: String,
+      required: true,
+    },
+    ride: {
+      type: rideSchema,
+      required: true,
+    },
+    passenger: {
+      type: userSchema,
+      required: true,
+    },
+    driver: {
+      type: userSchema,
       required: true,
     },
     status: {
       type: String,
       enum: ["pending", "under_review", "resolved"],
-      default: "pending",
+    },
+    assignedTo: {
+      type: String,
+      default: null,
     },
     closure: {
       type: resolutionSchema,

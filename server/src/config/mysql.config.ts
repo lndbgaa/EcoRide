@@ -2,12 +2,14 @@ import { Sequelize } from "sequelize";
 
 import config from "@/config/app.config.js";
 
+const { env } = config.server;
 const { port, host, user, password, database } = config.mysql;
 
 const sequelize = new Sequelize(database, user, password, {
   host,
   port,
   dialect: "mysql",
+  logging: env === "production" ? false : console.log,
 });
 
 const connectMySQL = async (): Promise<void> => {
