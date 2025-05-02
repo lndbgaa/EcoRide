@@ -1,37 +1,47 @@
 import { DataTypes, UUIDV4 } from "sequelize";
 
-import type { EmployeePublicDTO } from "@/models/mysql/Employee.model.js";
-import type { RidePreviewDTO } from "@/models/mysql/Ride.model.js";
-import type { UserPublicDTO } from "@/models/mysql/User.model.js";
-
 import { sequelize } from "@/config/mysql.config.js";
+import { REVIEW_STATUSES } from "@/constants/index.js";
 import { Base, Employee, Ride, User } from "@/models/mysql";
+import { toDateOnly, toTimeOnly } from "@/utils/date.js";
 
-export type ReviewStatus = "pending" | "approved" | "rejected";
+import type { RidePublicPreviewDTO } from "@/models/mysql/Ride.model.js";
+import type { UserPublicDTO } from "@/models/mysql/User.model.js";
+import type { ReviewStatus } from "@/types/index.js";
 
 export interface ReviewPublicDTO {
   id: string;
   rating: number;
   comment: string;
   author: UserPublicDTO | null;
+  createdAt: {
+    date: string;
+    time: string;
+  };
 }
 
-export interface ReviewPrivateDTO {
+export interface ReviewAuthorDTO {
   id: string;
   rating: number;
   comment: string;
   target: UserPublicDTO | null;
+  createdAt: {
+    date: string;
+    time: string;
+  };
 }
 
-export interface ReviewAdminDTO {
+export interface ReviewEmployeeDTO {
   id: string;
   rating: number;
   comment: string;
   author: UserPublicDTO | null;
   target: UserPublicDTO | null;
-  ride: RidePreviewDTO | null;
-  moderator: EmployeePublicDTO | null;
-  created_at: Date;
+  ride: RidePublicPreviewDTO | null;
+  createdAt: {
+    date: string;
+    time: string;
+  };
 }
 
 /**
@@ -97,43 +107,44 @@ class Review extends Base {
     return this.status === "rejected";
   }
 
-  /**
-   * Renvoie la version "public" d'un avis.
-   */
   public toPublicDTO(): ReviewPublicDTO {
     return {
       id: this.id,
       rating: this.rating,
       comment: this.comment,
       author: this.author?.toPublicDTO() ?? null,
+      createdAt: {
+        date: toDateOnly(this.created_at),
+        time: toTimeOnly(this.created_at),
+      },
     };
   }
 
-  /**
-   * Renvoie la version "privée" d'un avis.
-   */
-  public toPrivateDTO(): ReviewPrivateDTO {
+  public toAuthorDTO(): ReviewAuthorDTO {
     return {
       id: this.id,
       rating: this.rating,
       comment: this.comment,
       target: this.target?.toPublicDTO() ?? null,
+      createdAt: {
+        date: toDateOnly(this.created_at),
+        time: toTimeOnly(this.created_at),
+      },
     };
   }
 
-  /**
-   * Renvoie la version "administrative" d'un avis.
-   */
-  public toAdminDTO(): ReviewAdminDTO {
+  public toEmployeeDTO(): ReviewEmployeeDTO {
     return {
       id: this.id,
       rating: this.rating,
       comment: this.comment,
       author: this.author?.toPublicDTO() ?? null,
       target: this.target?.toPublicDTO() ?? null,
-      ride: this.ride?.toPreviewDTO() ?? null,
-      moderator: this.moderator?.toPublicDTO() ?? null,
-      created_at: this.created_at,
+      ride: this.ride?.toPublicPreviewDTO() ?? null,
+      createdAt: {
+        date: toDateOnly(this.created_at),
+        time: toTimeOnly(this.created_at),
+      },
     };
   }
 }
@@ -194,10 +205,8 @@ Review.init(
       onDelete: "SET NULL",
     },
     status: {
-      type: DataTypes.ENUM(
-        ...(["pending", "approved", "rejected"] as ReviewStatus[])
-      ),
-      defaultValue: "pending",
+      type: DataTypes.ENUM(...Object.values(REVIEW_STATUSES)),
+      defaultValue: REVIEW_STATUSES.PENDING,
     },
     moderator_id: {
       type: DataTypes.UUID,
@@ -219,7 +228,7 @@ Review.init(
     indexes: [
       {
         unique: true,
-        fields: ["ride_id", "author_id", "target_id"], // Un avis par personne et par course
+        fields: ["ride_id", "author_id", "target_id"],
       },
     ],
   }

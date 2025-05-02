@@ -1,31 +1,24 @@
-import { DataTypes, type Includeable } from "sequelize";
+import { DataTypes } from "sequelize";
 
 import { sequelize } from "@/config/mysql.config.js";
+import { VEHICLE_ECO_ENERGY_IDS } from "@/constants/index.js";
+import Base from "@/models/mysql/Base.model.js";
+import VehicleBrand from "@/models/mysql/VehicleBrand.model.js";
+import VehicleColor from "@/models/mysql/VehicleColor.model.js";
+import VehicleEnergy from "@/models/mysql/VehicleEnergy.model.js";
 import AppError from "@/utils/AppError.js";
-import { toDateOnly } from "@/utils/date.utils.js";
-import Base from "./Base.model.js";
-import VehicleBrand from "./VehicleBrand.model.js";
-import VehicleColor from "./VehicleColor.model.js";
-import VehicleEnergy from "./VehicleEnergy.model.js";
-
-export const VEHICLE_ASSOCIATIONS: Includeable[] = [
-  { association: "brand" },
-  { association: "color" },
-  { association: "energy" },
-];
-
-export const ECO_ENERGY_IDS = [3, 9];
+import { toDateOnly } from "@/utils/date.js";
 
 export interface VehiclePublicDTO {
   id: string;
   brand: string | null;
   model: string;
   color: string | null;
-  seats: number;
   energy: string | null;
 }
 
 export interface VehiclePrivateDTO extends VehiclePublicDTO {
+  seats: number;
   license_plate: string;
   first_registration: string;
 }
@@ -53,27 +46,8 @@ class Vehicle extends Base {
   declare color?: VehicleColor;
   declare energy?: VehicleEnergy;
 
-  public toPublicDTO(): VehiclePublicDTO {
-    return {
-      id: this.id,
-      brand: this.brand?.label ?? null,
-      model: this.model,
-      color: this.color?.label ?? null,
-      energy: this.energy?.label ?? null,
-      seats: this.seats,
-    };
-  }
-
-  public toPrivateDTO(): VehiclePrivateDTO {
-    return {
-      ...this.toPublicDTO(),
-      license_plate: this.license_plate,
-      first_registration: toDateOnly(this.first_registration),
-    };
-  }
-
   public isEcoVehicle(): boolean {
-    return ECO_ENERGY_IDS.includes(this.energy_id);
+    return VEHICLE_ECO_ENERGY_IDS.includes(this.energy_id);
   }
 
   public getSeats(): number {
@@ -82,6 +56,25 @@ class Vehicle extends Base {
 
   public getOwnerId(): string {
     return this.owner_id;
+  }
+
+  public toPublicDTO(): VehiclePublicDTO {
+    return {
+      id: this.id,
+      brand: this.brand?.label ?? null,
+      model: this.model,
+      color: this.color?.label ?? null,
+      energy: this.energy?.label ?? null,
+    };
+  }
+
+  public toPrivateDTO(): VehiclePrivateDTO {
+    return {
+      ...this.toPublicDTO(),
+      seats: this.seats,
+      license_plate: this.license_plate,
+      first_registration: toDateOnly(this.first_registration),
+    };
   }
 }
 
@@ -154,6 +147,23 @@ Vehicle.init(
     first_registration: {
       type: DataTypes.DATEONLY,
       allowNull: false,
+      validate: {
+        isBeforeToday(value: Date): void {
+          const now = new Date();
+          now.setHours(0, 0, 0, 0);
+          const input = new Date(value);
+          input.setHours(0, 0, 0, 0);
+
+          if (input > now) {
+            throw new AppError({
+              statusCode: 400,
+              statusText: "Bad Request",
+              message:
+                "La date de première immatriculation doit être antérieure à la date actuelle.",
+            });
+          }
+        },
+      },
     },
     owner_id: {
       type: DataTypes.UUID,
@@ -162,7 +172,7 @@ Vehicle.init(
         model: "accounts",
         key: "id",
       },
-      onDelete: "CASCADE",
+      onDelete: "RESTRICT",
     },
   },
   {
@@ -174,18 +184,5 @@ Vehicle.init(
     updatedAt: "updated_at",
   }
 );
-
-Vehicle.beforeValidate((vehicle: Vehicle) => {
-  const now = new Date();
-  const firstRegistrationDate = new Date(vehicle.first_registration);
-
-  if (firstRegistrationDate > now) {
-    throw new AppError({
-      statusCode: 400,
-      statusText: "Bad Request",
-      message: "La date de première immatriculation doit être antérieure à la date actuelle.",
-    });
-  }
-});
 
 export default Vehicle;

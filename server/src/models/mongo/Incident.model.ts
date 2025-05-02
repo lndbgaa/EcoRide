@@ -1,18 +1,23 @@
 import mongoose, { Document } from "mongoose";
 import { v4 as uuid } from "uuid";
 
+import { toDateOnly, toTimeOnly } from "@/utils/date.js";
+
 const { Schema } = mongoose;
 
-export type IncidentStatus = "pending" | "assigned" | "resolved";
+import type { IncidentStatus } from "@/types/index.js";
 
 export interface RideEmbedded {
   id: string;
   departureLocation: string;
   arrivalLocation: string;
-  departureDate: Date;
+  departureDate: string;
+  arrivalDate: string;
+  price: number;
 }
 
 export interface UserEmbedded {
+  id: string;
   pseudo: string;
   email: string;
 }
@@ -23,32 +28,38 @@ export interface IncidentDocument extends Document {
   ride: RideEmbedded;
   passenger: UserEmbedded;
   driver: UserEmbedded;
-  createdAt: Date;
-  updatedAt: Date;
+  rewardAmount: number;
   status?: IncidentStatus;
   assignedTo?: string;
   closure?: {
     at: Date;
     note: string;
   };
+  createdAt: Date;
+  updatedAt: Date;
 
   isPending(): boolean;
   isAssigned(): boolean;
   isResolved(): boolean;
   getAssignedTo(): string | undefined;
+  getRideId(): string;
+  getPassengerId(): string;
+  getDriverId(): string;
+  getRewardAmount(): number;
   markAsAssigned(employeeId: string): void;
   markAsResolved(note: string): void;
-  toEmployeeDTO(): IncidentEmployeeDTO;
+  toDetailedDTO(): IncidentDetailedDTO;
+  toPreviewDTO(): IncidentPreviewDTO;
 }
 
 export interface IncidentPreviewDTO {
   id: string;
   description: string;
-  createdAt: Date;
+  createdAt: string;
 }
 
-export interface IncidentEmployeeDTO extends IncidentPreviewDTO {
-  ride: RideEmbedded;
+export interface IncidentDetailedDTO extends IncidentPreviewDTO {
+  ride: RideEmbedded & { departureTime: string; arrivalTime: string };
   passenger: UserEmbedded;
   driver: UserEmbedded;
 }
@@ -56,6 +67,10 @@ export interface IncidentEmployeeDTO extends IncidentPreviewDTO {
 // Sous-schema pour les informations des utilisateurs impliqués
 const userSchema = new Schema(
   {
+    id: {
+      type: String,
+      required: true,
+    },
     pseudo: {
       type: String,
       required: true,
@@ -85,6 +100,14 @@ const rideSchema = new Schema(
     },
     departureDate: {
       type: Date,
+      required: true,
+    },
+    arrivalDate: {
+      type: Date,
+      required: true,
+    },
+    price: {
+      type: Number,
       required: true,
     },
   },
@@ -128,6 +151,10 @@ const incidentSchema = new Schema<IncidentDocument>(
     },
     driver: {
       type: userSchema,
+      required: true,
+    },
+    rewardAmount: {
+      type: Number,
       required: true,
     },
     status: {
@@ -188,26 +215,55 @@ incidentSchema.methods.getAssignedTo = function (
   return this.assignedTo;
 };
 
+incidentSchema.methods.getRideId = function (this: IncidentDocument): string {
+  return this.ride.id;
+};
+
+incidentSchema.methods.getPassengerId = function (
+  this: IncidentDocument
+): string {
+  return this.passenger.id;
+};
+
+incidentSchema.methods.getDriverId = function (this: IncidentDocument): string {
+  return this.driver.id;
+};
+
+incidentSchema.methods.getRewardAmount = function (
+  this: IncidentDocument
+): number {
+  return this.rewardAmount;
+};
+
 incidentSchema.methods.toPreviewDTO = function (
   this: IncidentDocument
 ): IncidentPreviewDTO {
   return {
     id: this._id,
     description: this.description,
-    createdAt: this.createdAt,
+    createdAt: toDateOnly(this.createdAt),
   };
 };
 
-incidentSchema.methods.toEmployeeDTO = function (
+incidentSchema.methods.toDetailedDTO = function (
   this: IncidentDocument
-): IncidentEmployeeDTO {
+): IncidentDetailedDTO {
   return {
     id: this._id,
     description: this.description,
-    ride: this.ride,
+    ride: {
+      id: this.ride.id,
+      departureLocation: this.ride.departureLocation,
+      arrivalLocation: this.ride.arrivalLocation,
+      departureDate: toDateOnly(this.ride.departureDate),
+      departureTime: toTimeOnly(this.ride.departureDate),
+      arrivalDate: toDateOnly(this.ride.arrivalDate),
+      arrivalTime: toTimeOnly(this.ride.arrivalDate),
+      price: this.ride.price,
+    },
     passenger: this.passenger,
     driver: this.driver,
-    createdAt: this.createdAt,
+    createdAt: toDateOnly(this.createdAt),
   };
 };
 

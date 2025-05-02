@@ -1,16 +1,17 @@
 import { DataTypes } from "sequelize";
 
+import { sequelize } from "@/config/mysql.config.js";
+import { RIDE_STATUSES } from "@/constants/index.js";
+import { Base, User, Vehicle } from "@/models/mysql";
+import AppError from "@/utils/AppError.js";
+import { getDuration, toDateOnly, toTimeOnly } from "@/utils/date.js";
+
+import type { UserPublicDTO } from "@/models/mysql/User.model.js";
+import type { VehiclePublicDTO } from "@/models/mysql/Vehicle.model.js";
 import type { RideStatus } from "@/types/index.js";
 import type { SaveOptions } from "sequelize";
-import type { UserPublicDTO } from "./User.model.js";
-import type { VehiclePrivateDTO, VehiclePublicDTO } from "./Vehicle.model.js";
 
-import { sequelize } from "@/config/mysql.config.js";
-import AppError from "@/utils/AppError.js";
-import { getDuration, toDateOnly, toTimeOnly } from "@/utils/date.utils.js";
-import { Base, User, Vehicle } from "./index.js";
-
-export interface RidePreviewDTO {
+export interface BaseDTO {
   id: string;
   departure_date: string;
   departure_location: string;
@@ -21,19 +22,25 @@ export interface RidePreviewDTO {
   duration: number;
   is_eco_friendly: boolean;
   price: number;
+}
+
+export interface RidePublicPreviewDTO extends BaseDTO {
   available_seats: number;
   driver: UserPublicDTO | null;
 }
 
-export interface RideDetailedDTO extends RidePreviewDTO {
-  vehicle: VehiclePublicDTO | null;
-  passengers: UserPublicDTO[];
+export interface RidePrivatePreviewDTO extends BaseDTO {
+  status: RideStatus;
 }
 
-export interface RidePrivateDTO extends Omit<RidePreviewDTO, "driver"> {
-  vehicle: VehiclePrivateDTO | null;
-  passengers: UserPublicDTO[];
+export interface RideDetailedPublicDTO extends RidePublicPreviewDTO {
+  vehicle: VehiclePublicDTO | null;
+}
+
+export interface RideDetailedPrivateDTO extends BaseDTO {
+  vehicle: VehiclePublicDTO | null;
   offered_seats: number;
+  available_seats: number;
 }
 
 /**
@@ -57,8 +64,6 @@ class Ride extends Base {
   declare status: RideStatus;
   declare created_at: Date;
   declare updated_at: Date;
-
-  declare passengers?: User[];
 
   // Associations chargées dynamiquement via Sequelize (si `include` est utilisé).
   declare driver?: User;
@@ -195,10 +200,6 @@ class Ride extends Base {
     await this.save(options);
   }
 
-  public setPassengers(passengers: User[]): void {
-    this.passengers = passengers;
-  }
-
   public async markAsInProgress(options?: SaveOptions): Promise<void> {
     await this.transitionTo("in_progress", options);
   }
@@ -213,6 +214,26 @@ class Ride extends Base {
 
   public getId(): string {
     return this.id;
+  }
+
+  public getDepartureLocation(): string {
+    return this.departure_location;
+  }
+
+  public getArrivalLocation(): string {
+    return this.arrival_location;
+  }
+
+  public getDepartureDate(): Date {
+    return this.departure_datetime;
+  }
+
+  public getArrivalDate(): Date {
+    return this.arrival_datetime;
+  }
+
+  public getDuration(): number {
+    return this.duration;
   }
 
   public getStatus(): RideStatus {
@@ -239,16 +260,8 @@ class Ride extends Base {
     return this.offered_seats;
   }
 
-  public getDepartureLocation(): string {
-    return this.departure_location;
-  }
-
-  public getArrivalLocation(): string {
-    return this.arrival_location;
-  }
-
-  public getDepartureDate(): Date {
-    return this.departure_datetime;
+  public isEcoFriendly(): boolean {
+    return this.is_eco_friendly;
   }
 
   public isOpen(): boolean {
@@ -271,7 +284,7 @@ class Ride extends Base {
     return this.status === "cancelled";
   }
 
-  toPreviewDTO(): RidePreviewDTO {
+  private getBaseDTO(): BaseDTO {
     return {
       id: this.id,
       departure_date: toDateOnly(this.departure_datetime),
@@ -282,28 +295,37 @@ class Ride extends Base {
       arrival_time: toTimeOnly(this.arrival_datetime),
       duration: this.duration,
       price: this.price,
-      available_seats: this.available_seats,
       is_eco_friendly: this.is_eco_friendly,
+    };
+  }
+
+  public toPublicPreviewDTO(): RidePublicPreviewDTO {
+    return {
+      ...this.getBaseDTO(),
+      available_seats: this.available_seats,
       driver: this.driver?.toPublicDTO() ?? null,
     };
   }
 
-  toDetailedDTO(): RideDetailedDTO {
+  public toPrivatePreviewDTO(): RidePrivatePreviewDTO {
     return {
-      ...this.toPreviewDTO(),
-      vehicle: this.vehicle?.toPublicDTO() ?? null,
-      passengers:
-        this.passengers?.map((passenger) => passenger.toPublicDTO()) ?? [],
+      ...this.getBaseDTO(),
+      status: this.status,
     };
   }
 
-  toPrivateDTO(): RidePrivateDTO {
-    const { driver, ...publicDTOWithoutDriver } = this.toPreviewDTO();
+  public toDetailedPublicDTO(): RideDetailedPublicDTO {
     return {
-      ...publicDTOWithoutDriver,
+      ...this.toPublicPreviewDTO(),
+      vehicle: this.vehicle?.toPublicDTO() ?? null,
+    };
+  }
+
+  public toDetailedPrivateDTO(): RideDetailedPrivateDTO {
+    return {
+      ...this.toPrivatePreviewDTO(),
       vehicle: this.vehicle?.toPrivateDTO() ?? null,
-      passengers:
-        this.passengers?.map((passenger) => passenger.toPublicDTO()) ?? [],
+      available_seats: this.available_seats,
       offered_seats: this.offered_seats,
     };
   }
@@ -343,6 +365,7 @@ Ride.init(
         model: "accounts",
         key: "id",
       },
+      onDelete: "RESTRICT",
     },
     vehicle_id: {
       type: DataTypes.UUID,
@@ -351,6 +374,7 @@ Ride.init(
         model: "vehicles",
         key: "id",
       },
+      onDelete: "RESTRICT",
     },
     price: {
       type: DataTypes.INTEGER,
@@ -395,16 +419,8 @@ Ride.init(
       allowNull: false,
     },
     status: {
-      type: DataTypes.ENUM(
-        ...([
-          "open",
-          "full",
-          "in_progress",
-          "completed",
-          "cancelled",
-        ] as RideStatus[])
-      ),
-      defaultValue: "open",
+      type: DataTypes.ENUM(...Object.values(RIDE_STATUSES)),
+      defaultValue: RIDE_STATUSES.OPEN,
     },
   },
   {
@@ -437,33 +453,11 @@ Ride.beforeValidate((ride: Ride) => {
       message: "La date de départ doit être antérieure à la date d'arrivée.",
     });
   }
-
-  // Cas 3 : Le nombre de places proposées doit être au minimum de 1.
-  if (ride.offered_seats < 1) {
-    throw new AppError({
-      statusCode: 400,
-      statusText: "Bad Request",
-      message: "Le nombre de places proposées doit être au minimum de 1.",
-    });
-  }
-
-  // Cas 4 : Les places disponibles ne peuvent pas dépasser les places proposées.
-  if (ride.available_seats > ride.offered_seats) {
-    throw new AppError({
-      statusCode: 400,
-      statusText: "Bad Request",
-      message:
-        "Le nombre de places disponibles ne peut pas dépasser le nombre de places proposées.",
-    });
-  }
 });
 
-function setRideDefaults(ride: Ride) {
-  ride.available_seats = ride.available_seats ?? ride.offered_seats;
+Ride.beforeCreate((ride: Ride) => {
+  ride.available_seats = ride.offered_seats;
   ride.duration = getDuration(ride.arrival_datetime, ride.departure_datetime);
-}
-
-Ride.beforeCreate(setRideDefaults);
-Ride.beforeUpdate(setRideDefaults);
+});
 
 export default Ride;

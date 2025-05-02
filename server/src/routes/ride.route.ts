@@ -1,11 +1,16 @@
 import { Router } from "express";
 
+import { ACCOUNT_ROLES_LABEL } from "@/constants/index.js";
+import optionalAuth from "@/middlewares/optionalAuth.js";
 import requireAuth from "@/middlewares/requireAuth.js";
 import requireRole from "@/middlewares/requireRole.js";
 import validate from "@/middlewares/validateData.js";
 
 import { idParamSchema } from "@/validators/common.validator.js";
-import { createRideSchema, searchRidesSchema } from "@/validators/ride.validator.js";
+import {
+  createRideSchema,
+  searchRidesSchema,
+} from "@/validators/ride.validator.js";
 
 import {
   cancelRide,
@@ -14,19 +19,30 @@ import {
   getRideDetails,
   searchForRides,
   startRide,
-} from "@/controllers/rides.controllers.js";
+} from "@/controllers/ride.controller.js";
 
 const router = Router();
 
-// Routes publiques
+// Routes publiques (sans authentification)
 
-router.post("/search", validate(searchRidesSchema), searchForRides);
-router.get("/:id", validate(idParamSchema, "params"), getRideDetails);
+router.post(
+  "/search",
+  optionalAuth,
+  validate(searchRidesSchema),
+  searchForRides
+);
 
-// Routes privées
+router.get(
+  "/:id",
+  optionalAuth,
+  validate(idParamSchema, "params"),
+  getRideDetails
+);
+
+// Routes privées (avec authentification)
 
 router.use(requireAuth);
-router.use(requireRole(["user"]));
+router.use(requireRole([ACCOUNT_ROLES_LABEL.USER]));
 
 router.post("/", validate(createRideSchema), createRide);
 router.patch("/:id/cancel", validate(idParamSchema, "params"), cancelRide);

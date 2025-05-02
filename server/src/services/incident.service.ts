@@ -1,5 +1,7 @@
+import { PLATFORM_CREDITS_PER_SEAT } from "@/constants/index.js";
+
 import Incident from "@/models/mongo/Incident.model.js";
-import BookingService from "@/services/booking.service.js";
+import Booking from "@/models/mysql/Booking.model.js";
 import RideService from "@/services/ride.service.js";
 import UserService from "@/services/user.service.js";
 import AppError from "@/utils/AppError.js";
@@ -8,7 +10,6 @@ import type {
   IncidentDocument,
   IncidentStatus,
 } from "@/models/mongo/Incident.model.js";
-
 interface CreateIncidentData {
   rideId: string;
   description: string;
@@ -22,21 +23,13 @@ class IncidentService {
    */
   public static async createIncident(
     userId: string,
-    data: CreateIncidentData
+    booking: Booking,
+    description: string
   ): Promise<void> {
     const user = await UserService.findUserOrThrow(userId);
-    const ride = await RideService.findRideOrThrow(data.rideId, {
+    const ride = await RideService.findRideOrThrow(booking.getRideId(), {
       include: { association: "driver" },
     });
-
-    if (ride.getDriverId() === userId) {
-      throw new AppError({
-        statusCode: 403,
-        statusText: "Forbidden",
-        message:
-          "Vous ne pouvez pas signaler un incident pour votre propre trajet.",
-      });
-    }
 
     if (!ride.isCompleted()) {
       throw new AppError({
@@ -46,25 +39,8 @@ class IncidentService {
       });
     }
 
-    const rideBookings = await BookingService.getRideBookings(ride.getId(), {
-      where: { status: "completed" },
-    });
-
-    const isRidePassenger = rideBookings.some(
-      (booking) => booking.getPassengerId() === userId
-    );
-
-    if (!isRidePassenger) {
-      throw new AppError({
-        statusCode: 403,
-        statusText: "Forbidden",
-        message:
-          "Vous n'êtes pas autorisé à signaler un incident sur ce trajet.",
-      });
-    }
-
     const hasAlreadyReported = !!(await Incident.exists({
-      "ride.id": data.rideId,
+      "ride.id": ride.getId(),
       "passenger.email": user.getEmail(),
     }));
 
@@ -72,41 +48,47 @@ class IncidentService {
       throw new AppError({
         statusCode: 409,
         statusText: "Conflict",
-        message:
-          "Vous avez déjà signalé un incident pour ce trajet. Celui-ci est en cours de traitement.",
+        message: "Vous avez déjà signalé un incident pour ce trajet.",
       });
     }
 
     await Incident.create({
-      description: data.description,
+      description,
       ride: {
         id: ride.getId(),
         departureLocation: ride.getDepartureLocation(),
         arrivalLocation: ride.getArrivalLocation(),
         departureDate: ride.getDepartureDate(),
+        arrivalDate: ride.getArrivalDate(),
+        price: ride.getPrice(),
       },
       passenger: {
+        id: user.getId(),
         email: user.getEmail(),
         pseudo: user.getPseudo(),
       },
       driver: {
+        id: ride.driver?.getId() ?? "",
         email: ride.driver?.getEmail() ?? "",
         pseudo: ride.driver?.getPseudo() ?? "",
       },
+      rewardAmount:
+        booking.getSeatsBooked() * ride.getPrice() -
+        PLATFORM_CREDITS_PER_SEAT * booking.getSeatsBooked(),
     });
   }
 
   /**
-   * Récupère les incidents
-   * @param employeeId - L'identifiant de l'employé
+   * Récupère une liste d'incidents par statut
    * @param status - Le statut des incidents
-   * @param page - La page à récupérer
-   * @param limit - Le nombre d'incidents par page
+   * @param limit
+   * @param offset
+   * @returns Les incidents + le nombre total d'incidents
    */
   public static async getIncidentsByStatus(
+    status: IncidentStatus,
     limit: number,
-    offset: number,
-    status: IncidentStatus
+    offset: number
   ): Promise<{ count: number; incidents: IncidentDocument[] }> {
     const incidents = await Incident.find({ status })
       .skip(offset)
@@ -120,12 +102,10 @@ class IncidentService {
 
   /**
    * Récupère un incident par son id
-   * @param employeeId - L'identifiant de l'employé qui visualise l'incident
    * @param incidentId - L'identifiant de l'incident
    * @returns L'incident
    */
   public static async getIncidentById(
-    employeeId: string,
     incidentId: string
   ): Promise<IncidentDocument> {
     const incident = await Incident.findById(incidentId);
@@ -143,15 +123,6 @@ class IncidentService {
         statusCode: 403,
         statusText: "Forbidden",
         message: "Cet incident est résolu et ne peut plus être consulté.",
-      });
-    }
-
-    if (!incident.isPending() && incident.getAssignedTo() !== employeeId) {
-      throw new AppError({
-        statusCode: 403,
-        statusText: "Forbidden",
-        message:
-          "Cet incident est déjà pris en charge par un autre employé et ne peut pas être consulté.",
       });
     }
 
@@ -177,11 +148,29 @@ class IncidentService {
       });
     }
 
-    if (!incident.isPending()) {
+    if (incident.isResolved()) {
       throw new AppError({
         statusCode: 409,
         statusText: "Conflict",
-        message: "Cet incident est déjà en cours de traitement ou résolu.",
+        message: "Cet incident est déjà résolu.",
+      });
+    }
+
+    const alreadyAssignedTo = incident.getAssignedTo();
+
+    if (alreadyAssignedTo) {
+      if (alreadyAssignedTo === employeeId) {
+        throw new AppError({
+          statusCode: 409,
+          statusText: "Conflict",
+          message: "L'incident vous est déjà assigné.",
+        });
+      }
+
+      throw new AppError({
+        statusCode: 409,
+        statusText: "Conflict",
+        message: "Cet incident est déjà assigné à un autre employé.",
       });
     }
 
@@ -193,7 +182,7 @@ class IncidentService {
   /**
    * Résout un incident
    * @param incidentId - L'identifiant de l'incident
-   * @param employeeId - L'identifiant de l'employé
+   * @param employeeId - L'identifiant de l'employé qui résout l'incident
    * @param note - La note de résolution
    */
   public static async resolveIncident(
@@ -211,6 +200,14 @@ class IncidentService {
       });
     }
 
+    if (incident.isResolved()) {
+      throw new AppError({
+        statusCode: 409,
+        statusText: "Conflict",
+        message: "Cet incident est déjà résolu.",
+      });
+    }
+
     if (!incident.isAssigned()) {
       throw new AppError({
         statusCode: 409,
@@ -223,27 +220,31 @@ class IncidentService {
       throw new AppError({
         statusCode: 409,
         statusText: "Conflict",
-        message: "Cet incident ne vous est pas assigné.",
+        message: "Cet incident ne vous est pas attribué.",
       });
     }
 
-    incident.markAsResolved(note);
+    const driver = await UserService.findUserOrThrow(incident.getDriverId());
 
+    incident.markAsResolved(note);
     await incident.save();
+
+    await driver.addCredits(incident.getRewardAmount());
   }
 
   /**
    * Récupère les incidents d'un employé par statut
    * @param employeeId - L'identifiant de l'employé
-   * @param status - Le statut des incidents
-   * @param page - La page à récupérer
-   * @param limit - Le nombre d'incidents par page
+   * @param status - Le statut des incidents (assigned ou resolved)
+   * @param limit
+   * @param offset
+   * @returns Les incidents liés à l'employé + le nombre total d'incidents
    */
   public static async getEmployeeIncidents(
     employeeId: string,
+    status: Omit<IncidentStatus, "pending">,
     limit: number,
-    offset: number,
-    status?: IncidentStatus
+    offset: number
   ): Promise<{ count: number; incidents: IncidentDocument[] }> {
     const findOptions: Record<string, any> = { assignedTo: employeeId };
 

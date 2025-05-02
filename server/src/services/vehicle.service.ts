@@ -1,6 +1,6 @@
 import { sequelize } from "@/config/mysql.config.js";
+import { VEHICLE_ASSOCIATIONS } from "@/constants/index.js";
 import { User, Vehicle } from "@/models/mysql";
-import { VEHICLE_ASSOCIATIONS } from "@/models/mysql/Vehicle.model.js";
 import UserService from "@/services/user.service.js";
 import AppError from "@/utils/AppError.js";
 
@@ -29,7 +29,10 @@ class VehicleService {
    * @returns Le véhicule trouvé
    */
   public static async findVehicleOrThrow(vehicleId: string): Promise<Vehicle> {
-    const vehicle: Vehicle | null = await Vehicle.findOneByField("id", vehicleId);
+    const vehicle: Vehicle | null = await Vehicle.findOneByField(
+      "id",
+      vehicleId
+    );
 
     if (!vehicle) {
       throw new AppError({
@@ -48,7 +51,10 @@ class VehicleService {
    * @param vehicleId - L'id du véhicule
    * @returns Le véhicule trouvé
    */
-  public static async findOwnedVehicleOrThrow(userId: string, vehicleId: string): Promise<Vehicle> {
+  public static async findOwnedVehicleOrThrow(
+    userId: string,
+    vehicleId: string
+  ): Promise<Vehicle> {
     const vehicle: Vehicle = await this.findVehicleOrThrow(vehicleId);
 
     if (vehicle.getOwnerId() !== userId) {
@@ -81,11 +87,15 @@ class VehicleService {
    * @param data - Les données du véhicule à créer
    * @returns Le véhicule créé
    */
-  public static async createVehicle(userId: string, data: CreateVehicleData): Promise<Vehicle> {
+  public static async createVehicle(
+    userId: string,
+    data: CreateVehicleData
+  ): Promise<Vehicle> {
     await UserService.assertUserIsDriverOrThrow(userId);
 
     const doesLicensePlateExist: boolean =
-      (await Vehicle.findOneByField("license_plate", data.licensePlate)) !== null;
+      (await Vehicle.findOneByField("license_plate", data.licensePlate)) !==
+      null;
 
     if (doesLicensePlateExist) {
       throw new AppError({
@@ -107,12 +117,18 @@ class VehicleService {
     };
 
     return await sequelize.transaction(async (transaction) => {
-      const newVehicle: Vehicle = await Vehicle.createOne(dataToCreate, { transaction });
-
-      const createdVehicle: Vehicle | null = await Vehicle.findOneByField("id", newVehicle.id, {
+      const newVehicle: Vehicle = await Vehicle.createOne(dataToCreate, {
         transaction,
-        include: VEHICLE_ASSOCIATIONS,
       });
+
+      const createdVehicle: Vehicle | null = await Vehicle.findOneByField(
+        "id",
+        newVehicle.id,
+        {
+          transaction,
+          include: VEHICLE_ASSOCIATIONS,
+        }
+      );
 
       if (!createdVehicle) {
         throw new AppError({
@@ -140,7 +156,10 @@ class VehicleService {
   ): Promise<Vehicle> {
     const user: User = await UserService.assertUserIsDriverOrThrow(userId);
 
-    const vehicle: Vehicle = await this.findOwnedVehicleOrThrow(user.id, vehicleId);
+    const vehicle: Vehicle = await this.findOwnedVehicleOrThrow(
+      user.id,
+      vehicleId
+    );
 
     const dataToUpdate: Partial<Vehicle> = {
       brand_id: data.brandId,
@@ -151,18 +170,25 @@ class VehicleService {
     };
 
     return await sequelize.transaction(async (transaction) => {
-      await Vehicle.updateByField("id", vehicle.id, dataToUpdate, { transaction });
-
-      const updatedVehicle: Vehicle | null = await Vehicle.findOneByField("id", vehicle.id, {
+      await Vehicle.updateByField("id", vehicle.id, dataToUpdate, {
         transaction,
-        include: VEHICLE_ASSOCIATIONS,
       });
+
+      const updatedVehicle: Vehicle | null = await Vehicle.findOneByField(
+        "id",
+        vehicle.id,
+        {
+          transaction,
+          include: VEHICLE_ASSOCIATIONS,
+        }
+      );
 
       if (!updatedVehicle) {
         throw new AppError({
           statusCode: 500,
           statusText: "Internal Server Error",
-          message: "Une erreur est survenue lors de la mise à jour du véhicule.",
+          message:
+            "Une erreur est survenue lors de la mise à jour du véhicule.",
         });
       }
 
@@ -175,10 +201,16 @@ class VehicleService {
    * @param userId - L'id de l'utilisateur
    * @param vehicleId - L'id du véhicule à supprimer
    */
-  public static async deleteVehicle(userId: string, vehicleId: string): Promise<void> {
+  public static async deleteVehicle(
+    userId: string,
+    vehicleId: string
+  ): Promise<void> {
     const user: User = await UserService.findUserOrThrow(userId);
 
-    const vehicle: Vehicle = await this.findOwnedVehicleOrThrow(user.id, vehicleId);
+    const vehicle: Vehicle = await this.findOwnedVehicleOrThrow(
+      user.id,
+      vehicleId
+    );
 
     await vehicle.destroy();
   }

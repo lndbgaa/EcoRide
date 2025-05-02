@@ -1,5 +1,5 @@
+import dayjs from "dayjs";
 import Joi from "joi";
-
 /**
  * Validation des données passées pour la mise à jour des informations d'un utilisateur
  */
@@ -26,8 +26,10 @@ export const updateInfoSchema = Joi.object({
     .pattern(/^(0|\+33|0033)[1-9]\d{8}$/)
     .optional()
     .messages({
-      "string.base": "Le numéro de téléphone doit être une chaîne de caractères non vide.",
-      "string.empty": "Le numéro de téléphone doit être une chaîne de caractères non vide.",
+      "string.base":
+        "Le numéro de téléphone doit être une chaîne de caractères non vide.",
+      "string.empty":
+        "Le numéro de téléphone doit être une chaîne de caractères non vide.",
       "string.pattern.base":
         "Le numéro de téléphone doit être un numéro de téléphone valide. Exemple: 06XXXXXXXX",
     }),
@@ -37,10 +39,21 @@ export const updateInfoSchema = Joi.object({
     "string.min": "L'adresse doit contenir au moins 5 caractères.",
     "string.max": "L'adresse doit contenir maximum 255 caractères.",
   }),
-  birthDate: Joi.date().optional().messages({
-    "date.base": "La date de naissance doit être une date valide.",
-    "date.empty": "La date de naissance doit être une date valide.",
-  }),
+  birthDate: Joi.string()
+    .custom((value, helpers) => {
+      const parsed = dayjs(value, "DD/MM/YYYY", true);
+      if (!parsed.isValid()) {
+        return helpers.error("any.invalid");
+      }
+      return value;
+    })
+    .optional()
+    .messages({
+      "any.invalid": "La date de naissance doit être une date valide.",
+      "string.base": "La date de naissance doit être une chaîne de caractères.",
+      "string.empty":
+        "La date de naissance doit être une chaîne de caractères non vide.",
+    }),
 })
   .options({ stripUnknown: true })
   .min(1)
@@ -54,8 +67,11 @@ export const updateInfoSchema = Joi.object({
 export const updateRoleSchema = Joi.object({
   role: Joi.string().trim().valid("driver", "passenger").required().messages({
     "any.required": "Le rôle à mettre à jour est requis.",
-    "string.base": "Le rôle à mettre à jour doit être une chaîne de caractères non vide.",
-    "string.empty": "Le rôle à mettre à jour doit être une chaîne de caractères non vide.",
-    "any.only": "Le rôle à mettre à jour doit être soit 'driver' soit 'passenger'.",
+    "string.base":
+      "Le rôle à mettre à jour doit être une chaîne de caractères non vide.",
+    "string.empty":
+      "Le rôle à mettre à jour doit être une chaîne de caractères non vide.",
+    "any.only":
+      "Le rôle à mettre à jour doit être soit 'driver' soit 'passenger'.",
   }),
 }).options({ stripUnknown: true });

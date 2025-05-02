@@ -3,15 +3,22 @@ import { nanoid } from "nanoid";
 
 import config from "@/config/app.config.js";
 import { sequelize } from "@/config/mysql.config.js";
+import { ACCOUNT_ROLES_LABEL } from "@/constants/index.js";
 import { Employee, RefreshToken, User } from "@/models/mysql";
-import { ACCOUNT_ROLES_LABEL } from "@/models/mysql/Account.model.js";
 import AccountService from "@/services/account.service.js";
 import AppError from "@/utils/AppError.js";
-import { generateToken } from "@/utils/jwt.utils.js";
+import { generateToken } from "@/utils/jwt.js";
 
-type RegisterData = {
+type RegisterUserData = {
   email: string;
   pseudo: string;
+  password: string;
+  firstName: string;
+  lastName: string;
+};
+
+type RegisterEmployeeData = {
+  email: string;
   password: string;
   firstName: string;
   lastName: string;
@@ -46,7 +53,7 @@ type RefreshAccessTokenResponse = {
 const { access_secret, access_expiration, refresh_expiration } = config.jwt;
 
 class AuthService {
-  private static async assertEmailAndPseudoAreUnique(email: string, pseudo: string): Promise<void> {
+  private static async assertEmailIsUnique(email: string): Promise<void> {
     const emailExists = await AccountService.doesEmailExist(email);
 
     if (emailExists) {
@@ -56,7 +63,9 @@ class AuthService {
         message: "Un compte avec cet email existe déjà.",
       });
     }
+  }
 
+  private static async assertPseudoIsUnique(pseudo: string): Promise<void> {
     const pseudoExists = await AccountService.doesPseudoExist(pseudo);
 
     if (pseudoExists) {
@@ -74,10 +83,13 @@ class AuthService {
    * @param data - Données du compte (email, pseudo, mot de passe, prénom, nom)
    * @returns Jeton d'accès (access token) et de rafraîchissement (refresh token)
    */
-  public static async registerUser(data: RegisterData): Promise<RegisterUserResponse> {
+  public static async registerUser(
+    data: RegisterUserData
+  ): Promise<RegisterUserResponse> {
     const { email, pseudo, password, firstName, lastName } = data;
 
-    await this.assertEmailAndPseudoAreUnique(email, pseudo);
+    await this.assertEmailIsUnique(email);
+    await this.assertPseudoIsUnique(pseudo);
 
     // Après inscription, l'utilisateur est connecté.
     // -> Le compte ne peut pas être créé dans la BDD sans un refresh token et inversement = transaction
@@ -126,16 +138,17 @@ class AuthService {
    * @param data - Données du compte (email, pseudo, mot de passe, prénom, nom)
    * @returns ID du compte
    */
-  public static async registerEmployee(data: RegisterData): Promise<{ accountId: string }> {
-    const { email, pseudo, password, firstName, lastName } = data;
+  public static async registerEmployee(
+    data: RegisterEmployeeData
+  ): Promise<{ accountId: string }> {
+    const { email, password, firstName, lastName } = data;
 
-    await this.assertEmailAndPseudoAreUnique(email, pseudo);
+    await this.assertEmailIsUnique(email);
 
     // Un compte employé est créé par un administrateur.
     // -> Pas de connexion automatique : pas de jetons d'accès ni de rafraîchissement.
     const employee: Employee = await Employee.createOne({
       email,
-      pseudo,
       password,
       first_name: firstName,
       last_name: lastName,
@@ -184,7 +197,11 @@ class AuthService {
       expires_at: new Date(now + ms(refresh_expiration)),
     });
 
-    const accessToken = generateToken({ id: account.id, role }, access_secret, access_expiration);
+    const accessToken = generateToken(
+      { id: account.id, role },
+      access_secret,
+      access_expiration
+    );
 
     await account.updateLastLogin();
 
@@ -214,13 +231,17 @@ class AuthService {
   public static async refreshAccessToken(
     refreshToken: string
   ): Promise<RefreshAccessTokenResponse> {
-    const tokenRecord = await RefreshToken.findOneByField("token", refreshToken);
+    const tokenRecord = await RefreshToken.findOneByField(
+      "token",
+      refreshToken
+    );
 
     if (!tokenRecord) {
       throw new AppError({
         statusCode: 403,
         statusText: "Forbidden",
-        message: "Token de rafraîchissement invalide. L'utilisateur n'est pas connecté.",
+        message:
+          "Token de rafraîchissement invalide. L'utilisateur n'est pas connecté.",
       });
     }
 
@@ -230,7 +251,8 @@ class AuthService {
       throw new AppError({
         statusCode: 401,
         statusText: "Unauthorized",
-        message: "Token de rafraîchissement expiré. L'utilisateur doit se reconnecter.",
+        message:
+          "Token de rafraîchissement expiré. L'utilisateur doit se reconnecter.",
       });
     }
 

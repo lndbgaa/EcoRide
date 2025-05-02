@@ -1,9 +1,11 @@
-import type { UserRole } from "@/types/index.js";
-import type { FindOptions, Transaction } from "sequelize";
+import dayjs from "dayjs";
 
 import { Review, User } from "@/models/mysql/index.js";
 import UploadService from "@/services/upload.service.js";
 import AppError from "@/utils/AppError.js";
+
+import type { UserRole } from "@/types/index.js";
+import type { FindOptions, Transaction } from "sequelize";
 
 class UserService {
   /**
@@ -98,7 +100,9 @@ class UserService {
     const dataToUpdate = {
       ...(data.firstName && { first_name: data.firstName }),
       ...(data.lastName && { last_name: data.lastName }),
-      ...(data.birthDate && { birth_date: data.birthDate }),
+      ...(data.birthDate && {
+        birth_date: dayjs(data.birthDate, "DD/MM/YYYY").toDate(),
+      }),
       ...(data.phone && { phone: data.phone }),
       ...(data.address && { address: data.address }),
       ...(data.pseudo && { pseudo: data.pseudo }),

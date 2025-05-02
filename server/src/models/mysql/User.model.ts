@@ -1,10 +1,11 @@
+import dayjs from "dayjs";
 import { DataTypes, Transaction } from "sequelize";
 
 import { sequelize } from "@/config/mysql.config.js";
-import { ACCOUNT_ROLES_ID } from "@/models/mysql/Account.model.js";
+import { ACCOUNT_ROLES_ID } from "@/constants/index.js";
+import Account from "@/models/mysql/Account.model.js";
 import AppError from "@/utils/AppError.js";
-import { getAge, toDateOnly } from "@/utils/date.utils.js";
-import Account from "./Account.model.js";
+import { getAge, toDateOnly } from "@/utils/date.js";
 
 export interface UserPublicDTO {
   id: string;
@@ -12,7 +13,7 @@ export interface UserPublicDTO {
   age: number | null;
   avatar: string | null;
   averageRating: number | null;
-  memberSince: number | null;
+  memberSince: string | null;
 }
 
 export interface UserPrivateDTO extends UserPublicDTO {
@@ -32,40 +33,18 @@ export interface UserPrivateDTO extends UserPublicDTO {
  * Modèle représentant un utilisateur standard de la plateforme.
  *
  * Hérite des attributs et méthodes du modèle Account,
- * et ajoute des champs spécifiques à l'utilisateur (conducteur, passager, note moyenne, crédits).
+ * et ajoute des champs spécifiques à l'utilisateur (pseudo, avatar, note moyenne, crédits, etc.).
  *
  * @extends Accounts
  */
 
 class User extends Account {
+  declare pseudo: string;
+  declare profile_picture: string | null;
   declare is_passenger: boolean;
   declare is_driver: boolean;
   declare average_rating: number | null;
   declare credits: number;
-
-  /**
-   * Récupère le type de profil de l'utilisateur.
-   */
-  public async getUserProfileType() {
-    const isDriver = this.is_driver;
-    const isPassenger = this.is_passenger;
-
-    if (isDriver && isPassenger) {
-      return "both";
-    }
-    if (isDriver) {
-      return "driver";
-    }
-    if (isPassenger) {
-      return "passenger";
-    }
-
-    throw new AppError({
-      statusCode: 500,
-      statusText: "Internal Server Error",
-      message: "Impossible de déterminer le type de profil de l'utilisateur.",
-    });
-  }
 
   /**
    * Active ou désactive le mode conducteur.
@@ -90,7 +69,13 @@ class User extends Account {
     amount: number,
     options?: { transaction?: Transaction }
   ): Promise<void> {
-    if (amount <= 0) throw new Error("Le montant doit être supérieur à 0.");
+    if (amount <= 0)
+      throw new AppError({
+        statusCode: 400,
+        statusText: "Bad Request",
+        message: "Le montant doit être supérieur à 0.",
+      });
+
     this.credits += amount;
     await this.save(options);
   }
@@ -102,22 +87,34 @@ class User extends Account {
     amount: number,
     options?: { transaction?: Transaction }
   ): Promise<void> {
-    if (amount <= 0) throw new Error("Le montant doit être supérieur à 0.");
-    if (this.credits < amount) throw new Error("Crédits insuffisants.");
+    if (amount <= 0)
+      throw new AppError({
+        statusCode: 400,
+        statusText: "Bad Request",
+        message: "Le montant doit être supérieur à 0.",
+      });
+
+    if (this.credits < amount)
+      throw new AppError({
+        statusCode: 400,
+        statusText: "Bad Request",
+        message: "Crédits insuffisants.",
+      });
+
     this.credits -= amount;
     await this.save(options);
-  }
-
-  public getEmail(): string {
-    return this.email;
   }
 
   public getPseudo(): string {
     return this.pseudo;
   }
 
-  public getFirstName(): string {
-    return this.first_name;
+  public getAvatar(): string | null {
+    return this.profile_picture;
+  }
+
+  public getAverageRating(): number | null {
+    return this.average_rating;
   }
 
   public getCredits(): number {
@@ -139,11 +136,19 @@ class User extends Account {
       age: this.birth_date ? getAge(this.birth_date) : null,
       avatar: this.profile_picture ?? null,
       averageRating: this.average_rating ?? null,
-      memberSince: this.created_at?.getFullYear() ?? null,
+      memberSince: this.created_at ? toDateOnly(this.created_at) : null,
     };
   }
 
   public toPrivateDTO(): UserPrivateDTO {
+    const lastLogin = this.last_login
+      ? `le ${dayjs(this.last_login)
+          .tz("Europe/Paris", true)
+          .format("DD/MM/YYYY")} à ${dayjs(this.last_login)
+          .tz("Europe/Paris", true)
+          .format("HH:mm")}`
+      : null;
+
     return {
       ...this.toPublicDTO(),
       email: this.email,
@@ -155,17 +160,42 @@ class User extends Account {
       isPassenger: this.is_passenger,
       isDriver: this.is_driver,
       credits: this.credits,
-      lastLogin: this.last_login ? this.last_login.toISOString() : null,
+      lastLogin,
     };
   }
 }
 
 User.init(
   Account.defineAttributes(ACCOUNT_ROLES_ID.USER, {
-    is_driver: { type: DataTypes.BOOLEAN, defaultValue: false },
-    is_passenger: { type: DataTypes.BOOLEAN, defaultValue: true },
-    average_rating: { type: DataTypes.DECIMAL(3, 2), allowNull: true },
-    credits: { type: DataTypes.INTEGER, defaultValue: 20 },
+    pseudo: {
+      type: DataTypes.STRING(50),
+      allowNull: false,
+      unique: true,
+      validate: {
+        notEmpty: true,
+        is: /^[a-zA-Z0-9_-]{3,20}$/,
+      },
+    },
+    profile_picture: {
+      type: DataTypes.STRING(255),
+      allowNull: true,
+    },
+    is_driver: {
+      type: DataTypes.BOOLEAN,
+      defaultValue: false,
+    },
+    is_passenger: {
+      type: DataTypes.BOOLEAN,
+      defaultValue: true,
+    },
+    average_rating: {
+      type: DataTypes.DECIMAL(3, 2),
+      allowNull: true,
+    },
+    credits: {
+      type: DataTypes.INTEGER,
+      defaultValue: 20,
+    },
   }),
   {
     sequelize,
@@ -183,9 +213,9 @@ User.init(
 );
 
 User.beforeValidate((user: User) => {
-  if (!user.role_id) user.role_id = ACCOUNT_ROLES_ID.USER;
+  user.role_id = ACCOUNT_ROLES_ID.USER;
 });
 
-User.addPasswordHooks();
+User.addAccountHooks();
 
 export default User;

@@ -1,13 +1,15 @@
 import { sequelize } from "@/config/mysql.config.js";
+import { PLATFORM_CREDITS_PER_SEAT } from "@/constants/index.js";
 import { Booking } from "@/models/mysql";
 import RideService from "@/services/ride.service.js";
 import UserService from "@/services/user.service.js";
 import AppError from "@/utils/AppError.js";
+
 import type { FindOptions } from "sequelize";
 
 class BookingService {
   /**
-   * Vérifie si une réservation existe et la retourne
+   * Vérifie si une réservation existe
    * @param bookingId - L'id de la réservation
    * @returns La réservation trouvée
    */
@@ -45,11 +47,62 @@ class BookingService {
       throw new AppError({
         statusCode: 403,
         statusText: "Forbidden",
-        message: "Vous n'avez pas les permissions pour accéder à cette réservation.",
+        message:
+          "Vous n'avez pas les permissions pour accéder à cette réservation.",
       });
     }
 
     return booking;
+  }
+
+  /**
+   * Vérifie si une réservation peut être annulée
+   * @param booking - La réservation à vérifier
+   */
+  private static assertBookingCanBeCancelled(booking: Booking): void {
+    if (booking.isCancelled()) {
+      throw new AppError({
+        statusCode: 400,
+        statusText: "Bad Request",
+        message: "Vous avez déjà annulé cette réservation.",
+      });
+    }
+
+    if (!booking.isConfirmed()) {
+      throw new AppError({
+        statusCode: 400,
+        statusText: "Bad Request",
+        message: "Impossible d'annuler cette réservation.",
+        details: {
+          currentStatus: booking.getStatus(),
+        },
+      });
+    }
+  }
+
+  /**
+   * Vérifie si une réservation peut être validée
+   * @param booking - La réservation à vérifier
+   */
+  private static assertBookingCanBeValidated(booking: Booking): void {
+    if (booking.isCompleted()) {
+      throw new AppError({
+        statusCode: 400,
+        statusText: "Bad Request",
+        message: "Vous avez déjà validé cette réservation.",
+      });
+    }
+
+    if (!booking.isAwaitingFeedback()) {
+      throw new AppError({
+        statusCode: 400,
+        statusText: "Bad Request",
+        message: "Impossible de valider cette réservation.",
+        details: {
+          currentStatus: booking.getStatus(),
+        },
+      });
+    }
   }
 
   /**
@@ -83,12 +136,16 @@ class BookingService {
       });
     }
 
-    const hasUserAlreadyBooked = !!(await Booking.findOneByField("ride_id", rideId, {
-      where: {
-        passenger_id: userId,
-        status: "confirmed",
-      },
-    }));
+    const hasUserAlreadyBooked = !!(await Booking.findOneByField(
+      "ride_id",
+      rideId,
+      {
+        where: {
+          passenger_id: userId,
+          status: "confirmed",
+        },
+      }
+    ));
 
     if (hasUserAlreadyBooked) {
       throw new AppError({
@@ -102,7 +159,8 @@ class BookingService {
       throw new AppError({
         statusCode: 403,
         statusText: "Forbidden",
-        message: "Il n'y a pas assez de places disponibles pour réserver ce trajet.",
+        message:
+          "Il n'y a pas assez de places disponibles pour réserver ce trajet.",
       });
     }
 
@@ -140,15 +198,62 @@ class BookingService {
    * @param userId - L'id de l'utilisateur
    * @param bookingId - L'id de la réservation
    */
-  public static async cancelBooking(userId: string, bookingId: string): Promise<void> {
+  public static async cancelBooking(
+    userId: string,
+    booking: Booking
+  ): Promise<void> {
+    this.assertBookingCanBeCancelled(booking);
+
     const user = await UserService.findUserOrThrow(userId);
-    const booking = await this.findOwnedBookingOrThrow(userId, bookingId);
     const ride = await RideService.findRideOrThrow(booking.getRideId());
 
     await sequelize.transaction(async (transaction) => {
       await booking.markAsCancelled({ transaction });
       await ride.addAvailableSeats(booking.getSeatsBooked(), { transaction });
-      await user.addCredits(ride.getPrice() * booking.getSeatsBooked(), { transaction });
+      await user.addCredits(ride.getPrice() * booking.getSeatsBooked(), {
+        transaction,
+      });
+    });
+  }
+
+  /**
+   * Valide une réservation dont le trajet s'est bien déroulé.
+   * Le conducteur est crédité du prix du trajet moins la commission de la plateforme.
+   *
+   * @param userId - L'id de l'utilisateur
+   * @param bookingId - L'id de la réservation
+   */
+  public static async confirmSuccessfulBooking(
+    booking: Booking
+  ): Promise<void> {
+    this.assertBookingCanBeValidated(booking);
+
+    const ride = await RideService.findRideOrThrow(booking.getRideId());
+    const driver = await UserService.findUserOrThrow(ride.getDriverId());
+
+    const totalPrice = ride.getPrice() * booking.getSeatsBooked();
+    const platformFee = PLATFORM_CREDITS_PER_SEAT * booking.getSeatsBooked();
+
+    await sequelize.transaction(async (transaction) => {
+      await booking.markAsCompleted({ transaction });
+      await driver.addCredits(totalPrice - platformFee, { transaction });
+    });
+  }
+
+  /**
+   * Valide une réservation dont le trajet s'est mal déroulé.
+   * Le conducteur n'est pas crédité, car un incident a été déclaré.
+   *
+   * @param userId - L'id de l'utilisateur
+   * @param bookingId - L'id de la réservation
+   */
+  public static async confirmBookingWithIncident(
+    booking: Booking
+  ): Promise<void> {
+    this.assertBookingCanBeValidated(booking);
+
+    await sequelize.transaction(async (transaction) => {
+      await booking.markAsCompleted({ transaction });
     });
   }
 
@@ -157,7 +262,10 @@ class BookingService {
    * @param rideId - L'id du trajet
    * @returns Les réservations trouvées
    */
-  public static async getRideBookings(rideId: string, options?: FindOptions): Promise<Booking[]> {
+  public static async getRideBookings(
+    rideId: string,
+    options?: FindOptions
+  ): Promise<Booking[]> {
     const ride = await RideService.findRideOrThrow(rideId);
 
     const bookings = await Booking.findAllByField("ride_id", ride.id, {

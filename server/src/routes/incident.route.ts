@@ -1,5 +1,6 @@
 import { Router } from "express";
 
+import { ACCOUNT_ROLES_LABEL } from "@/constants/index.js";
 import requireAuth from "@/middlewares/requireAuth.js";
 import requireRole from "@/middlewares/requireRole.js";
 import validate from "@/middlewares/validateData.js";
@@ -7,7 +8,6 @@ import validate from "@/middlewares/validateData.js";
 import { idParamSchema } from "@/validators/common.validator.js";
 import {
   createIncidentSchema,
-  getIncidentsByStatusSchema,
   resolveIncidentSchema,
 } from "@/validators/incident.validator.js";
 
@@ -17,30 +17,29 @@ import {
   assignIncident,
   createIncident,
   getIncidentDetails,
-  getIncidentsByStatus,
+  getPendingIncidents,
   resolveIncident,
-} from "@/controllers/incidents.controllers.js";
+} from "@/controllers/incident.controller.js";
 
 router.post(
   "/",
   requireAuth,
-  requireRole(["user"]),
+  requireRole([ACCOUNT_ROLES_LABEL.USER]),
   validate(createIncidentSchema),
   createIncident
 );
 
 router.get(
-  "/",
+  "/pending",
   requireAuth,
-  requireRole(["employee"]),
-  validate(getIncidentsByStatusSchema, "query"),
-  getIncidentsByStatus
+  requireRole([ACCOUNT_ROLES_LABEL.EMPLOYEE]),
+  getPendingIncidents
 );
 
 router.get(
   "/:id",
   requireAuth,
-  requireRole(["employee"]),
+  requireRole([ACCOUNT_ROLES_LABEL.EMPLOYEE]),
   validate(idParamSchema, "params"),
   getIncidentDetails
 );
@@ -48,7 +47,7 @@ router.get(
 router.patch(
   "/:id/assign",
   requireAuth,
-  requireRole(["employee"]),
+  requireRole([ACCOUNT_ROLES_LABEL.EMPLOYEE]),
   validate(idParamSchema, "params"),
   assignIncident
 );
@@ -56,7 +55,7 @@ router.patch(
 router.patch(
   "/:id/resolve",
   requireAuth,
-  requireRole(["employee"]),
+  requireRole([ACCOUNT_ROLES_LABEL.EMPLOYEE]),
   validate(idParamSchema, "params"),
   validate(resolveIncidentSchema),
   resolveIncident

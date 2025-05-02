@@ -1,17 +1,19 @@
-import { sequelize } from "@/config/mysql.config.js";
 import { DataTypes, Model } from "sequelize";
 
+import { sequelize } from "@/config/mysql.config.js";
+import { ACCOUNT_ROLES_LABEL } from "@/constants/index.js";
+
+import type { AccountRoleId, AccountRoleLabel } from "@/types/index.js";
+
 /**
- * Modèle représentant un rôle de compte (user, employee, admin).
- *
- * Utilisé pour associer chaque compte à un type via `role_id`.
+ * Modèle représentant un rôle de compte.
  *
  * @extends Model
  */
 
 class Role extends Model {
-  declare id: number;
-  declare label: string;
+  declare id: AccountRoleId;
+  declare label: AccountRoleLabel;
 }
 
 Role.init(
@@ -22,7 +24,7 @@ Role.init(
       autoIncrement: true,
     },
     label: {
-      type: DataTypes.STRING(50),
+      type: DataTypes.ENUM(...Object.values(ACCOUNT_ROLES_LABEL)),
       allowNull: false,
       unique: true,
     },

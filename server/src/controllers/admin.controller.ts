@@ -1,21 +1,7 @@
-import type { Request, Response } from "express";
-
 import AdminService from "@/services/admin.service.js";
-import AuthService from "@/services/auth.service.js";
 import catchAsync from "@/utils/catchAsync.js";
 
-/**
- * Gère la création d'un compte employé.
- */
-export const registerEmployee = catchAsync(
-  async (req: Request, res: Response): Promise<void> => {
-    const data = req.body;
-
-    await AuthService.registerEmployee(data);
-
-    res.status(201).json({ success: true, message: "Compte employé créé avec succès." });
-  }
-);
+import type { Request, Response } from "express";
 
 /**
  * Gère la suspension d'un compte (utilisateur ou employé).
@@ -26,7 +12,7 @@ export const suspendAccount = catchAsync(
 
     await AdminService.suspendAccount(id);
 
-    res.status(200).json({ success: true, message: "Compte suspendu avec succès." });
+    res.sendStatus(204);
   }
 );
 
@@ -39,6 +25,6 @@ export const unsuspendAccount = catchAsync(
 
     await AdminService.unsuspendAccount(id);
 
-    res.status(200).json({ success: true, message: "Compte réactivé avec succès." });
+    res.sendStatus(204);
   }
 );

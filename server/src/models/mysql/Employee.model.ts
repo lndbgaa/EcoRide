@@ -1,12 +1,7 @@
 import { sequelize } from "@/config/mysql.config.js";
-import { ACCOUNT_ROLES_ID } from "@/models/mysql/Account.model.js";
-import Account from "./Account.model.js";
-
-export interface EmployeePublicDTO {
-  id: string;
-  firstName: string;
-  lastName: string;
-}
+import { ACCOUNT_ROLES_ID } from "@/constants/index.js";
+import Account from "@/models/mysql/Account.model.js";
+import { getAge, toDateOnly } from "@/utils/date.js";
 
 export interface EmployeePrivateDTO {
   id: string;
@@ -15,10 +10,16 @@ export interface EmployeePrivateDTO {
   lastName: string;
   phone: string | null;
   address: string | null;
-  birthDate: Date | null;
-  //age: string | null;
-  profilePicture: string | null;
-  memberSince: number | null;
+  birthDate: string | null;
+  age: number | null;
+  memberSince: string | null;
+}
+
+export interface EmployeeAdminDTO {
+  id: string;
+  firstName: string;
+  lastName: string;
+  email: string;
 }
 
 /**
@@ -27,12 +28,7 @@ export interface EmployeePrivateDTO {
  * @extends Account
  */
 class Employee extends Account {
-  /**
-   * Retourne les informations privées d'un employé'.
-   *
-   * 💡 Utile lorsque l'employé lui-même consulte son profil.
-   */
-  toPrivateJSON(): EmployeePrivateDTO {
+  toPrivateDTO(): EmployeePrivateDTO {
     return {
       id: this.id,
       email: this.email,
@@ -40,18 +36,18 @@ class Employee extends Account {
       lastName: this.last_name,
       phone: this.phone ?? null,
       address: this.address ?? null,
-      birthDate: this.birth_date ?? null,
-      //age: this.birth_date ? getAge(this.birth_date) : null,
-      profilePicture: this.profile_picture ?? null,
-      memberSince: this.created_at?.getFullYear() ?? null,
+      birthDate: this.birth_date ? toDateOnly(this.birth_date) : null,
+      age: this.birth_date ? getAge(this.birth_date) : null,
+      memberSince: this.created_at ? toDateOnly(this.created_at) : null,
     };
   }
 
-  toPublicDTO(): EmployeePublicDTO {
+  toAdminDTO(): EmployeeAdminDTO {
     return {
       id: this.id,
       firstName: this.first_name,
       lastName: this.last_name,
+      email: this.email,
     };
   }
 }
@@ -71,9 +67,9 @@ Employee.init(Account.defineAttributes(ACCOUNT_ROLES_ID.EMPLOYEE), {
 });
 
 Employee.beforeValidate((employee: Employee) => {
-  if (!employee.role_id) employee.role_id = ACCOUNT_ROLES_ID.EMPLOYEE;
+  employee.role_id = ACCOUNT_ROLES_ID.EMPLOYEE;
 });
 
-Employee.addPasswordHooks();
+Employee.addAccountHooks();
 
 export default Employee;

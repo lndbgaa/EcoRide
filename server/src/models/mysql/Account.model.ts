@@ -1,23 +1,13 @@
-import type { ModelStatic } from "sequelize";
-
 import bcrypt from "bcrypt";
 import { DataTypes } from "sequelize";
-import Base from "./Base.model.js";
-import Role from "./Role.model.js";
 
-export const ACCOUNT_ROLES_ID = {
-  ADMIN: 1,
-  EMPLOYEE: 2,
-  USER: 3,
-} as const;
+import { ACCOUNT_ROLES_ID, ACCOUNT_STATUSES } from "@/constants/index.js";
+import Base from "@/models/mysql/Base.model.js";
+import Role from "@/models/mysql/Role.model.js";
+import AppError from "@/utils/AppError.js";
 
-export const ACCOUNT_ROLES_LABEL = {
-  ADMIN: "admin",
-  EMPLOYEE: "employee",
-  USER: "user",
-} as const;
-
-type AccountStatus = "active" | "suspended";
+import type { AccountRoleId, AccountStatus } from "@/types/index.js";
+import type { ModelStatic } from "sequelize";
 
 /**
  * Modèle représentant un compte générique.
@@ -36,11 +26,9 @@ abstract class Account extends Base {
   declare password: string;
   declare first_name: string;
   declare last_name: string;
-  declare pseudo: string;
   declare phone: string | null;
   declare address: string | null;
   declare birth_date: Date | null;
-  declare profile_picture: string | null;
   declare status: AccountStatus;
   declare last_login: Date;
   declare created_at: Date;
@@ -52,7 +40,6 @@ abstract class Account extends Base {
 
   /**
    * Génère les attributs Sequelize de base pour un compte.
-   *
    * @param roleId - ID du rôle à appliquer.
    * @param additionalAttributes - Champs supplémentaires à ajouter.
    * @returns Les attributs Sequelize pour `Model.init()`.
@@ -60,7 +47,7 @@ abstract class Account extends Base {
    *  ⚠️ À utiliser uniquement dans les modèles Sequelize enfants héritant de Account (User, Employee, Admin).
    */
   public static defineAttributes(
-    roleId: number,
+    roleId: AccountRoleId,
     additionalAttributes: Record<string, any> = {}
   ): Record<string, any> {
     return {
@@ -73,6 +60,13 @@ abstract class Account extends Base {
         type: DataTypes.INTEGER,
         allowNull: false,
         defaultValue: roleId,
+        references: {
+          model: "roles",
+          key: "id",
+        },
+        validate: {
+          isIn: [Object.values(ACCOUNT_ROLES_ID)],
+        },
         onUpdate: "CASCADE",
         onDelete: "RESTRICT",
       },
@@ -106,14 +100,6 @@ abstract class Account extends Base {
           notEmpty: true,
         },
       },
-      pseudo: {
-        type: DataTypes.STRING(50),
-        allowNull: false,
-        unique: true,
-        validate: {
-          notEmpty: true,
-        },
-      },
       phone: {
         type: DataTypes.STRING(50),
         allowNull: true,
@@ -126,10 +112,6 @@ abstract class Account extends Base {
         type: DataTypes.DATEONLY,
         allowNull: true,
       },
-      profile_picture: {
-        type: DataTypes.STRING(255),
-        allowNull: true,
-      },
       last_login: {
         type: DataTypes.DATE,
         defaultValue: DataTypes.NOW,
@@ -139,18 +121,14 @@ abstract class Account extends Base {
         allowNull: true,
       },
       status: {
-        type: DataTypes.ENUM(...(["active", "suspended"] as AccountStatus[])),
-        defaultValue: "active",
+        type: DataTypes.ENUM(...Object.values(ACCOUNT_STATUSES)),
+        defaultValue: ACCOUNT_STATUSES.ACTIVE,
       },
       ...additionalAttributes,
     };
   }
 
-  /**
-   * Hooks statiques pour le hachage de mot de passe.
-   * Ces hooks seront hérités par les modèles enfants.
-   */
-  public static addPasswordHooks<T extends Account>(this: ModelStatic<T>) {
+  public static addAccountHooks<T extends Account>(this: ModelStatic<T>) {
     this.beforeCreate(async (account: T) => {
       const salt = await bcrypt.genSalt(10);
       account.password = await bcrypt.hash(account.password, salt);
@@ -161,36 +139,88 @@ abstract class Account extends Base {
         const salt = await bcrypt.genSalt(10);
         account.password = await bcrypt.hash(account.password, salt);
       }
+
+      if (account.changed("role_id")) {
+        throw new AppError({
+          statusCode: 400,
+          statusText: "Bad Request",
+          message: "Impossible de modifier le rôle d'un compte.",
+        });
+      }
     });
   }
 
-  async checkPassword(password: string): Promise<boolean> {
+  public async checkPassword(password: string): Promise<boolean> {
     return await bcrypt.compare(password, this.password);
   }
 
-  async updateLastLogin(): Promise<void> {
+  public async updateLastLogin(): Promise<void> {
     this.last_login = new Date();
     await this.save();
   }
 
-  async suspend(): Promise<void> {
-    this.status = "suspended";
+  public async suspend(): Promise<void> {
+    this.status = ACCOUNT_STATUSES.SUSPENDED;
     this.suspended_at = new Date();
     await this.save();
   }
 
-  async unsuspend(): Promise<void> {
-    this.status = "active";
+  public async unsuspend(): Promise<void> {
+    this.status = ACCOUNT_STATUSES.ACTIVE;
     this.suspended_at = null;
     await this.save();
   }
 
-  isActive(): boolean {
-    return this.status === "active";
+  public isActive(): boolean {
+    return this.status === ACCOUNT_STATUSES.ACTIVE;
   }
 
-  isSuspended(): boolean {
-    return this.status === "suspended";
+  public isSuspended(): boolean {
+    return this.status === ACCOUNT_STATUSES.SUSPENDED;
+  }
+
+  public getId(): string {
+    return this.id;
+  }
+
+  public getEmail(): string {
+    return this.email;
+  }
+
+  public getFirstName(): string {
+    return this.first_name;
+  }
+
+  public getLastName(): string {
+    return this.last_name;
+  }
+
+  public getPhone(): string | null {
+    return this.phone;
+  }
+
+  public getAddress(): string | null {
+    return this.address;
+  }
+
+  public getBirthDate(): Date | null {
+    return this.birth_date;
+  }
+
+  public getLastLogin(): Date {
+    return this.last_login;
+  }
+
+  public getCreatedAt(): Date {
+    return this.created_at;
+  }
+
+  public getUpdatedAt(): Date {
+    return this.updated_at;
+  }
+
+  public getSuspendedAt(): Date | null {
+    return this.suspended_at;
   }
 }
 

@@ -1,11 +1,9 @@
 import IncidentService from "@/services/incident.service.js";
-import AppError from "@/utils/AppError.js";
 import catchAsync from "@/utils/catchAsync.js";
 import parsePagination from "@/utils/parsePagination.js";
 
-import type { IncidentStatus } from "@/models/mongo/Incident.model.js";
+import type { IncidentDocument } from "@/models/mongo/Incident.model.js";
 import type { Request, Response } from "express";
-
 /**
  * Gère la création d'un incident
  */
@@ -23,32 +21,27 @@ export const createIncident = catchAsync(
 );
 
 /**
- * Gère la récupération des incidents par statut
+ * Gère la récupération des incidents en attente de validation
  */
-export const getIncidentsByStatus = catchAsync(
+export const getPendingIncidents = catchAsync(
   async (req: Request, res: Response) => {
-    const currentUser = req.user;
-    const status = req.query.status as IncidentStatus;
     const { page, limit, offset } = parsePagination(req);
 
-    if (currentUser.role === "employee" && status !== "pending") {
-      throw new AppError({
-        statusCode: 403,
-        statusText: "Forbidden",
-        message: "Vous n'êtes pas autorisé à accéder à cette ressource.",
-      });
-    }
-
     const { count, incidents } = await IncidentService.getIncidentsByStatus(
+      "pending",
       limit,
-      offset,
-      status
+      offset
     );
+
+    const getDTO = (incident: IncidentDocument) => incident.toPreviewDTO();
 
     res.status(200).json({
       success: true,
-      message: "Liste des incidents récupérée avec succès.",
-      data: { incidents },
+      message:
+        "Liste des incidents en attente de validation récupérée avec succès.",
+      data: {
+        incidents: incidents.map(getDTO),
+      },
       pagination: {
         page,
         limit,
@@ -64,18 +57,16 @@ export const getIncidentsByStatus = catchAsync(
  */
 export const getIncidentDetails = catchAsync(
   async (req: Request, res: Response) => {
-    const employeeId = req.user.id;
     const incidentId = req.params.id;
 
-    const incident = await IncidentService.getIncidentById(
-      employeeId,
-      incidentId
-    );
+    const incident = await IncidentService.getIncidentById(incidentId);
+
+    const dto = incident.toDetailedDTO();
 
     res.status(200).json({
       success: true,
       message: "Détails de l'incident récupérés avec succès.",
-      data: { incident: incident.toEmployeeDTO() },
+      data: { incident: dto },
     });
   }
 );

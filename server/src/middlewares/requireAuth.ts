@@ -2,7 +2,7 @@ import type { NextFunction, Request, Response } from "express";
 
 import config from "@/config/app.config.js";
 import AppError from "@/utils/AppError.js";
-import { verifyToken } from "@/utils/jwt.utils.js";
+import { verifyToken } from "@/utils/jwt.js";
 
 /**
  * Middleware de vérification de l'authentification

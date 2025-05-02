@@ -42,11 +42,13 @@ export const addVehicleSchema = Joi.object({
         "La plaque d'immatriculation doit être une chaîne de caractères non vide.",
       "string.empty":
         "La plaque d'immatriculation doit être une chaîne de caractères non vide.",
-      "string.pattern.base": "Format de plaque invalide. Format attendu : AB-123-CD",
+      "string.pattern.base":
+        "Format de plaque invalide. Format attendu : AB-123-CD",
     }),
   firstRegistration: Joi.date().required().messages({
     "any.required": "La date de première mise en circulation est requise.",
-    "date.base": "La date de première mise en circulation doit être une date valide.",
+    "date.base":
+      "La date de première mise en circulation doit être une date valide.",
   }),
 }).options({ stripUnknown: true });
 
@@ -77,4 +79,9 @@ export const updateVehicleSchema = Joi.object({
     "number.min": "Le nombre de sièges pour une voiture doit être minimum 2.",
     "number.max": "Le nombre de sièges pour une voiture doit être maximum 7.",
   }),
-}).options({ stripUnknown: true });
+})
+  .min(1)
+  .options({ stripUnknown: true })
+  .messages({
+    "object.min": "Au moins une propriété est requise.",
+  });

@@ -1,14 +1,14 @@
 import { DataTypes, UUIDV4 } from "sequelize";
 
-import type { BookingStatus } from "@/types/index.js";
-import type { SaveOptions } from "sequelize";
-import type { RidePreviewDTO } from "./Ride.model.js";
-import type { UserPublicDTO } from "./User.model.js";
-
 import { sequelize } from "@/config/mysql.config.js";
 import AppError from "@/utils/AppError.js";
-import { toDateOnly } from "@/utils/date.utils.js";
+import { toDateOnly } from "@/utils/date.js";
 import { Base, Ride, User } from "./index.js";
+
+import type { BookingStatus } from "@/types/index.js";
+import type { SaveOptions } from "sequelize";
+import type { RidePublicPreviewDTO } from "./Ride.model.js";
+import type { UserPublicDTO } from "./User.model.js";
 
 interface BookingPublicDTO {
   id: string;
@@ -18,7 +18,7 @@ interface BookingPublicDTO {
 
 interface BookingPrivateDTO {
   id: string;
-  ride: RidePreviewDTO | null;
+  ride: RidePublicPreviewDTO | null;
   seatsBooked: number;
   status: BookingStatus;
   createdAt: string;
@@ -45,8 +45,12 @@ class Booking extends Base {
   /**
    * Liste des transitions autorisées entre les statuts d'une réservation.
    */
-  private static readonly allowedTransitions: Record<BookingStatus, BookingStatus[]> = {
-    confirmed: ["completed", "cancelled"],
+  private static readonly allowedTransitions: Record<
+    BookingStatus,
+    BookingStatus[]
+  > = {
+    confirmed: ["awaiting_feedback", "cancelled"],
+    awaiting_feedback: ["completed"],
     completed: [],
     cancelled: [],
   } as const;
@@ -66,7 +70,10 @@ class Booking extends Base {
    * @param status - Le nouveau statut à appliquer.
    * @param options - Options de sauvegarde sequelize.
    */
-  private async transitionTo(status: BookingStatus, options?: SaveOptions): Promise<void> {
+  private async transitionTo(
+    status: BookingStatus,
+    options?: SaveOptions
+  ): Promise<void> {
     if (!this.canTransitionTo(status)) {
       throw new AppError({
         statusCode: 400,
@@ -90,11 +97,15 @@ class Booking extends Base {
   public toPrivateDTO(): BookingPrivateDTO {
     return {
       id: this.id,
-      ride: this.ride?.toPreviewDTO() ?? null,
+      ride: this.ride?.toPublicPreviewDTO() ?? null,
       seatsBooked: this.seats_booked,
       status: this.status,
       createdAt: toDateOnly(this.created_at),
     };
+  }
+
+  public async markAsAwaitingFeedback(options?: SaveOptions): Promise<void> {
+    await this.transitionTo("awaiting_feedback", options);
   }
 
   public async markAsCompleted(options?: SaveOptions): Promise<void> {
@@ -103,6 +114,10 @@ class Booking extends Base {
 
   public async markAsCancelled(options?: SaveOptions): Promise<void> {
     await this.transitionTo("cancelled", options);
+  }
+
+  public getId(): string {
+    return this.id;
   }
 
   public getRideId(): string {
@@ -119,6 +134,26 @@ class Booking extends Base {
 
   public getPassenger(): User | null {
     return this.passenger ?? null;
+  }
+
+  public getStatus(): BookingStatus {
+    return this.status;
+  }
+
+  public isConfirmed(): boolean {
+    return this.status === "confirmed";
+  }
+
+  public isAwaitingFeedback(): boolean {
+    return this.status === "awaiting_feedback";
+  }
+
+  public isCompleted(): boolean {
+    return this.status === "completed";
+  }
+
+  public isCancelled(): boolean {
+    return this.status === "cancelled";
   }
 }
 
@@ -158,7 +193,14 @@ Booking.init(
       },
     },
     status: {
-      type: DataTypes.ENUM(...(["confirmed", "completed", "cancelled"] as BookingStatus[])),
+      type: DataTypes.ENUM(
+        ...([
+          "confirmed",
+          "awaiting_feedback",
+          "completed",
+          "cancelled",
+        ] as BookingStatus[])
+      ),
       defaultValue: "confirmed",
     },
   },

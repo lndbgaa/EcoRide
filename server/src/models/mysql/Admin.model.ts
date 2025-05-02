@@ -1,6 +1,6 @@
 import { sequelize } from "@/config/mysql.config.js";
-import { ACCOUNT_ROLES_ID } from "@/models/mysql/Account.model.js";
-import Account from "./Account.model.js";
+import { ACCOUNT_ROLES_ID } from "@/constants/index.js";
+import Account from "@/models/mysql/Account.model.js";
 
 /**
  * Modèle représentant un administrateur de la plateforme.
@@ -24,9 +24,9 @@ Admin.init(Account.defineAttributes(ACCOUNT_ROLES_ID.ADMIN), {
 });
 
 Admin.beforeValidate((admin: Admin) => {
-  if (!admin.role_id) admin.role_id = ACCOUNT_ROLES_ID.ADMIN;
+  admin.role_id = ACCOUNT_ROLES_ID.ADMIN;
 });
 
-Admin.addPasswordHooks();
+Admin.addAccountHooks();
 
 export default Admin;

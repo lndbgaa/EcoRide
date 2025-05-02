@@ -1,4 +1,4 @@
-import { DEFAULT_PREFERENCES } from "@/models/mysql/Preference.model.js";
+import { DEFAULT_PREFERENCES } from "@/constants/index.js";
 
 import { Preference } from "@/models/mysql";
 import UserService from "@/services/user.service.js";
@@ -15,7 +15,10 @@ class PreferenceService {
     userId: string,
     preferenceId: string
   ): Promise<Preference> {
-    const preference: Preference | null = await Preference.findOneByField("id", preferenceId);
+    const preference: Preference | null = await Preference.findOneByField(
+      "id",
+      preferenceId
+    );
 
     if (!preference) {
       throw new AppError({
@@ -29,7 +32,8 @@ class PreferenceService {
       throw new AppError({
         statusCode: 403,
         statusText: "Forbidden",
-        message: "Vous n'avez pas les permissions pour modifier cette préférence.",
+        message:
+          "Vous n'avez pas les permissions pour modifier cette préférence.",
       });
     }
 
@@ -59,7 +63,10 @@ class PreferenceService {
    * @returns Les préférences de l'utilisateur
    */
   public static async getPreferences(userId: string): Promise<Preference[]> {
-    const preferences: Preference[] = await Preference.findAllByField("user_id", userId);
+    const preferences: Preference[] = await Preference.findAllByField(
+      "user_id",
+      userId
+    );
     return preferences;
   }
 
@@ -99,7 +106,10 @@ class PreferenceService {
   ): Promise<Preference> {
     await UserService.assertUserIsDriverOrThrow(userId);
 
-    const preference: Preference = await this.findOwnedPreferenceOrThrow(userId, preferenceId);
+    const preference: Preference = await this.findOwnedPreferenceOrThrow(
+      userId,
+      preferenceId
+    );
 
     await preference.toggleValue();
 
@@ -111,10 +121,16 @@ class PreferenceService {
    * @param userId - L'id de l'utilisateur
    * @param preferenceId - L'id de la préférence
    */
-  public static async deletePreference(userId: string, preferenceId: string): Promise<void> {
+  public static async deletePreference(
+    userId: string,
+    preferenceId: string
+  ): Promise<void> {
     await UserService.assertUserIsDriverOrThrow(userId);
 
-    const preference: Preference = await this.findOwnedPreferenceOrThrow(userId, preferenceId);
+    const preference: Preference = await this.findOwnedPreferenceOrThrow(
+      userId,
+      preferenceId
+    );
 
     if (preference.isDefault()) {
       throw new AppError({

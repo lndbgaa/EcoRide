@@ -1,10 +1,13 @@
-import AppError from "@/utils/AppError.js";
 import jwt from "jsonwebtoken";
+
+import AppError from "@/utils/AppError.js";
+
+import type { AccountRoleLabel } from "@/types/index.js";
 import type { StringValue } from "ms";
 
 interface JwtPayload {
   id: string;
-  role: string;
+  role: AccountRoleLabel;
 }
 
 /**

@@ -103,13 +103,12 @@ class ReviewService {
    * @param status - Le statut des avis à récupérer
    * @returns Liste des avis trouvés
    */
-  public static async getReviews(
+  public static async getReviewsByStatus(
     status: ReviewStatus,
-    page: number,
-    limit: number
+    limit: number,
+    offset: number
   ): Promise<{ count: number; reviews: Review[] }> {
     const filter = status ? { status } : {};
-    const offset = (page - 1) * limit;
 
     const { count, rows: reviews } = await Review.findAndCountAll({
       where: filter,
@@ -135,12 +134,10 @@ class ReviewService {
    */
   public static async getUserReceivedReviews(
     userId: string,
-    page: number,
     limit: number,
+    offset: number,
     options?: FindOptions
   ): Promise<{ count: number; reviews: Review[] }> {
-    const offset = (page - 1) * limit;
-
     const { count, rows: reviews } = await Review.findAndCountAll({
       where: { target_id: userId, status: "approved" },
       include: [{ association: "author" }],
@@ -160,12 +157,10 @@ class ReviewService {
    */
   public static async getUserWrittenReviews(
     userId: string,
-    page: number,
     limit: number,
+    offset: number,
     options?: FindOptions
   ): Promise<{ count: number; reviews: Review[] }> {
-    const offset = (page - 1) * limit;
-
     const { count, rows: reviews } = await Review.findAndCountAll({
       where: { author_id: userId, status: "approved" },
       include: [{ association: "target" }],
@@ -194,7 +189,7 @@ class ReviewService {
       throw new AppError({
         statusCode: 403,
         statusText: "Forbidden",
-        message: "Cet avis a déjà été modéré.",
+        message: "Cet avis a déjà été traité.",
       });
     }
 
