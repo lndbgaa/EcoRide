@@ -15,7 +15,6 @@ router.use(requireAuth);
 router.use(requireRole([ACCOUNT_ROLES_LABEL.EMPLOYEE]));
 
 router.get("/me/incidents/assigned", getEmployeeAssignedIncidents);
-
 router.get("/me/incidents/resolved", getEmployeeResolvedIncidents);
 
 export default router;

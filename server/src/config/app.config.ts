@@ -1,21 +1,34 @@
 import dotenv from "dotenv";
 dotenv.config();
 
+import AppError from "@/utils/AppError";
+
 import type { StringValue } from "ms";
 
 function getEnvVar(name: string): string {
   const value = process.env[name];
+
   if (!value) {
-    throw new Error(`❌ Variable d'environnement manquante: ${name}`);
+    throw new AppError({
+      statusCode: 500,
+      statusText: "Internal Server Error",
+      message: `❌ Variable d'environnement manquante: ${name}`,
+    });
   }
   return value;
 }
 
+const env = process.env.NODE_ENV ?? "development";
+
 const config = {
-  server: {
-    env: process.env.NODE_ENV ?? "development",
-    port: process.env.MYSQL_DB_PORT ? Number(process.env.MYSQL_DB_PORT) : 8080,
-    url: process.env.SERVER_URL ?? "http://localhost:8080",
+  env,
+  port: process.env.MYSQL_DB_PORT ? Number(process.env.MYSQL_DB_PORT) : 8080,
+  url: env === "production" ? getEnvVar("SERVER_URL") : "http://localhost:8080",
+  cors: {
+    origin: env === "production" ? getEnvVar("CLIENT_URL") : "http://localhost:5173",
+    methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization", "Accept"],
+    credentials: true,
   },
   jwt: {
     access_secret: getEnvVar("JWT_ACCESS_SECRET"),
@@ -34,5 +47,5 @@ const config = {
   },
 };
 
-export default config;
 export { getEnvVar };
+export default config;

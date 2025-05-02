@@ -7,18 +7,11 @@ import { ACCOUNT_ROLES_LABEL } from "@/constants/index.js";
 import { Employee, RefreshToken, User } from "@/models/mysql";
 import AccountService from "@/services/account.service.js";
 import AppError from "@/utils/AppError.js";
-import { generateToken } from "@/utils/jwt.js";
+import { generateToken } from "@/utils/jwt.utils.js";
 
 type RegisterUserData = {
   email: string;
   pseudo: string;
-  password: string;
-  firstName: string;
-  lastName: string;
-};
-
-type RegisterEmployeeData = {
-  email: string;
   password: string;
   firstName: string;
   lastName: string;
@@ -30,6 +23,13 @@ type RegisterUserResponse = {
   refreshToken: string;
   expiresAt: number;
   expiresIn: number;
+};
+
+type RegisterEmployeeData = {
+  email: string;
+  password: string;
+  firstName: string;
+  lastName: string;
 };
 
 type LoginData = {
@@ -96,7 +96,7 @@ class AuthService {
     return await sequelize.transaction(async (transaction) => {
       const now = Date.now();
 
-      const user: User = await User.createOne(
+      const newUser: User = await User.create(
         {
           email,
           pseudo,
@@ -107,9 +107,9 @@ class AuthService {
         { transaction }
       );
 
-      const refreshToken = await RefreshToken.createOne(
+      const refreshToken = await RefreshToken.create(
         {
-          account_id: user.id,
+          account_id: newUser.id,
           token: nanoid(),
           expires_at: new Date(now + ms(refresh_expiration)),
         },
@@ -117,13 +117,13 @@ class AuthService {
       );
 
       const accessToken: string = generateToken(
-        { id: user.id, role: ACCOUNT_ROLES_LABEL.USER },
+        { id: newUser.id, role: ACCOUNT_ROLES_LABEL.USER },
         access_secret,
         access_expiration
       );
 
       return {
-        accountId: user.id,
+        accountId: newUser.id,
         accessToken,
         refreshToken: refreshToken.token,
         expiresIn: ms(access_expiration),
@@ -147,7 +147,7 @@ class AuthService {
 
     // Un compte employé est créé par un administrateur.
     // -> Pas de connexion automatique : pas de jetons d'accès ni de rafraîchissement.
-    const employee: Employee = await Employee.createOne({
+    const newEmployee: Employee = await Employee.create({
       email,
       password,
       first_name: firstName,
@@ -155,7 +155,7 @@ class AuthService {
     });
 
     return {
-      accountId: employee.id,
+      accountId: newEmployee.id,
     };
   }
 
@@ -189,9 +189,9 @@ class AuthService {
     const role = account.role?.label ?? ACCOUNT_ROLES_LABEL.USER;
     const now = Date.now();
 
-    await RefreshToken.deleteHardByField("account_id", account.id);
+    await RefreshToken.destroy({ where: { account_id: account.id } });
 
-    const refreshToken = await RefreshToken.createOne({
+    const refreshToken = await RefreshToken.create({
       account_id: account.id,
       token: nanoid(),
       expires_at: new Date(now + ms(refresh_expiration)),
@@ -219,7 +219,7 @@ class AuthService {
    * @param refreshToken - Jeton de rafraîchissement (refresh token)
    */
   public static async logout(refreshToken: string): Promise<void> {
-    await RefreshToken.deleteHardByField("token", refreshToken);
+    await RefreshToken.destroy({ where: { token: refreshToken } });
   }
 
   /**
@@ -231,28 +231,23 @@ class AuthService {
   public static async refreshAccessToken(
     refreshToken: string
   ): Promise<RefreshAccessTokenResponse> {
-    const tokenRecord = await RefreshToken.findOneByField(
-      "token",
-      refreshToken
-    );
+    const tokenRecord = await RefreshToken.findOne({ where: { token: refreshToken } });
 
     if (!tokenRecord) {
       throw new AppError({
         statusCode: 403,
         statusText: "Forbidden",
-        message:
-          "Token de rafraîchissement invalide. L'utilisateur n'est pas connecté.",
+        message: "Token de rafraîchissement invalide. L'utilisateur n'est pas connecté.",
       });
     }
 
     if (tokenRecord.expires_at < new Date()) {
-      await RefreshToken.deleteHardByField("token", refreshToken);
+      await RefreshToken.destroy({ where: { token: refreshToken } });
 
       throw new AppError({
         statusCode: 401,
         statusText: "Unauthorized",
-        message:
-          "Token de rafraîchissement expiré. L'utilisateur doit se reconnecter.",
+        message: "Token de rafraîchissement expiré. L'utilisateur doit se reconnecter.",
       });
     }
 
@@ -274,8 +269,11 @@ class AuthService {
       });
     }
 
+    const role = account.role?.label ?? ACCOUNT_ROLES_LABEL.USER;
+    const now = Date.now();
+
     const newAccessToken = generateToken(
-      { id: account.id, role: account.role?.label ?? ACCOUNT_ROLES_LABEL.USER },
+      { id: account.id, role },
       access_secret,
       access_expiration
     );
@@ -283,7 +281,7 @@ class AuthService {
     return {
       accessToken: newAccessToken,
       expiresIn: ms(access_expiration),
-      expiresAt: Date.now() + ms(access_expiration),
+      expiresAt: now + ms(access_expiration),
     };
   }
 }

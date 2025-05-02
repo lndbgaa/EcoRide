@@ -30,7 +30,7 @@ const logError = ({
       console.error(chalk.red(`  - ${key}: ${value}`));
     }
   }
-  if (formattedStack && config.server.env === "development") {
+  if (formattedStack && config.env === "development") {
     console.error(chalk.red(`----------------------------------------`));
     console.error(chalk.red(`Stack Trace:\n${formattedStack}`));
   }

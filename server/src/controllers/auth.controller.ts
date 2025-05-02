@@ -8,7 +8,7 @@ import PreferenceService from "@/services/preference.service.js";
 import AppError from "@/utils/AppError.js";
 import catchAsync from "@/utils/catchAsync.js";
 
-const { env } = config.server;
+const { env } = config;
 const { refresh_expiration } = config.jwt;
 
 /**
@@ -55,60 +55,55 @@ export const registerEmployee = catchAsync(
 /**
  * Gère la connexion d'un compte (utilisateur, employé, administrateur).
  */
-export const login = catchAsync(
-  async (req: Request, res: Response): Promise<void> => {
-    const { email, password } = req.body;
+export const login = catchAsync(async (req: Request, res: Response): Promise<void> => {
+  const { email, password } = req.body;
 
-    const { accessToken, refreshToken, expiresIn, expiresAt } =
-      await AuthService.login({
-        email,
-        password,
-      });
+  const { accessToken, refreshToken, expiresIn, expiresAt } = await AuthService.login({
+    email,
+    password,
+  });
 
-    res.cookie("refreshToken", refreshToken, {
-      httpOnly: true,
-      secure: env === "production",
-      sameSite: "lax",
-      path: "/",
-      maxAge: ms(refresh_expiration),
-    });
+  res.cookie("refreshToken", refreshToken, {
+    httpOnly: true,
+    secure: env === "production",
+    sameSite: "lax",
+    path: "/",
+    maxAge: ms(refresh_expiration),
+  });
 
-    res.status(200).json({
-      success: true,
-      message: "Connexion réussie.",
-      data: { accessToken, expiresIn, expiresAt },
-    });
-  }
-);
+  res.status(200).json({
+    success: true,
+    message: "Connexion réussie.",
+    data: { accessToken, expiresIn, expiresAt },
+  });
+});
 
 /**
  * Gère la déconnexion d'un compte (utilisateur, employé, administrateur).
  */
-export const logout = catchAsync(
-  async (req: Request, res: Response): Promise<void> => {
-    const refreshToken = req.cookies.refreshToken;
+export const logout = catchAsync(async (req: Request, res: Response): Promise<void> => {
+  const refreshToken = req.cookies.refreshToken;
 
-    if (!refreshToken) {
-      res.status(200).json({
-        success: true,
-        message: "Aucune session active détectée. Vous êtes déjà déconnecté.",
-      });
-      return;
-    }
-
-    await AuthService.logout(refreshToken);
-
-    res.clearCookie("refreshToken", {
-      httpOnly: true,
-      secure: env === "production",
-      sameSite: "lax",
-      path: "/",
-      maxAge: 0,
+  if (!refreshToken) {
+    res.status(200).json({
+      success: true,
+      message: "Aucune session active détectée. Vous êtes déjà déconnecté.",
     });
-
-    res.status(200).json({ success: true, message: "Déconnexion réussie." });
+    return;
   }
-);
+
+  await AuthService.logout(refreshToken);
+
+  res.clearCookie("refreshToken", {
+    httpOnly: true,
+    secure: env === "production",
+    sameSite: "lax",
+    path: "/",
+    maxAge: 0,
+  });
+
+  res.status(200).json({ success: true, message: "Déconnexion réussie." });
+});
 
 /**
  * Gère le rafraîchissement d'un jeton d'accès (utilisateur, employé, administrateur).
@@ -125,8 +120,9 @@ export const handleTokenRefresh = catchAsync(
       });
     }
 
-    const { accessToken, expiresIn, expiresAt } =
-      await AuthService.refreshAccessToken(refreshToken);
+    const { accessToken, expiresIn, expiresAt } = await AuthService.refreshAccessToken(
+      refreshToken
+    );
 
     res.status(200).json({
       success: true,

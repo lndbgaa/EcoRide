@@ -1,23 +1,24 @@
 import dotenv from "dotenv";
-
 dotenv.config();
 
 import dayjs from "dayjs";
 import customParseFormat from "dayjs/plugin/customParseFormat.js";
 import timezone from "dayjs/plugin/timezone.js";
 import utc from "dayjs/plugin/utc.js";
-
 dayjs.extend(timezone);
 dayjs.extend(utc);
 dayjs.extend(customParseFormat);
 
 import cookieParser from "cookie-parser";
+import cors from "cors";
 import express from "express";
+import helmet from "helmet";
 
 import config from "@/config/app.config.js";
 import connectMongo from "@/config/mongo.config.js";
 import { connectMySQL } from "@/config/mysql.config.js";
 import errorHandler from "@/middlewares/errorHandler.js";
+import { globalLimiter } from "@/middlewares/rateLimiter.js";
 import adminRoutes from "@/routes/admin.route.js";
 import authRoutes from "@/routes/auth.route.js";
 import bookingsRoutes from "@/routes/booking.route.js";
@@ -27,12 +28,19 @@ import reviewsRoutes from "@/routes/review.route.js";
 import ridesRoutes from "@/routes/ride.route.js";
 import usersRoutes from "@/routes/user.route.js";
 import AppError from "@/utils/AppError.js";
+import sanitizeAll from "./middlewares/sanitizeAll";
 
 const app = express();
-const PORT = config.server.port;
+const PORT = config.port;
+
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
 app.use(cookieParser());
-app.use(express.json());
+app.use(sanitizeAll);
+app.use(globalLimiter);
+app.use(cors(config.cors));
+app.use(helmet({ contentSecurityPolicy: false }));
 
 app.get("/", (req, res) => {
   res.send("Bienvenue sur le serveur!");

@@ -11,7 +11,8 @@ import type {
 
 import config from "@/config/app.config.js";
 import AppError from "@/utils/AppError";
-const { env } = config.server;
+
+const { env } = config;
 
 /**
  * Classe de base générique pour les modèles Sequelize.
@@ -55,9 +56,9 @@ abstract class Base extends Model {
         throw err;
       }
 
-      const devMessage = `[${this.name}] findAllByField (${String(field)}) : (${String(value)}) → ${
-        err instanceof Error ? err.message : String(err)
-      }`;
+      const devMessage = `[${this.name}] findAllByField (${String(field)}) : (${String(
+        value
+      )}) → ${err instanceof Error ? err.message : String(err)}`;
 
       throw new AppError({
         statusCode: 500,
@@ -103,9 +104,9 @@ abstract class Base extends Model {
         throw err;
       }
 
-      const devMessage = `[${this.name}] findOneByField (${String(field)}) : (${String(value)}) → ${
-        err instanceof Error ? err.message : String(err)
-      }`;
+      const devMessage = `[${this.name}] findOneByField (${String(field)}) : (${String(
+        value
+      )}) → ${err instanceof Error ? err.message : String(err)}`;
 
       throw new AppError({
         statusCode: 500,

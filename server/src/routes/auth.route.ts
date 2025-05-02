@@ -1,10 +1,9 @@
 import { Router } from "express";
 
-import validate from "@/middlewares/validateData.js";
-import {
-  loginSchema,
-  registerUserSchema,
-} from "@/validators/auth.validator.js";
+import { authLimiter, registerLimiter } from "@/middlewares/rateLimiter.js";
+import validate from "@/middlewares/validateAll.js";
+
+import { loginSchema, registerUserSchema } from "@/validators/auth.validator.js";
 
 import {
   handleTokenRefresh,
@@ -15,8 +14,8 @@ import {
 
 const router = Router();
 
-router.post("/register", validate(registerUserSchema), registerUser);
-router.post("/login", validate(loginSchema), login);
+router.post("/register", registerLimiter, validate(registerUserSchema), registerUser);
+router.post("/login", authLimiter, validate(loginSchema), login);
 router.post("/logout", logout);
 router.get("/refresh-token", handleTokenRefresh);
 

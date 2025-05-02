@@ -2,7 +2,7 @@ import { DataTypes, UUIDV4 } from "sequelize";
 
 import { sequelize } from "@/config/mysql.config.js";
 import AppError from "@/utils/AppError.js";
-import { toDateOnly } from "@/utils/date.js";
+import { toDateOnly } from "@/utils/date.utils.js";
 import { Base, Ride, User } from "./index.js";
 
 import type { BookingStatus } from "@/types/index.js";
@@ -45,10 +45,7 @@ class Booking extends Base {
   /**
    * Liste des transitions autorisées entre les statuts d'une réservation.
    */
-  private static readonly allowedTransitions: Record<
-    BookingStatus,
-    BookingStatus[]
-  > = {
+  private static readonly allowedTransitions: Record<BookingStatus, BookingStatus[]> = {
     confirmed: ["awaiting_feedback", "cancelled"],
     awaiting_feedback: ["completed"],
     completed: [],

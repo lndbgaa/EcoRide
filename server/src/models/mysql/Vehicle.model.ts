@@ -7,7 +7,7 @@ import VehicleBrand from "@/models/mysql/VehicleBrand.model.js";
 import VehicleColor from "@/models/mysql/VehicleColor.model.js";
 import VehicleEnergy from "@/models/mysql/VehicleEnergy.model.js";
 import AppError from "@/utils/AppError.js";
-import { toDateOnly } from "@/utils/date.js";
+import { toDateOnly } from "@/utils/date.utils.js";
 
 export interface VehiclePublicDTO {
   id: string;

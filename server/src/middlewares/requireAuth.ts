@@ -1,11 +1,11 @@
-import type { NextFunction, Request, Response } from "express";
-
 import config from "@/config/app.config.js";
 import AppError from "@/utils/AppError.js";
-import { verifyToken } from "@/utils/jwt.js";
+import { verifyToken } from "@/utils/jwt.utils.js";
+
+import type { NextFunction, Request, Response } from "express";
 
 /**
- * Middleware de vérification de l'authentification
+ * Middleware de vérification de l'authentification obligatoire
  */
 const requireAuth = (req: Request, res: Response, next: NextFunction): void => {
   const authHeader = req.headers.authorization;

@@ -1,7 +1,7 @@
 import { sequelize } from "@/config/mysql.config.js";
 import { ACCOUNT_ROLES_ID } from "@/constants/index.js";
 import Account from "@/models/mysql/Account.model.js";
-import { getAge, toDateOnly } from "@/utils/date.js";
+import { getAge, toDateOnly } from "@/utils/date.utils.js";
 
 export interface EmployeePrivateDTO {
   id: string;

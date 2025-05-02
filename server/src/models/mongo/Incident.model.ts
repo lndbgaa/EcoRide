@@ -1,7 +1,7 @@
 import mongoose, { Document } from "mongoose";
 import { v4 as uuid } from "uuid";
 
-import { toDateOnly, toTimeOnly } from "@/utils/date.js";
+import { toDateOnly, toTimeOnly } from "@/utils/date.utils.js";
 
 const { Schema } = mongoose;
 
@@ -219,9 +219,7 @@ incidentSchema.methods.getRideId = function (this: IncidentDocument): string {
   return this.ride.id;
 };
 
-incidentSchema.methods.getPassengerId = function (
-  this: IncidentDocument
-): string {
+incidentSchema.methods.getPassengerId = function (this: IncidentDocument): string {
   return this.passenger.id;
 };
 
@@ -229,9 +227,7 @@ incidentSchema.methods.getDriverId = function (this: IncidentDocument): string {
   return this.driver.id;
 };
 
-incidentSchema.methods.getRewardAmount = function (
-  this: IncidentDocument
-): number {
+incidentSchema.methods.getRewardAmount = function (this: IncidentDocument): number {
   return this.rewardAmount;
 };
 

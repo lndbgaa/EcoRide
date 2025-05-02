@@ -4,7 +4,7 @@ import { sequelize } from "@/config/mysql.config.js";
 import { RIDE_STATUSES } from "@/constants/index.js";
 import { Base, User, Vehicle } from "@/models/mysql";
 import AppError from "@/utils/AppError.js";
-import { getDuration, toDateOnly, toTimeOnly } from "@/utils/date.js";
+import { getDuration, toDateOnly, toTimeOnly } from "@/utils/date.utils.js";
 
 import type { UserPublicDTO } from "@/models/mysql/User.model.js";
 import type { VehiclePublicDTO } from "@/models/mysql/Vehicle.model.js";
@@ -72,14 +72,13 @@ class Ride extends Base {
   /**
    * Liste des transitions autorisées entre les statuts d'un trajet.
    */
-  private static readonly allowedTransitions: Record<RideStatus, RideStatus[]> =
-    {
-      open: ["full", "in_progress", "cancelled"],
-      full: ["open", "in_progress", "cancelled"],
-      in_progress: ["completed"],
-      completed: [],
-      cancelled: [],
-    } as const;
+  private static readonly allowedTransitions: Record<RideStatus, RideStatus[]> = {
+    open: ["full", "in_progress", "cancelled"],
+    full: ["open", "in_progress", "cancelled"],
+    in_progress: ["completed"],
+    completed: [],
+    cancelled: [],
+  } as const;
 
   /**
    * Vérifie si une transition vers un nouveau statut est autorisée.
@@ -96,10 +95,7 @@ class Ride extends Base {
    * @param status - Le nouveau statut à appliquer.
    * @param options - Options de la transaction.
    */
-  private async transitionTo(
-    status: RideStatus,
-    options?: SaveOptions
-  ): Promise<void> {
+  private async transitionTo(status: RideStatus, options?: SaveOptions): Promise<void> {
     if (this.status === status) return;
 
     if (!this.canTransitionTo(status)) {
@@ -120,10 +116,7 @@ class Ride extends Base {
    * @param amount - Le nombre de places à ajouter.
    * @param options - Options de sauvegarde sequelize.
    */
-  public async addAvailableSeats(
-    amount: number,
-    options?: SaveOptions
-  ): Promise<void> {
+  public async addAvailableSeats(amount: number, options?: SaveOptions): Promise<void> {
     if (this.status !== "open" && this.status !== "full") {
       throw new AppError({
         statusCode: 400,

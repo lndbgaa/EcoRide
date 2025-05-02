@@ -4,17 +4,10 @@ import { ACCOUNT_ROLES_LABEL } from "@/constants/index.js";
 import multerUploads from "@/middlewares/multerUploads.js";
 import requireAuth from "@/middlewares/requireAuth.js";
 import requireRole from "@/middlewares/requireRole.js";
-import validate from "@/middlewares/validateData.js";
+import validate from "@/middlewares/validateAll.js";
 
-import {
-  updateInfoSchema,
-  updateRoleSchema,
-} from "@/validators/user.validator.js";
-
-import {
-  addVehicleSchema,
-  updateVehicleSchema,
-} from "@/validators/vehicle.validator.js";
+import { updateInfoSchema, updateRoleSchema } from "@/validators/user.validator.js";
+import { addVehicleSchema, updateVehicleSchema } from "@/validators/vehicle.validator.js";
 
 import { idParamSchema } from "@/validators/common.validator.js";
 import { addPreferenceSchema } from "@/validators/preference.validator.js";
@@ -71,26 +64,14 @@ router.patch(
   validate(updateVehicleSchema),
   updateVehicle
 );
-router.delete(
-  "/me/vehicles/:id",
-  validate(idParamSchema, "params"),
-  deleteVehicle
-);
+router.delete("/me/vehicles/:id", validate(idParamSchema, "params"), deleteVehicle);
 
 // Routes pour les préférences de l'utilisateur connecté
 
 router.get("/me/preferences", getUserPreferences);
 router.post("/me/preferences", validate(addPreferenceSchema), addPreference);
-router.patch(
-  "/me/preferences/:id",
-  validate(idParamSchema, "params"),
-  updatePreference
-);
-router.delete(
-  "/me/preferences/:id",
-  validate(idParamSchema, "params"),
-  deletePreference
-);
+router.patch("/me/preferences/:id", validate(idParamSchema, "params"), updatePreference);
+router.delete("/me/preferences/:id", validate(idParamSchema, "params"), deletePreference);
 
 // Routes pour les historiques des trajets et des réservations de l'utilisateur connecté
 

@@ -1,11 +1,14 @@
 import Joi from "joi";
 
-import type { ErrorRequestHandler, NextFunction, Request, Response } from "express";
-
 import config from "@/config/app.config.js";
 import AppError from "@/utils/AppError.js";
 import logError from "@/utils/logError.js";
 
+import type { ErrorRequestHandler, NextFunction, Request, Response } from "express";
+
+/**
+ * Middleware de gestion des erreurs
+ */
 const errorHandler: ErrorRequestHandler = (
   err: Error,
   req: Request,
@@ -22,7 +25,7 @@ const errorHandler: ErrorRequestHandler = (
       statusCode,
       statusText,
       message,
-      details: config.server.env === "development" && details,
+      details: config.env === "development" && details,
     });
   } else if (err instanceof Joi.ValidationError) {
     res.status(400).json({
