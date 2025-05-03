@@ -8,16 +8,14 @@ export const loginSchema = Joi.object({
     "any.required": "L'email est requis.",
     "string.empty": "L'email doit être une chaîne de caractères non vide.",
     "string.base": "L'email doit être une chaîne de caractères non vide.",
-    "string.email": "L'email doit respecter le format d'un email valide.",
+    "string.email": "L'email doit être un email valide.",
   }),
   password: Joi.string().trim().required().messages({
     "any.required": "Le mot de passe est requis.",
-    "string.empty":
-      "Le mot de passe doit être une chaîne de caractères non vide.",
-    "string.base":
-      "Le mot de passe doit être une chaîne de caractères non vide.",
+    "string.empty": "Le mot de passe doit être une chaîne de caractères non vide.",
+    "string.base": "Le mot de passe doit être une chaîne de caractères non vide.",
   }),
-}).options({ stripUnknown: true });
+});
 
 /**
  * Schéma de validation pour la création d'un compte utilisateur.
@@ -27,7 +25,7 @@ export const registerUserSchema = Joi.object({
     "any.required": "Un email est requis.",
     "string.base": "L'email  doit être une chaîne de caractères non vide.",
     "string.empty": "L'email doit être une chaîne de caractères non vide.",
-    "string.email": "L'email doit être valide.",
+    "string.email": "L'email doit être un email valide.",
     "string.max": "L'email ne doit pas dépasser 100 caractères.",
   }),
   pseudo: Joi.string()
@@ -53,10 +51,8 @@ export const registerUserSchema = Joi.object({
     .required()
     .messages({
       "any.required": "Un mot de passe est requis.",
-      "string.base":
-        "Le mot de passe doit être une chaîne de caractères non vide.",
-      "string.empty":
-        "Le mot de passe doit être une chaîne de caractères non vide.",
+      "string.base": "Le mot de passe doit être une chaîne de caractères non vide.",
+      "string.empty": "Le mot de passe doit être une chaîne de caractères non vide.",
       "string.min": "Le mot de passe doit contenir au moins 8 caractères.",
       "string.max": "Le mot de passe doit contenir maximum 16 caractères.",
       "string.pattern.base":
@@ -76,7 +72,7 @@ export const registerUserSchema = Joi.object({
     "string.min": "Le nom doit contenir au moins 2 caractères.",
     "string.max": "Le nom doit contenir maximum 50 caractères.",
   }),
-}).options({ stripUnknown: true });
+});
 
 /**
  * Schéma de validation pour la création d'un compte employé.
@@ -86,7 +82,7 @@ export const registerEmployeeSchema = Joi.object({
     "any.required": "Un email est requis.",
     "string.base": "L'email doit être une chaîne de caractères non vide.",
     "string.empty": "L'email doit être une chaîne de caractères non vide.",
-    "string.email": "L'email doit être valide.",
+    "string.email": "L'email doit être un email valide.",
     "string.max": "L'email ne doit pas dépasser 100 caractères.",
   }),
   password: Joi.string()
@@ -97,10 +93,8 @@ export const registerEmployeeSchema = Joi.object({
     .required()
     .messages({
       "any.required": "Un mot de passe est requis.",
-      "string.empty":
-        "Le mot de passe doit être une chaîne de caractères non vide.",
-      "string.base":
-        "Le mot de passe doit être une chaîne de caractères non vide.",
+      "string.empty": "Le mot de passe doit être une chaîne de caractères non vide.",
+      "string.base": "Le mot de passe doit être une chaîne de caractères non vide.",
       "string.min": "Le mot de passe doit contenir au moins 8 caractères.",
       "string.max": "Le mot de passe doit contenir maximum 16 caractères.",
       "string.pattern.base":
@@ -120,4 +114,4 @@ export const registerEmployeeSchema = Joi.object({
     "string.min": "Le nom doit contenir au moins 2 caractères.",
     "string.max": "Le nom doit contenir maximum 50 caractères.",
   }),
-}).options({ stripUnknown: true });
+});

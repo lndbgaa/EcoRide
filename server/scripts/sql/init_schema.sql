@@ -19,7 +19,7 @@ CREATE TABLE accounts (
   first_name VARCHAR(50) NOT NULL,
   last_name VARCHAR(50) NOT NULL,
   pseudo VARCHAR(50) UNIQUE,
-  phone VARCHAR(50),
+  phone VARCHAR(20),
   address VARCHAR(255),
   birth_date DATE,
   profile_picture VARCHAR(255),
@@ -27,28 +27,32 @@ CREATE TABLE accounts (
   is_passenger BOOLEAN,
   average_rating DECIMAL(3,2),
   credits INT CHECK (credits >= 0),
-  status ENUM('active', 'suspended') DEFAULT 'active',
+  status ENUM('active', 'suspended', "deleted") DEFAULT 'active',
   last_login TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   suspended_at TIMESTAMP,
+  deleted_at TIMESTAMP,
   FOREIGN KEY (role_id) REFERENCES roles(id) ON UPDATE CASCADE ON DELETE RESTRICT
 );
 
 CREATE INDEX idx_role_id ON accounts(role_id);
+CREATE INDEX idx_status ON accounts(status);
 
 -- TABLE REFRESH_TOKENS
 CREATE TABLE refresh_tokens (
-  id INT AUTO_INCREMENT PRIMARY KEY,
+  id CHAR(36) NOT NULL PRIMARY KEY,
   account_id CHAR(36) NOT NULL,
-  token VARCHAR(21) NOT NULL,
+  token VARCHAR(21) UNIQUE NOT NULL,
   expires_at TIMESTAMP NOT NULL,
+  revoked_at TIMESTAMP,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   FOREIGN KEY (account_id) REFERENCES accounts(id) ON DELETE CASCADE
 ); 
 
 CREATE INDEX idx_account_id ON refresh_tokens(account_id);
+CREATE INDEX idx_revoked_at ON refresh_tokens(revoked_at);
 
 -- TABLE VEHICLE_BRANDS
 CREATE TABLE vehicle_brands (
@@ -77,7 +81,7 @@ CREATE TABLE vehicles (
   energy_id INT NOT NULL,
   seats INT NOT NULL CHECK (seats BETWEEN 2 AND 7), -- véhicules de 2 à 7 places max = voiture
   license_plate VARCHAR(50) UNIQUE NOT NULL,
-  first_registration DATE NOT NULL CHECK (first_registration < CURDATE()),
+  first_registration DATE NOT NULL,
   owner_id CHAR(36) NOT NULL,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
@@ -125,8 +129,13 @@ CREATE TABLE rides (
   FOREIGN KEY (vehicle_id) REFERENCES vehicles(id) ON DELETE RESTRICT
 );
 
-CREATE INDEX idx_driver_id ON rides(driver_id);
-CREATE INDEX idx_departure_datetime ON rides(status, departure_datetime);
+CREATE INDEX idx_driver_id ON rides(driver_id, status);
+CREATE INDEX idx_search ON rides(
+  status,
+  departure_location,
+  arrival_location,
+  departure_datetime
+);
 
 -- TABLE BOOKINGS
 CREATE TABLE bookings (
@@ -166,3 +175,4 @@ CREATE TABLE reviews (
 
 CREATE INDEX idx_author_id ON reviews(author_id);
 CREATE INDEX idx_target_id ON reviews(target_id);
+CREATE INDEX idx_ride_id ON reviews(ride_id);

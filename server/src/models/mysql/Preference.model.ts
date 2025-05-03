@@ -1,7 +1,6 @@
-import { DataTypes, UUIDV4 } from "sequelize";
+import { DataTypes, Model, UUIDV4 } from "sequelize";
 
 import { sequelize } from "@/config/mysql.config.js";
-import Base from "./Base.model.js";
 
 export interface PreferencePrivateDTO {
   id: string;
@@ -10,7 +9,7 @@ export interface PreferencePrivateDTO {
   is_custom: boolean;
 }
 
-class Preference extends Base {
+class Preference extends Model {
   declare id: string;
   declare user_id: string;
   declare label: string;
@@ -24,8 +23,20 @@ class Preference extends Base {
     await this.save();
   }
 
+  public getLabel(): string {
+    return this.label;
+  }
+
+  public getValue(): boolean {
+    return this.value;
+  }
+
   public isDefault(): boolean {
     return !this.is_custom;
+  }
+
+  public isCustom(): boolean {
+    return this.is_custom;
   }
 
   public toPrivateDTO(): PreferencePrivateDTO {

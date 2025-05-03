@@ -7,15 +7,17 @@ import { Ride, User } from "@/models/mysql";
 import BookingService from "@/services/booking.service.js";
 import EmailService from "@/services/email.service.js";
 import PreferenceService from "@/services/preference.service.js";
+import UserService from "@/services/user.service.js";
 import VehicleService from "@/services/vehicle.service.js";
 import AppError from "@/utils/AppError.js";
+import { toDateOnly, toTimeOnly } from "@/utils/date.utils.js";
 
 import type { FindOptions, WhereOptions } from "sequelize";
 
 interface CreateRideData {
-  departureDatetime: Date;
+  departureDatetime: string;
   departureLocation: string;
-  arrivalDatetime: Date;
+  arrivalDatetime: string;
   arrivalLocation: string;
   vehicleId: string;
   price: number;
@@ -45,11 +47,11 @@ class RideService {
    * @param options - Options sequelize
    * @returns Le trajet trouvé.
    */
-  public static async findRideOrThrow(
-    rideId: string,
-    options?: FindOptions
-  ): Promise<Ride> {
-    const ride = await Ride.findOneByField("id", rideId, options);
+  public static async findRideOrThrow(rideId: string, options?: FindOptions): Promise<Ride> {
+    const ride = await Ride.findOne({
+      where: { id: rideId },
+      ...options,
+    });
 
     if (!ride) {
       throw new AppError({
@@ -93,14 +95,9 @@ class RideService {
    * @param data - Les données du trajet.
    * @returns Le trajet créé.
    */
-  public static async createRide(
-    userId: string,
-    data: CreateRideData
-  ): Promise<Ride> {
-    const vehicle = await VehicleService.findOwnedVehicleOrThrow(
-      userId,
-      data.vehicleId
-    );
+  public static async createRide(userId: string, data: CreateRideData): Promise<Ride> {
+    const user = await UserService.assertUserIsDriverOrThrow(userId);
+    const vehicle = await VehicleService.findOwnedVehicleOrThrow(user.getId(), data.vehicleId);
 
     const availablePassengerSeats = vehicle.getSeats() - 1;
 
@@ -112,22 +109,14 @@ class RideService {
       });
     }
 
-    const departureDatetime = dayjs
-      .tz(data.departureDatetime, "Europe/Paris")
-      .utc()
-      .toDate();
-
-    const arrivalDatetime = dayjs
-      .tz(data.arrivalDatetime, "Europe/Paris")
-      .utc()
-      .toDate();
+    const formatDate = (date: string): Date => dayjs.tz(date, "Europe/Paris").utc().toDate();
 
     const dataToCreate: Partial<Ride> = {
-      departure_datetime: departureDatetime,
+      departure_datetime: formatDate(data.departureDatetime),
       departure_location: data.departureLocation,
-      arrival_datetime: arrivalDatetime,
+      arrival_datetime: formatDate(data.arrivalDatetime),
       arrival_location: data.arrivalLocation,
-      driver_id: userId,
+      driver_id: user.getId(),
       vehicle_id: data.vehicleId,
       price: data.price,
       offered_seats: data.offeredSeats,
@@ -135,9 +124,10 @@ class RideService {
     };
 
     return await sequelize.transaction(async (transaction) => {
-      const newRide = await Ride.createOne(dataToCreate, { transaction });
+      const newRide = await Ride.create(dataToCreate, { transaction });
 
-      const createdRide = await Ride.findOneByField("id", newRide.id, {
+      const createdRide = await Ride.findOne({
+        where: { id: newRide.getId() },
         include: [{ association: "vehicle", include: VEHICLE_ASSOCIATIONS }],
         transaction,
       });
@@ -170,10 +160,10 @@ class RideService {
   ): Promise<{ count: number; rides: Ride[] }> {
     const conditions: WhereOptions<Ride> = {
       departure_location: {
-        [Op.like]: `%${data.departureLocation}%`,
+        [Op.like]: `${data.departureLocation}%`,
       },
       arrival_location: {
-        [Op.like]: `%${data.arrivalLocation}%`,
+        [Op.like]: `${data.arrivalLocation}%`,
       },
       departure_datetime: {
         [Op.between]: [
@@ -232,7 +222,7 @@ class RideService {
    */
   public static async getRidePassengers(rideId: string): Promise<User[]> {
     const ride = await this.findRideOrThrow(rideId);
-    const bookings = await BookingService.getRideBookings(ride.id, {
+    const bookings = await BookingService.getRideBookings(ride.getId(), {
       where: { status: "confirmed" },
     });
 
@@ -249,7 +239,8 @@ class RideService {
    * @returns Les détails du trajet.
    */
   public static async getRideDetails(rideId: string): Promise<RideDetails> {
-    const ride = await Ride.findOneByField("id", rideId, {
+    const ride = await Ride.findOne({
+      where: { id: rideId },
       include: [
         { association: "vehicle", include: VEHICLE_ASSOCIATIONS },
         { association: "driver" },
@@ -266,29 +257,19 @@ class RideService {
 
     const passengers: User[] = await this.getRidePassengers(ride.getId());
 
-    const preferences = await PreferenceService.getPreferences(
-      ride.getDriverId()
-    );
+    const preferences = await PreferenceService.getPreferences(ride.getDriverId());
 
     const finalPreferences: string[] = preferences.flatMap((preference) => {
-      if (preference.is_custom && preference.value) {
-        return [preference.label];
+      if (preference.isCustom() && preference.getValue()) {
+        return [preference.getLabel()];
       }
 
-      if (preference.label === "Animaux") {
-        return [
-          preference.value
-            ? "J'accepte les animaux."
-            : "Je n'accepte pas les animaux.",
-        ];
+      if (preference.getLabel() === "Animaux") {
+        return [preference.getValue() ? "J'accepte les animaux." : "Je n'accepte pas les animaux."];
       }
 
-      if (preference.label === "Fumeur") {
-        return [
-          preference.value
-            ? "J'accepte les fumeurs."
-            : "Je n'accepte pas les fumeurs.",
-        ];
+      if (preference.getLabel() === "Fumeur") {
+        return [preference.getValue() ? "J'accepte les fumeurs." : "Je n'accepte pas les fumeurs."];
       }
 
       return [];
@@ -318,9 +299,7 @@ class RideService {
       }
 
       const now = dayjs().tz("Europe/Paris", true);
-      const departure = dayjs
-        .utc(ride.departure_datetime)
-        .tz("Europe/Paris", true);
+      const departure = dayjs.utc(ride.departure_datetime).tz("Europe/Paris", true);
       const diffInMs = departure.diff(now, "ms");
       const oneHourInMs = 60 * 60 * 1000;
 
@@ -354,8 +333,7 @@ class RideService {
         throw new AppError({
           statusCode: 400,
           statusText: "Bad Request",
-          message:
-            "Impossible de terminer ce trajet car il n'est pas en cours de progression.",
+          message: "Impossible de terminer ce trajet car il n'est pas en cours de progression.",
         });
       }
 
@@ -369,9 +347,7 @@ class RideService {
         const passengers = await this.getRidePassengers(ride.getId());
 
         await Promise.allSettled(
-          bookings.map((booking) =>
-            booking.markAsAwaitingFeedback({ transaction })
-          )
+          bookings.map((booking) => booking.markAsAwaitingFeedback({ transaction }))
         );
 
         await EmailService.sendBulkEmail(
@@ -381,11 +357,10 @@ class RideService {
               passenger: passenger.getFirstName(),
               departureLocation: ride.departure_location,
               arrivalLocation: ride.arrival_location,
-              departureDatetime: ride.departure_datetime.toLocaleString(),
               driver: ride.driver?.getFirstName() ?? "Inconnu",
             },
           })),
-          "Validez votre trajet Ecoride",
+          "Valide ton trajet EcoRide",
           "rideReview.html"
         );
       }
@@ -397,10 +372,7 @@ class RideService {
    * @param rideId - L'identifiant du trajet à annuler.
    * @param userId - L'identifiant de l'utilisateur.
    */
-  public static async cancelRide(
-    rideId: string,
-    userId: string
-  ): Promise<void> {
+  public static async cancelRide(rideId: string, userId: string): Promise<void> {
     return await sequelize.transaction(async (transaction) => {
       const ride = await this.findOwnedRideOrThrow(userId, rideId, {
         lock: transaction.LOCK.UPDATE,
@@ -448,11 +420,12 @@ class RideService {
               passenger: passenger.getFirstName(),
               departureLocation: ride.departure_location,
               arrivalLocation: ride.arrival_location,
-              departureDatetime: ride.departure_datetime.toLocaleString(),
+              departureDate: toDateOnly(ride.departure_datetime),
+              departureTime: toTimeOnly(ride.departure_datetime),
               driver: ride.driver?.getFirstName() ?? "Inconnu",
             },
           })),
-          "Réservation annulée",
+          "Ta réservation a été annulée",
           "rideCancellation.html"
         );
       }

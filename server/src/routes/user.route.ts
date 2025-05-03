@@ -37,10 +37,7 @@ import { getMyRides } from "@/controllers/ride.controller.js";
 
 import { getMyBookings } from "@/controllers/booking.controller.js";
 
-import {
-  getMyReceivedReviews,
-  getMyWrittenReviews,
-} from "@/controllers/review.controller.js";
+import { getMyReceivedReviews, getMyWrittenReviews } from "@/controllers/review.controller.js";
 
 const router = Router();
 

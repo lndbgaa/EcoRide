@@ -1,8 +1,8 @@
-import { DataTypes, UUIDV4 } from "sequelize";
+import { DataTypes, Model, UUIDV4 } from "sequelize";
 
 import { sequelize } from "@/config/mysql.config.js";
 import { REVIEW_STATUSES } from "@/constants/index.js";
-import { Base, Employee, Ride, User } from "@/models/mysql";
+import { Employee, Ride, User } from "@/models/mysql";
 import { toDateOnly, toTimeOnly } from "@/utils/date.utils.js";
 
 import type { RidePublicPreviewDTO } from "@/models/mysql/Ride.model.js";
@@ -49,7 +49,7 @@ export interface ReviewEmployeeDTO {
  *
  * @extends Base
  */
-class Review extends Base {
+class Review extends Model {
   declare id: string;
   declare rating: number;
   declare comment: string;

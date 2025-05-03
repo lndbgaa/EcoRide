@@ -10,7 +10,7 @@
     "preview": "npm run build && npm start",
     "dev": "tsx watch ./src/app.ts",
     "debug": "tsx watch --inspect ./src/app.ts",
-    "db:init:mysql": "tsx ./src/database/mysql/scripts/initDB.js"
+    "db:init:mysql": "tsx ./scripts/initDB.js"
   },
   "keywords": [],
   "author": "",
@@ -41,7 +41,6 @@
     "dotenv": "^16.5.0",
     "ejs": "^3.1.10",
     "express": "^5.1.0",
-    "express-mongo-sanitize": "^2.2.0",
     "express-rate-limit": "^7.5.0",
     "helmet": "^8.1.0",
     "joi": "^17.13.3",

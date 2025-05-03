@@ -4,6 +4,7 @@ import { Review, User } from "@/models/mysql/index.js";
 import UploadService from "@/services/upload.service.js";
 import AppError from "@/utils/AppError.js";
 
+import { sequelize } from "@/config/mysql.config";
 import type { UserRole } from "@/types/index.js";
 import type { FindOptions, Transaction } from "sequelize";
 
@@ -13,18 +14,17 @@ class UserService {
    * @param userId - L'id de l'utilisateur
    * @returns Le user trouvé
    */
-  public static async findUserOrThrow(
-    userId: string,
-    options?: FindOptions
-  ): Promise<User> {
-    const user = await User.findOneByField("id", userId, options);
+  public static async findUserOrThrow(userId: string, options?: FindOptions): Promise<User> {
+    const user = await User.findOne({
+      where: { id: userId },
+      ...options,
+    });
 
     if (!user) {
       throw new AppError({
         statusCode: 404,
         statusText: "Not Found",
-        message:
-          "Utilisateur non trouvé. Veuillez vérifier l'id de l'utilisateur.",
+        message: "Utilisateur non trouvé. Veuillez vérifier l'id de l'utilisateur.",
       });
     }
 
@@ -46,8 +46,7 @@ class UserService {
       throw new AppError({
         statusCode: 403,
         statusText: "Forbidden",
-        message:
-          "Seuls les utilisateurs chauffeurs peuvent accéder à cette ressource. ",
+        message: "Seuls les utilisateurs chauffeurs peuvent accéder à cette ressource. ",
       });
     }
 
@@ -69,8 +68,7 @@ class UserService {
       throw new AppError({
         statusCode: 403,
         statusText: "Forbidden",
-        message:
-          "Seuls les utilisateurs passagers peuvent accéder à cette ressource.",
+        message: "Seuls les utilisateurs passagers peuvent accéder à cette ressource.",
       });
     }
 
@@ -94,9 +92,8 @@ class UserService {
    * @returns Les informations de l'utilisateur mises à jour
    */
   public static async updateInfo(userId: string, data: any): Promise<User> {
-    await this.findUserOrThrow(userId);
+    const user = await this.findUserOrThrow(userId);
 
-    // formatage des données à mettre à jour avant de les envoyer à la BDD
     const dataToUpdate = {
       ...(data.firstName && { first_name: data.firstName }),
       ...(data.lastName && { last_name: data.lastName }),
@@ -108,20 +105,22 @@ class UserService {
       ...(data.pseudo && { pseudo: data.pseudo }),
     };
 
-    await User.updateByField("id", userId, dataToUpdate);
+    return await sequelize.transaction(async (transaction) => {
+      await User.update(dataToUpdate, { where: { id: user.getId() }, transaction });
 
-    const updatedUser = await User.findOneByField("id", userId);
+      const updatedUser = await User.findOne({ where: { id: user.getId() }, transaction });
 
-    if (!updatedUser) {
-      throw new AppError({
-        statusCode: 500,
-        statusText: "Internal Server Error",
-        message:
-          "Une erreur est survenue lors de la mise à jour des informations de l'utilisateur.",
-      });
-    }
+      if (!updatedUser) {
+        throw new AppError({
+          statusCode: 500,
+          statusText: "Internal Server Error",
+          message:
+            "Une erreur est survenue lors de la mise à jour des informations de l'utilisateur.",
+        });
+      }
 
-    return updatedUser;
+      return updatedUser;
+    });
   }
 
   /**
@@ -129,10 +128,7 @@ class UserService {
    * @param role - Le rôle à mettre à jour
    * @param userId - L'id de l'utilisateur
    */
-  public static async updateRole(
-    role: UserRole,
-    userId: string
-  ): Promise<void> {
+  public static async updateRole(role: UserRole, userId: string): Promise<void> {
     const user = await this.findUserOrThrow(userId);
 
     if (role === "driver") {
@@ -152,16 +148,14 @@ class UserService {
     file: Express.Multer.File,
     userId: string
   ): Promise<{ url: string }> {
-    await this.findUserOrThrow(userId);
+    const user = await this.findUserOrThrow(userId);
 
     const { secure_url } = await UploadService.uploadImage(
       file,
       `ecoride/users/${userId}/profile-picture`
     );
 
-    await User.updateByField("id", userId, {
-      profile_picture: secure_url,
-    });
+    await User.update({ profile_picture: secure_url }, { where: { id: user.getId() } });
 
     return { url: secure_url };
   }
@@ -169,28 +163,26 @@ class UserService {
   /**
    * Met à jour la note moyenne d'un utilisateur
    * @param userId - L'id de l'utilisateur
+   * @param options - Options sequelize
    */
-  public static async updateAverageRating(
-    userId: string,
-    options?: { transaction?: Transaction }
-  ) {
-    const reviews = await Review.findAllByField("target_id", userId, {
+  public static async updateAverageRating(userId: string, options?: { transaction?: Transaction }) {
+    const user = await this.findUserOrThrow(userId);
+
+    const reviews = await Review.findAll({
+      where: { target_id: user.getId() },
       ...options,
     });
 
     if (reviews.length === 0) {
-      await User.updateByField("id", userId, { average_rating: null }, options);
+      await User.update({ average_rating: null }, { where: { id: user.getId() }, ...options });
       return;
     }
 
-    const averageRating =
-      reviews.reduce((acc, review) => acc + review.rating, 0) / reviews.length;
+    const averageRating = reviews.reduce((acc, review) => acc + review.rating, 0) / reviews.length;
 
-    await User.updateByField(
-      "id",
-      userId,
+    await User.update(
       { average_rating: averageRating },
-      options
+      { where: { id: user.getId() }, ...options }
     );
   }
 }

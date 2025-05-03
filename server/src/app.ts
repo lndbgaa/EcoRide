@@ -19,6 +19,7 @@ import connectMongo from "@/config/mongo.config.js";
 import { connectMySQL } from "@/config/mysql.config.js";
 import errorHandler from "@/middlewares/errorHandler.js";
 import { globalLimiter } from "@/middlewares/rateLimiter.js";
+import sanitizeAll from "@/middlewares/sanitizeAll.js";
 import adminRoutes from "@/routes/admin.route.js";
 import authRoutes from "@/routes/auth.route.js";
 import bookingsRoutes from "@/routes/booking.route.js";
@@ -28,7 +29,6 @@ import reviewsRoutes from "@/routes/review.route.js";
 import ridesRoutes from "@/routes/ride.route.js";
 import usersRoutes from "@/routes/user.route.js";
 import AppError from "@/utils/AppError.js";
-import sanitizeAll from "./middlewares/sanitizeAll";
 
 const app = express();
 const PORT = config.port;

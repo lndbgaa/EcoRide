@@ -17,7 +17,10 @@ class BookingService {
     bookingId: string,
     options?: FindOptions
   ): Promise<Booking> {
-    const booking = await Booking.findOneByField("id", bookingId, options);
+    const booking = await Booking.findOne({
+      where: { id: bookingId },
+      ...options,
+    });
 
     if (!booking) {
       throw new AppError({
@@ -47,8 +50,7 @@ class BookingService {
       throw new AppError({
         statusCode: 403,
         statusText: "Forbidden",
-        message:
-          "Vous n'avez pas les permissions pour accéder à cette réservation.",
+        message: "Vous n'avez pas les permissions pour accéder à cette réservation.",
       });
     }
 
@@ -136,16 +138,13 @@ class BookingService {
       });
     }
 
-    const hasUserAlreadyBooked = !!(await Booking.findOneByField(
-      "ride_id",
-      rideId,
-      {
-        where: {
-          passenger_id: userId,
-          status: "confirmed",
-        },
-      }
-    ));
+    const hasUserAlreadyBooked = !!(await Booking.findOne({
+      where: {
+        ride_id: rideId,
+        passenger_id: userId,
+        status: "confirmed",
+      },
+    }));
 
     if (hasUserAlreadyBooked) {
       throw new AppError({
@@ -159,8 +158,7 @@ class BookingService {
       throw new AppError({
         statusCode: 403,
         statusText: "Forbidden",
-        message:
-          "Il n'y a pas assez de places disponibles pour réserver ce trajet.",
+        message: "Il n'y a pas assez de places disponibles pour réserver ce trajet.",
       });
     }
 
@@ -177,7 +175,7 @@ class BookingService {
     }
 
     return await sequelize.transaction(async (transaction) => {
-      const booking = await Booking.createOne(
+      const booking = await Booking.create(
         {
           ride_id: rideId,
           passenger_id: userId,
@@ -198,10 +196,7 @@ class BookingService {
    * @param userId - L'id de l'utilisateur
    * @param bookingId - L'id de la réservation
    */
-  public static async cancelBooking(
-    userId: string,
-    booking: Booking
-  ): Promise<void> {
+  public static async cancelBooking(userId: string, booking: Booking): Promise<void> {
     this.assertBookingCanBeCancelled(booking);
 
     const user = await UserService.findUserOrThrow(userId);
@@ -223,9 +218,7 @@ class BookingService {
    * @param userId - L'id de l'utilisateur
    * @param bookingId - L'id de la réservation
    */
-  public static async confirmSuccessfulBooking(
-    booking: Booking
-  ): Promise<void> {
+  public static async confirmSuccessfulBooking(booking: Booking): Promise<void> {
     this.assertBookingCanBeValidated(booking);
 
     const ride = await RideService.findRideOrThrow(booking.getRideId());
@@ -247,9 +240,7 @@ class BookingService {
    * @param userId - L'id de l'utilisateur
    * @param bookingId - L'id de la réservation
    */
-  public static async confirmBookingWithIncident(
-    booking: Booking
-  ): Promise<void> {
+  public static async confirmBookingWithIncident(booking: Booking): Promise<void> {
     this.assertBookingCanBeValidated(booking);
 
     await sequelize.transaction(async (transaction) => {
@@ -262,13 +253,11 @@ class BookingService {
    * @param rideId - L'id du trajet
    * @returns Les réservations trouvées
    */
-  public static async getRideBookings(
-    rideId: string,
-    options?: FindOptions
-  ): Promise<Booking[]> {
+  public static async getRideBookings(rideId: string, options?: FindOptions): Promise<Booking[]> {
     const ride = await RideService.findRideOrThrow(rideId);
 
-    const bookings = await Booking.findAllByField("ride_id", ride.id, {
+    const bookings = await Booking.findAll({
+      where: { ride_id: ride.id },
       include: [{ association: "passenger" }],
       ...options,
     });
@@ -282,7 +271,8 @@ class BookingService {
    * @returns Les réservations trouvées
    */
   public static async getUserBookings(userId: string): Promise<Booking[]> {
-    const bookings = await Booking.findAllByField("passenger_id", userId, {
+    const bookings = await Booking.findAll({
+      where: { passenger_id: userId },
       include: [{ association: "ride" }],
     });
 

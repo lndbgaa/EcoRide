@@ -1,8 +1,7 @@
-import { DataTypes } from "sequelize";
+import { DataTypes, Model } from "sequelize";
 
 import { sequelize } from "@/config/mysql.config.js";
 import { VEHICLE_ECO_ENERGY_IDS } from "@/constants/index.js";
-import Base from "@/models/mysql/Base.model.js";
 import VehicleBrand from "@/models/mysql/VehicleBrand.model.js";
 import VehicleColor from "@/models/mysql/VehicleColor.model.js";
 import VehicleEnergy from "@/models/mysql/VehicleEnergy.model.js";
@@ -28,7 +27,7 @@ export interface VehiclePrivateDTO extends VehiclePublicDTO {
  *
  * @extends Base
  */
-class Vehicle extends Base {
+class Vehicle extends Model {
   declare id: string;
   declare brand_id: number;
   declare model: string;

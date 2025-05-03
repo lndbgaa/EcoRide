@@ -8,8 +8,8 @@ const __dirname = path.dirname(__filename); // Dossier contenant ce fichier
 
 const initDB = async () => {
   const files = [
-    path.resolve(__dirname, "../sql/schema.sql"),
-    path.resolve(__dirname, "../sql/seeds.sql"),
+    path.resolve(__dirname, "./sql/init_schema.sql"),
+    path.resolve(__dirname, "./sql/init_seeds.sql"),
   ];
 
   for (const file of files) {

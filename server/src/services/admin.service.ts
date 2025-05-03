@@ -8,9 +8,8 @@ class AdminService {
   /**
    * Suspend un compte par son identifiant
    * @param id - Identifiant du compte à suspendre
-   * @returns Le nombre de comptes affectés
    */
-  public static async suspendAccount(id: string): Promise<number> {
+  public static async suspendAccount(id: string): Promise<void> {
     const account = await AccountService.findOneById(id);
 
     if (!account) {
@@ -30,16 +29,13 @@ class AdminService {
     }
 
     await account.suspend();
-
-    return 1;
   }
 
   /**
    * Réactive un compte suspendu par son identifiant
    * @param id - Identifiant du compte à réactiver
-   * @returns Le nombre de comptes affectés
    */
-  public static async unsuspendAccount(id: string): Promise<number> {
+  public static async unsuspendAccount(id: string): Promise<void> {
     const account = await AccountService.findOneById(id);
 
     if (!account) {
@@ -59,8 +55,6 @@ class AdminService {
     }
 
     await account.unsuspend();
-
-    return 1;
   }
 }
 

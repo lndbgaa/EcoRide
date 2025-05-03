@@ -6,14 +6,8 @@ import RideService from "@/services/ride.service.js";
 import UserService from "@/services/user.service.js";
 import AppError from "@/utils/AppError.js";
 
-import type {
-  IncidentDocument,
-  IncidentStatus,
-} from "@/models/mongo/Incident.model.js";
-interface CreateIncidentData {
-  rideId: string;
-  description: string;
-}
+import type { IncidentDocument } from "@/models/mongo/Incident.model.js";
+import type { IncidentStatus } from "@/types/index.js";
 
 class IncidentService {
   /**
@@ -105,9 +99,7 @@ class IncidentService {
    * @param incidentId - L'identifiant de l'incident
    * @returns L'incident
    */
-  public static async getIncidentById(
-    incidentId: string
-  ): Promise<IncidentDocument> {
+  public static async getIncidentById(incidentId: string): Promise<IncidentDocument> {
     const incident = await Incident.findById(incidentId);
 
     if (!incident) {

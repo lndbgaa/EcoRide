@@ -19,13 +19,16 @@ function getEnvVar(name: string): string {
 }
 
 const env = process.env.NODE_ENV ?? "development";
+const serverUrl = env === "production" ? getEnvVar("SERVER_URL") : "http://localhost:8080";
+const clientUrl = env === "production" ? getEnvVar("CLIENT_URL") : "http://localhost:5173";
 
 const config = {
   env,
-  port: process.env.MYSQL_DB_PORT ? Number(process.env.MYSQL_DB_PORT) : 8080,
-  url: env === "production" ? getEnvVar("SERVER_URL") : "http://localhost:8080",
+  serverUrl,
+  clientUrl,
+  port: process.env.PORT ? Number(process.env.PORT) : 8080,
   cors: {
-    origin: env === "production" ? getEnvVar("CLIENT_URL") : "http://localhost:5173",
+    origin: [clientUrl],
     methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization", "Accept"],
     credentials: true,
@@ -45,7 +48,17 @@ const config = {
   mongo: {
     uri: getEnvVar("MONGO_DB_URI"),
   },
+  cloudinary: {
+    cloud_name: getEnvVar("CLOUDINARY_CLOUD_NAME"),
+    api_key: getEnvVar("CLOUDINARY_KEY"),
+    api_secret: getEnvVar("CLOUDINARY_SECRET"),
+  },
+  nodemailer: {
+    host: getEnvVar("SMTP_HOST"),
+    port: parseInt(getEnvVar("SMTP_PORT")),
+    user: getEnvVar("SMTP_USER"),
+    pass: getEnvVar("SMTP_PASSWORD"),
+  },
 };
 
-export { getEnvVar };
 export default config;

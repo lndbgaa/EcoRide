@@ -6,28 +6,16 @@ import requireRole from "@/middlewares/requireRole.js";
 import validate from "@/middlewares/validateAll.js";
 
 import { idParamSchema } from "@/validators/common.validator.js";
-import {
-  createIncidentSchema,
-  resolveIncidentSchema,
-} from "@/validators/incident.validator.js";
+import { resolveIncidentSchema } from "@/validators/incident.validator.js";
 
 const router = Router();
 
 import {
   assignIncident,
-  createIncident,
   getIncidentDetails,
   getPendingIncidents,
   resolveIncident,
 } from "@/controllers/incident.controller.js";
-
-router.post(
-  "/",
-  requireAuth,
-  requireRole([ACCOUNT_ROLES_LABEL.USER]),
-  validate(createIncidentSchema),
-  createIncident
-);
 
 router.get(
   "/pending",

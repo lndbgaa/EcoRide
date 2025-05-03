@@ -1,3 +1,4 @@
+import dayjs from "dayjs";
 import Joi from "joi";
 
 /**
@@ -29,8 +30,8 @@ export const addVehicleSchema = Joi.object({
   seats: Joi.number().integer().strict().min(2).max(7).required().messages({
     "any.required": "Le nombre de sièges est requis.",
     "number.base": "Le nombre de sièges doit être un nombre entier.",
-    "number.min": "Le nombre de sièges pour une voiture doit être minimum 2.",
-    "number.max": "Le nombre de sièges pour une voiture doit être maximum 7.",
+    "number.min": "Le nombre de sièges pour une voiture doit être minimum de 2.",
+    "number.max": "Le nombre de sièges pour une voiture doit être maximum de 7.",
   }),
   licensePlate: Joi.string()
     .trim()
@@ -42,15 +43,28 @@ export const addVehicleSchema = Joi.object({
         "La plaque d'immatriculation doit être une chaîne de caractères non vide.",
       "string.empty":
         "La plaque d'immatriculation doit être une chaîne de caractères non vide.",
-      "string.pattern.base":
-        "Format de plaque invalide. Format attendu : AB-123-CD",
+      "string.pattern.base": "Format de plaque invalide. Format attendu : AB-123-CD",
     }),
-  firstRegistration: Joi.date().required().messages({
-    "any.required": "La date de première mise en circulation est requise.",
-    "date.base":
-      "La date de première mise en circulation doit être une date valide.",
-  }),
-}).options({ stripUnknown: true });
+  firstRegistration: Joi.string()
+    .trim()
+    .custom((value, helpers) => {
+      const today = dayjs();
+      const parsed = dayjs(value, "DD/MM/YYYY", true);
+      if (!parsed.isValid() || !parsed.isBefore(today)) {
+        return helpers.error("any.invalid");
+      }
+      return value;
+    })
+    .required()
+    .messages({
+      "any.required": "La date de première mise en circulation est requise.",
+      "string.base": "La date de première mise en circulation doit être une date valide.",
+      "string.empty":
+        "La date de première mise en circulation doit être une date valide.",
+      "any.invalid":
+        "La date de première mise en circulation doit être une date valide antérieure à la date actuelle.",
+    }),
+});
 
 /**
  * Validation des données passées pour la mise à jour d'un véhicule par un utilisateur
@@ -76,12 +90,11 @@ export const updateVehicleSchema = Joi.object({
   }),
   seats: Joi.number().integer().min(2).max(7).optional().messages({
     "number.base": "Le nombre de sièges doit être un nombre entier.",
-    "number.min": "Le nombre de sièges pour une voiture doit être minimum 2.",
-    "number.max": "Le nombre de sièges pour une voiture doit être maximum 7.",
+    "number.min": "Le nombre de sièges pour une voiture doit être minimum de 2.",
+    "number.max": "Le nombre de sièges pour une voiture doit être maximum de 7.",
   }),
 })
   .min(1)
-  .options({ stripUnknown: true })
   .messages({
-    "object.min": "Au moins une propriété est requise.",
+    "object.min": "Au moins une propriété valide doit être renseignée.",
   });

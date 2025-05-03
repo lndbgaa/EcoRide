@@ -1,8 +1,7 @@
 import bcrypt from "bcrypt";
-import { DataTypes } from "sequelize";
+import { DataTypes, Model } from "sequelize";
 
 import { ACCOUNT_ROLES_ID, ACCOUNT_STATUSES } from "@/constants/index.js";
-import Base from "@/models/mysql/Base.model.js";
 import Role from "@/models/mysql/Role.model.js";
 import AppError from "@/utils/AppError.js";
 
@@ -19,7 +18,7 @@ import type { ModelStatic } from "sequelize";
  * @extends Base
  */
 
-abstract class Account extends Base {
+abstract class Account extends Model {
   declare id: string;
   declare role_id: number;
   declare email: string;

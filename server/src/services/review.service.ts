@@ -1,12 +1,13 @@
-import type { ReviewStatus } from "@/models/mysql/Review.model.js";
-import type { FindOptions } from "sequelize";
-
 import { sequelize } from "@/config/mysql.config.js";
+import { REVIEW_STATUSES } from "@/constants/index.js";
 import Review from "@/models/mysql/Review.model.js";
 import BookingService from "@/services/booking.service.js";
 import RideService from "@/services/ride.service.js";
 import UserService from "@/services/user.service.js";
 import AppError from "@/utils/AppError.js";
+
+import type { ReviewStatus } from "@/types/index.js";
+import type { FindOptions } from "sequelize";
 
 interface CreateReviewData {
   rideId: string;
@@ -15,8 +16,15 @@ interface CreateReviewData {
 }
 
 class ReviewService {
+  /**
+   * Vérifie que l'avis existe et le retourne.
+   * @param reviewId - L'id de l'avis à trouver.
+   * @returns L'avis trouvé.
+   */
   public static async findReviewOrThrow(reviewId: string): Promise<Review> {
-    const review = await Review.findOneByField("id", reviewId);
+    const review = await Review.findOne({
+      where: { id: reviewId },
+    });
 
     if (!review) {
       throw new AppError({
@@ -34,10 +42,7 @@ class ReviewService {
    * @param userId - L'id de l'utilisateur qui crée l'avis
    * @param data - Les données de l'avis à créer
    */
-  public static async createReview(
-    userId: string,
-    data: CreateReviewData
-  ): Promise<void> {
+  public static async createReview(userId: string, data: CreateReviewData): Promise<void> {
     const ride = await RideService.findRideOrThrow(data.rideId);
 
     if (ride.getDriverId() === userId) {
@@ -63,9 +68,7 @@ class ReviewService {
       where: { status: "completed" },
     });
 
-    const isRidePassenger = rideBookings.some(
-      (booking) => booking.getPassengerId() === userId
-    );
+    const isRidePassenger = rideBookings.some((booking) => booking.getPassengerId() === userId);
 
     if (!isRidePassenger) {
       throw new AppError({
@@ -75,8 +78,9 @@ class ReviewService {
       });
     }
 
-    const reviewCount = await Review.countAllByField("ride_id", data.rideId, {
+    const reviewCount = await Review.count({
       where: {
+        ride_id: data.rideId,
         author_id: userId,
       },
     });
@@ -89,7 +93,7 @@ class ReviewService {
       });
     }
 
-    await Review.createOne({
+    await Review.create({
       ride_id: data.rideId,
       target_id: ride.getDriverId(),
       author_id: userId,
@@ -194,19 +198,17 @@ class ReviewService {
     }
 
     return await sequelize.transaction(async (transaction) => {
-      await Review.updateByField(
-        "id",
-        reviewId,
+      await Review.update(
         {
           status,
           moderator_id: employeeId,
         },
-        { transaction }
+        { where: { id: reviewId }, transaction }
       );
 
       const targetId = review.getTargetId();
 
-      if (status === "approved" && targetId) {
+      if (status === REVIEW_STATUSES.APPROVED && targetId) {
         await UserService.updateAverageRating(targetId, { transaction });
       }
     });

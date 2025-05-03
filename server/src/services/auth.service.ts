@@ -1,3 +1,4 @@
+import dayjs from "dayjs";
 import ms from "ms";
 import { nanoid } from "nanoid";
 
@@ -46,6 +47,7 @@ type LoginResponse = {
 
 type RefreshAccessTokenResponse = {
   accessToken: string;
+  newRefreshToken: string;
   expiresAt: number;
   expiresIn: number;
 };
@@ -83,9 +85,7 @@ class AuthService {
    * @param data - Données du compte (email, pseudo, mot de passe, prénom, nom)
    * @returns Jeton d'accès (access token) et de rafraîchissement (refresh token)
    */
-  public static async registerUser(
-    data: RegisterUserData
-  ): Promise<RegisterUserResponse> {
+  public static async registerUser(data: RegisterUserData): Promise<RegisterUserResponse> {
     const { email, pseudo, password, firstName, lastName } = data;
 
     await this.assertEmailIsUnique(email);
@@ -94,7 +94,7 @@ class AuthService {
     // Après inscription, l'utilisateur est connecté.
     // -> Le compte ne peut pas être créé dans la BDD sans un refresh token et inversement = transaction
     return await sequelize.transaction(async (transaction) => {
-      const now = Date.now();
+      const now = dayjs();
 
       const newUser: User = await User.create(
         {
@@ -111,7 +111,7 @@ class AuthService {
         {
           account_id: newUser.id,
           token: nanoid(),
-          expires_at: new Date(now + ms(refresh_expiration)),
+          expires_at: now.add(ms(refresh_expiration), "ms").toDate(),
         },
         { transaction }
       );
@@ -127,7 +127,7 @@ class AuthService {
         accessToken,
         refreshToken: refreshToken.token,
         expiresIn: ms(access_expiration),
-        expiresAt: now + ms(access_expiration),
+        expiresAt: now.add(ms(access_expiration), "ms").toDate().getTime(),
       };
     });
   }
@@ -138,9 +138,7 @@ class AuthService {
    * @param data - Données du compte (email, pseudo, mot de passe, prénom, nom)
    * @returns ID du compte
    */
-  public static async registerEmployee(
-    data: RegisterEmployeeData
-  ): Promise<{ accountId: string }> {
+  public static async registerEmployee(data: RegisterEmployeeData): Promise<{ accountId: string }> {
     const { email, password, firstName, lastName } = data;
 
     await this.assertEmailIsUnique(email);
@@ -187,21 +185,15 @@ class AuthService {
     }
 
     const role = account.role?.label ?? ACCOUNT_ROLES_LABEL.USER;
-    const now = Date.now();
-
-    await RefreshToken.destroy({ where: { account_id: account.id } });
+    const now = dayjs();
 
     const refreshToken = await RefreshToken.create({
       account_id: account.id,
       token: nanoid(),
-      expires_at: new Date(now + ms(refresh_expiration)),
+      expires_at: now.add(ms(refresh_expiration), "ms").toDate(),
     });
 
-    const accessToken = generateToken(
-      { id: account.id, role },
-      access_secret,
-      access_expiration
-    );
+    const accessToken = generateToken({ id: account.id, role }, access_secret, access_expiration);
 
     await account.updateLastLogin();
 
@@ -209,7 +201,7 @@ class AuthService {
       accessToken,
       refreshToken: refreshToken.token,
       expiresIn: ms(access_expiration),
-      expiresAt: now + ms(access_expiration),
+      expiresAt: now.add(ms(access_expiration), "ms").toDate().getTime(),
     };
   }
 
@@ -219,7 +211,7 @@ class AuthService {
    * @param refreshToken - Jeton de rafraîchissement (refresh token)
    */
   public static async logout(refreshToken: string): Promise<void> {
-    await RefreshToken.destroy({ where: { token: refreshToken } });
+    await RefreshToken.update({ revoked_at: new Date() }, { where: { token: refreshToken } });
   }
 
   /**
@@ -231,27 +223,39 @@ class AuthService {
   public static async refreshAccessToken(
     refreshToken: string
   ): Promise<RefreshAccessTokenResponse> {
-    const tokenRecord = await RefreshToken.findOne({ where: { token: refreshToken } });
+    const refreshTokenRecord = await RefreshToken.findOne({
+      where: { token: refreshToken },
+    });
 
-    if (!tokenRecord) {
+    if (!refreshTokenRecord || refreshTokenRecord.revoked_at) {
       throw new AppError({
         statusCode: 403,
         statusText: "Forbidden",
-        message: "Token de rafraîchissement invalide. L'utilisateur n'est pas connecté.",
+        message: "Token de rafraîchissement invalide.",
       });
     }
 
-    if (tokenRecord.expires_at < new Date()) {
-      await RefreshToken.destroy({ where: { token: refreshToken } });
+    const now = dayjs();
+
+    if (dayjs(refreshTokenRecord.expires_at).isBefore(now)) {
+      await refreshTokenRecord.update({ revoked_at: now.toDate() });
 
       throw new AppError({
         statusCode: 401,
         statusText: "Unauthorized",
-        message: "Token de rafraîchissement expiré. L'utilisateur doit se reconnecter.",
+        message: "Token de rafraîchissement expiré.",
       });
     }
 
-    const account = await AccountService.findOneById(tokenRecord.account_id);
+    await refreshTokenRecord.update({ revoked_at: now.toDate() }); // une seule utilisation du jeton de rafraîchissement
+
+    const newRefreshToken = await RefreshToken.create({
+      account_id: refreshTokenRecord.account_id,
+      token: nanoid(),
+      expires_at: now.add(ms(refresh_expiration), "ms").toDate(),
+    });
+
+    const account = await AccountService.findOneById(refreshTokenRecord.account_id);
 
     if (!account) {
       throw new AppError({
@@ -270,7 +274,6 @@ class AuthService {
     }
 
     const role = account.role?.label ?? ACCOUNT_ROLES_LABEL.USER;
-    const now = Date.now();
 
     const newAccessToken = generateToken(
       { id: account.id, role },
@@ -280,8 +283,9 @@ class AuthService {
 
     return {
       accessToken: newAccessToken,
+      newRefreshToken: newRefreshToken.token,
       expiresIn: ms(access_expiration),
-      expiresAt: now + ms(access_expiration),
+      expiresAt: now.add(ms(access_expiration), "ms").toDate().getTime(),
     };
   }
 }

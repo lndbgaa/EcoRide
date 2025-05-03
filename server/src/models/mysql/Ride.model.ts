@@ -1,8 +1,8 @@
-import { DataTypes } from "sequelize";
+import { DataTypes, Model } from "sequelize";
 
 import { sequelize } from "@/config/mysql.config.js";
 import { RIDE_STATUSES } from "@/constants/index.js";
-import { Base, User, Vehicle } from "@/models/mysql";
+import { User, Vehicle } from "@/models/mysql";
 import AppError from "@/utils/AppError.js";
 import { getDuration, toDateOnly, toTimeOnly } from "@/utils/date.utils.js";
 
@@ -48,7 +48,7 @@ export interface RideDetailedPrivateDTO extends BaseDTO {
  *
  * @extends Base
  */
-class Ride extends Base {
+class Ride extends Model {
   declare id: string;
   declare departure_datetime: Date;
   declare departure_location: string;
@@ -156,10 +156,7 @@ class Ride extends Base {
    * @param amount - Le nombre de places à retirer.
    * @param options - Options de sauvegarde sequelize.
    */
-  public async removeAvailableSeats(
-    amount: number,
-    options?: SaveOptions
-  ): Promise<void> {
+  public async removeAvailableSeats(amount: number, options?: SaveOptions): Promise<void> {
     if (this.status !== "open") {
       throw new AppError({
         statusCode: 400,
@@ -426,10 +423,10 @@ Ride.init(
   }
 );
 
-Ride.beforeValidate((ride: Ride) => {
+Ride.beforeCreate((ride: Ride) => {
   const now = Date.now();
 
-  // Cas 1 : Le départ doit être après maintenant.
+  // Le départ doit être après maintenant.
   if (ride.departure_datetime.getTime() <= now) {
     throw new AppError({
       statusCode: 400,
@@ -438,7 +435,7 @@ Ride.beforeValidate((ride: Ride) => {
     });
   }
 
-  // Cas 2 : Le départ doit être antérieur à l'arrivée.
+  // Le départ doit être antérieur à l'arrivée.
   if (ride.departure_datetime >= ride.arrival_datetime) {
     throw new AppError({
       statusCode: 400,
@@ -446,10 +443,11 @@ Ride.beforeValidate((ride: Ride) => {
       message: "La date de départ doit être antérieure à la date d'arrivée.",
     });
   }
-});
 
-Ride.beforeCreate((ride: Ride) => {
+  // Le nombre de places disponibles doit être égal au nombre de places proposées.
   ride.available_seats = ride.offered_seats;
+
+  // La durée doit être calculée.
   ride.duration = getDuration(ride.arrival_datetime, ride.departure_datetime);
 });
 

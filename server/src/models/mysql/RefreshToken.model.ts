@@ -1,19 +1,19 @@
 import { sequelize } from "@/config/mysql.config.js";
-import { DataTypes } from "sequelize";
-import Base from "./Base.model.js";
+import { DataTypes, Model } from "sequelize";
 
-class RefreshToken extends Base {
+class RefreshToken extends Model {
   declare id: number;
   declare token: string;
   declare account_id: string;
   declare expires_at: Date;
+  declare revoked_at: Date;
   declare created_at: Date;
   declare updated_at: Date;
 }
 
 RefreshToken.init(
   {
-    id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
+    id: { type: DataTypes.UUID, primaryKey: true, defaultValue: DataTypes.UUIDV4 },
     token: { type: DataTypes.STRING, allowNull: false },
     account_id: {
       type: DataTypes.UUID,
@@ -22,6 +22,7 @@ RefreshToken.init(
       onDelete: "CASCADE",
     },
     expires_at: { type: DataTypes.DATE, allowNull: false },
+    revoked_at: { type: DataTypes.DATE },
     created_at: { type: DataTypes.DATE, defaultValue: DataTypes.NOW },
     updated_at: { type: DataTypes.DATE, defaultValue: DataTypes.NOW },
   },

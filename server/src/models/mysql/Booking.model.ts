@@ -1,9 +1,9 @@
-import { DataTypes, UUIDV4 } from "sequelize";
+import { DataTypes, Model, UUIDV4 } from "sequelize";
 
 import { sequelize } from "@/config/mysql.config.js";
 import AppError from "@/utils/AppError.js";
 import { toDateOnly } from "@/utils/date.utils.js";
-import { Base, Ride, User } from "./index.js";
+import { Ride, User } from "./index.js";
 
 import type { BookingStatus } from "@/types/index.js";
 import type { SaveOptions } from "sequelize";
@@ -29,7 +29,7 @@ interface BookingPrivateDTO {
  *
  * @extends Base
  */
-class Booking extends Base {
+class Booking extends Model {
   declare id: string;
   declare ride_id: string;
   declare passenger_id: string;
@@ -67,10 +67,7 @@ class Booking extends Base {
    * @param status - Le nouveau statut à appliquer.
    * @param options - Options de sauvegarde sequelize.
    */
-  private async transitionTo(
-    status: BookingStatus,
-    options?: SaveOptions
-  ): Promise<void> {
+  private async transitionTo(status: BookingStatus, options?: SaveOptions): Promise<void> {
     if (!this.canTransitionTo(status)) {
       throw new AppError({
         statusCode: 400,
@@ -191,12 +188,7 @@ Booking.init(
     },
     status: {
       type: DataTypes.ENUM(
-        ...([
-          "confirmed",
-          "awaiting_feedback",
-          "completed",
-          "cancelled",
-        ] as BookingStatus[])
+        ...(["confirmed", "awaiting_feedback", "completed", "cancelled"] as BookingStatus[])
       ),
       defaultValue: "confirmed",
     },

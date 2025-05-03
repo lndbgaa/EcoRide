@@ -1,6 +1,8 @@
+import dayjs from "dayjs";
+
 import { sequelize } from "@/config/mysql.config.js";
 import { VEHICLE_ASSOCIATIONS } from "@/constants/index.js";
-import { User, Vehicle } from "@/models/mysql";
+import { Vehicle } from "@/models/mysql";
 import UserService from "@/services/user.service.js";
 import AppError from "@/utils/AppError.js";
 
@@ -11,7 +13,7 @@ export type CreateVehicleData = {
   energyId: number;
   seats: number;
   licensePlate: string;
-  firstRegistration: Date;
+  firstRegistration: string;
 };
 
 export type UpdateVehicleData = {
@@ -29,10 +31,10 @@ class VehicleService {
    * @returns Le véhicule trouvé
    */
   public static async findVehicleOrThrow(vehicleId: string): Promise<Vehicle> {
-    const vehicle: Vehicle | null = await Vehicle.findOneByField(
-      "id",
-      vehicleId
-    );
+    const vehicle = await Vehicle.findOne({
+      where: { id: vehicleId },
+      include: VEHICLE_ASSOCIATIONS,
+    });
 
     if (!vehicle) {
       throw new AppError({
@@ -55,7 +57,7 @@ class VehicleService {
     userId: string,
     vehicleId: string
   ): Promise<Vehicle> {
-    const vehicle: Vehicle = await this.findVehicleOrThrow(vehicleId);
+    const vehicle = await this.findVehicleOrThrow(vehicleId);
 
     if (vehicle.getOwnerId() !== userId) {
       throw new AppError({
@@ -74,7 +76,8 @@ class VehicleService {
    * @returns Les véhicules de l'utilisateur
    */
   public static async getUserVehicles(userId: string): Promise<Vehicle[]> {
-    const vehicles = await Vehicle.findAllByField("owner_id", userId, {
+    const vehicles = await Vehicle.findAll({
+      where: { owner_id: userId },
       include: VEHICLE_ASSOCIATIONS,
     });
 
@@ -93,9 +96,10 @@ class VehicleService {
   ): Promise<Vehicle> {
     await UserService.assertUserIsDriverOrThrow(userId);
 
-    const doesLicensePlateExist: boolean =
-      (await Vehicle.findOneByField("license_plate", data.licensePlate)) !==
-      null;
+    const doesLicensePlateExist: boolean = !!(await Vehicle.findOne({
+      attributes: ["id"],
+      where: { license_plate: data.licensePlate },
+    }));
 
     if (doesLicensePlateExist) {
       throw new AppError({
@@ -105,6 +109,17 @@ class VehicleService {
       });
     }
 
+    const parsedDate = dayjs(data.firstRegistration, "DD/MM/YYYY", true);
+
+    if (!parsedDate.isValid()) {
+      throw new AppError({
+        statusCode: 400,
+        message: "La date de première mise en circulation est invalide.",
+      });
+    }
+
+    const formattedDate = parsedDate.format("YYYY-MM-DD");
+
     const dataToCreate: Partial<Vehicle> = {
       brand_id: data.brandId,
       model: data.model,
@@ -113,22 +128,19 @@ class VehicleService {
       seats: data.seats,
       license_plate: data.licensePlate,
       owner_id: userId,
-      first_registration: data.firstRegistration,
+      first_registration: new Date(formattedDate),
     };
 
     return await sequelize.transaction(async (transaction) => {
-      const newVehicle: Vehicle = await Vehicle.createOne(dataToCreate, {
+      const newVehicle: Vehicle = await Vehicle.create(dataToCreate, {
         transaction,
       });
 
-      const createdVehicle: Vehicle | null = await Vehicle.findOneByField(
-        "id",
-        newVehicle.id,
-        {
-          transaction,
-          include: VEHICLE_ASSOCIATIONS,
-        }
-      );
+      const createdVehicle = await Vehicle.findOne({
+        where: { id: newVehicle.id },
+        include: VEHICLE_ASSOCIATIONS,
+        transaction,
+      });
 
       if (!createdVehicle) {
         throw new AppError({
@@ -154,12 +166,8 @@ class VehicleService {
     vehicleId: string,
     data: UpdateVehicleData
   ): Promise<Vehicle> {
-    const user: User = await UserService.assertUserIsDriverOrThrow(userId);
-
-    const vehicle: Vehicle = await this.findOwnedVehicleOrThrow(
-      user.id,
-      vehicleId
-    );
+    const user = await UserService.assertUserIsDriverOrThrow(userId);
+    const vehicle = await this.findOwnedVehicleOrThrow(user.id, vehicleId);
 
     const dataToUpdate: Partial<Vehicle> = {
       brand_id: data.brandId,
@@ -170,25 +178,22 @@ class VehicleService {
     };
 
     return await sequelize.transaction(async (transaction) => {
-      await Vehicle.updateByField("id", vehicle.id, dataToUpdate, {
+      await Vehicle.update(dataToUpdate, {
+        where: { id: vehicle.id },
         transaction,
       });
 
-      const updatedVehicle: Vehicle | null = await Vehicle.findOneByField(
-        "id",
-        vehicle.id,
-        {
-          transaction,
-          include: VEHICLE_ASSOCIATIONS,
-        }
-      );
+      const updatedVehicle = await Vehicle.findOne({
+        where: { id: vehicle.id },
+        include: VEHICLE_ASSOCIATIONS,
+        transaction,
+      });
 
       if (!updatedVehicle) {
         throw new AppError({
           statusCode: 500,
           statusText: "Internal Server Error",
-          message:
-            "Une erreur est survenue lors de la mise à jour du véhicule.",
+          message: "Une erreur est survenue lors de la mise à jour du véhicule.",
         });
       }
 
@@ -201,16 +206,9 @@ class VehicleService {
    * @param userId - L'id de l'utilisateur
    * @param vehicleId - L'id du véhicule à supprimer
    */
-  public static async deleteVehicle(
-    userId: string,
-    vehicleId: string
-  ): Promise<void> {
-    const user: User = await UserService.findUserOrThrow(userId);
-
-    const vehicle: Vehicle = await this.findOwnedVehicleOrThrow(
-      user.id,
-      vehicleId
-    );
+  public static async deleteVehicle(userId: string, vehicleId: string): Promise<void> {
+    const user = await UserService.findUserOrThrow(userId);
+    const vehicle = await this.findOwnedVehicleOrThrow(user.id, vehicleId);
 
     await vehicle.destroy();
   }
