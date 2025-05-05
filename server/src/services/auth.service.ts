@@ -10,47 +10,47 @@ import AccountService from "@/services/account.service.js";
 import AppError from "@/utils/AppError.js";
 import { generateToken } from "@/utils/jwt.utils.js";
 
-type RegisterUserData = {
+interface RegisterUserData {
   email: string;
   pseudo: string;
   password: string;
   firstName: string;
   lastName: string;
-};
+}
 
-type RegisterUserResponse = {
+interface RegisterUserResponse {
   accountId: string;
   accessToken: string;
   refreshToken: string;
   expiresAt: number;
   expiresIn: number;
-};
+}
 
-type RegisterEmployeeData = {
+interface RegisterEmployeeData {
   email: string;
   password: string;
   firstName: string;
   lastName: string;
-};
+}
 
-type LoginData = {
+interface LoginData {
   email: string;
   password: string;
-};
+}
 
-type LoginResponse = {
+interface LoginResponse {
   accessToken: string;
   refreshToken: string;
   expiresAt: number;
   expiresIn: number;
-};
+}
 
-type RefreshAccessTokenResponse = {
+interface RefreshAccessTokenResponse {
   accessToken: string;
   newRefreshToken: string;
   expiresAt: number;
   expiresIn: number;
-};
+}
 
 const { access_secret, access_expiration, refresh_expiration } = config.jwt;
 
@@ -80,9 +80,11 @@ class AuthService {
   }
 
   /**
-   * Création d'un compte (utilisateur)
+   * Création d'un compte (type utilisateur)
    *
-   * @param data - Données du compte (email, pseudo, mot de passe, prénom, nom)
+   * Note : Après inscription, l'utilisateur est automatiquement connecté.
+   *
+   * @param data - Données du compte
    * @returns Jeton d'accès (access token) et de rafraîchissement (refresh token)
    */
   public static async registerUser(data: RegisterUserData): Promise<RegisterUserResponse> {
@@ -91,8 +93,6 @@ class AuthService {
     await this.assertEmailIsUnique(email);
     await this.assertPseudoIsUnique(pseudo);
 
-    // Après inscription, l'utilisateur est connecté.
-    // -> Le compte ne peut pas être créé dans la BDD sans un refresh token et inversement = transaction
     return await sequelize.transaction(async (transaction) => {
       const now = dayjs();
 
@@ -133,9 +133,11 @@ class AuthService {
   }
 
   /**
-   * Création d'un compte (employé)
+   * Création d'un compte (type employé)
    *
-   * @param data - Données du compte (email, pseudo, mot de passe, prénom, nom)
+   * Note : Un compte employé est créé par un administrateur donc il n'est pas automatiquement connecté.
+   *
+   * @param data - Données du compte (email, mot de passe, prénom, nom)
    * @returns ID du compte
    */
   public static async registerEmployee(data: RegisterEmployeeData): Promise<{ accountId: string }> {
@@ -143,8 +145,6 @@ class AuthService {
 
     await this.assertEmailIsUnique(email);
 
-    // Un compte employé est créé par un administrateur.
-    // -> Pas de connexion automatique : pas de jetons d'accès ni de rafraîchissement.
     const newEmployee: Employee = await Employee.create({
       email,
       password,
@@ -158,9 +158,9 @@ class AuthService {
   }
 
   /**
-   * Connexion d'un compte (utilisateur, employé, administrateur)
+   * Connexion d'un compte (tout type)
    *
-   * @param data - Données du compte (email, mot de passe)
+   * @param data - Données du compte
    * @returns Jeton d'accès (access token) et de rafraîchissement (refresh token)
    */
   public static async login(data: LoginData): Promise<LoginResponse> {
@@ -206,18 +206,18 @@ class AuthService {
   }
 
   /**
-   * Déconnexion d'un compte (utilisateur, employé, administrateur)
+   * Déconnexion d'un compte (tout type)
    *
-   * @param refreshToken - Jeton de rafraîchissement (refresh token)
+   * @param refreshToken - Jeton de rafraîchissement
    */
   public static async logout(refreshToken: string): Promise<void> {
     await RefreshToken.update({ revoked_at: new Date() }, { where: { token: refreshToken } });
   }
 
   /**
-   * Génération d'un nouveau jeton d'accès (access token)
+   * Génération d'un nouveau jeton d'accès
    *
-   * @param refreshToken - Jeton de rafraîchissement (refresh token)
+   * @param refreshToken - Jeton de rafraîchissement
    * @returns Jeton d'accès (access token)
    */
   public static async refreshAccessToken(

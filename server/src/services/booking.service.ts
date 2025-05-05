@@ -1,6 +1,6 @@
 import { sequelize } from "@/config/mysql.config.js";
 import { PLATFORM_CREDITS_PER_SEAT } from "@/constants/index.js";
-import { Booking } from "@/models/mysql";
+import { Booking, Ride, User } from "@/models/mysql";
 import RideService from "@/services/ride.service.js";
 import UserService from "@/services/user.service.js";
 import AppError from "@/utils/AppError.js";
@@ -13,11 +13,8 @@ class BookingService {
    * @param bookingId - L'id de la réservation
    * @returns La réservation trouvée
    */
-  public static async findBookingOrThrow(
-    bookingId: string,
-    options?: FindOptions
-  ): Promise<Booking> {
-    const booking = await Booking.findOne({
+  public static async findBookingOrThrow(bookingId: string, options?: FindOptions): Promise<Booking> {
+    const booking: Booking | null = await Booking.findOne({
       where: { id: bookingId },
       ...options,
     });
@@ -44,7 +41,7 @@ class BookingService {
     bookingId: string,
     options?: FindOptions
   ): Promise<Booking> {
-    const booking = await this.findBookingOrThrow(bookingId, options);
+    const booking: Booking = await this.findBookingOrThrow(bookingId, options);
 
     if (booking.getPassengerId() !== userId) {
       throw new AppError({
@@ -114,13 +111,9 @@ class BookingService {
    * @param seatsBooked - Le nombre de places réservées
    * @returns La réservation créée
    */
-  public static async createBooking(
-    userId: string,
-    rideId: string,
-    seatsBooked: number
-  ): Promise<Booking> {
-    const user = await UserService.assertUserIsPassengerOrThrow(userId);
-    const ride = await RideService.findRideOrThrow(rideId);
+  public static async createBooking(userId: string, rideId: string, seatsBooked: number): Promise<Booking> {
+    const user: User = await UserService.assertUserIsPassengerOrThrow(userId);
+    const ride: Ride = await RideService.findRideOrThrow(rideId);
 
     if (!ride.isOpen()) {
       throw new AppError({
@@ -175,7 +168,7 @@ class BookingService {
     }
 
     return await sequelize.transaction(async (transaction) => {
-      const booking = await Booking.create(
+      const booking: Booking = await Booking.create(
         {
           ride_id: rideId,
           passenger_id: userId,
@@ -199,8 +192,8 @@ class BookingService {
   public static async cancelBooking(userId: string, booking: Booking): Promise<void> {
     this.assertBookingCanBeCancelled(booking);
 
-    const user = await UserService.findUserOrThrow(userId);
-    const ride = await RideService.findRideOrThrow(booking.getRideId());
+    const user: User = await UserService.findUserOrThrow(userId);
+    const ride: Ride = await RideService.findRideOrThrow(booking.getRideId());
 
     await sequelize.transaction(async (transaction) => {
       await booking.markAsCancelled({ transaction });
@@ -221,8 +214,8 @@ class BookingService {
   public static async confirmSuccessfulBooking(booking: Booking): Promise<void> {
     this.assertBookingCanBeValidated(booking);
 
-    const ride = await RideService.findRideOrThrow(booking.getRideId());
-    const driver = await UserService.findUserOrThrow(ride.getDriverId());
+    const ride: Ride = await RideService.findRideOrThrow(booking.getRideId());
+    const driver: User = await UserService.findUserOrThrow(ride.getDriverId());
 
     const totalPrice = ride.getPrice() * booking.getSeatsBooked();
     const platformFee = PLATFORM_CREDITS_PER_SEAT * booking.getSeatsBooked();
@@ -254,9 +247,9 @@ class BookingService {
    * @returns Les réservations trouvées
    */
   public static async getRideBookings(rideId: string, options?: FindOptions): Promise<Booking[]> {
-    const ride = await RideService.findRideOrThrow(rideId);
+    const ride: Ride = await RideService.findRideOrThrow(rideId);
 
-    const bookings = await Booking.findAll({
+    const bookings: Booking[] = await Booking.findAll({
       where: { ride_id: ride.id },
       include: [{ association: "passenger" }],
       ...options,
@@ -270,13 +263,20 @@ class BookingService {
    * @param userId - L'id de l'utilisateur
    * @returns Les réservations trouvées
    */
-  public static async getUserBookings(userId: string): Promise<Booking[]> {
-    const bookings = await Booking.findAll({
+  public static async getUserBookings(
+    userId: string,
+    limit: number,
+    offset: number
+  ): Promise<{ count: number; bookings: Booking[] }> {
+    const { count, rows: bookings }: { count: number; rows: Booking[] } = await Booking.findAndCountAll({
       where: { passenger_id: userId },
-      include: [{ association: "ride" }],
+      include: [{ association: "ride", include: [{ association: "driver" }] }],
+      limit,
+      offset,
+      order: [["created_at", "DESC"]],
     });
 
-    return bookings;
+    return { count, bookings };
   }
 }
 

@@ -15,6 +15,7 @@
       "@/features/*": ["src/features/*"],
       "@/hooks/*": ["src/hooks/*"],
       "@/pages/*": ["src/pages/*"],
+      "@/layouts/*": ["src/layouts/*"],
       "@/router/*": ["src/router/*"],
       "@/services/*": ["src/services/*"],
       "@/styles/*": ["src/styles/*"],

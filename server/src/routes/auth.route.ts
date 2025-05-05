@@ -5,12 +5,7 @@ import validate from "@/middlewares/validateAll.js";
 
 import { loginSchema, registerUserSchema } from "@/validators/auth.validator.js";
 
-import {
-  handleTokenRefresh,
-  login,
-  logout,
-  registerUser,
-} from "@/controllers/auth.controller.js";
+import { handleTokenRefresh, login, logout, registerUser } from "@/controllers/auth.controller.js";
 
 const router = Router();
 

@@ -10,13 +10,13 @@ import type { SaveOptions } from "sequelize";
 import type { RidePublicPreviewDTO } from "./Ride.model.js";
 import type { UserPublicDTO } from "./User.model.js";
 
-interface BookingPublicDTO {
+export interface BookingPublicDTO {
   id: string;
   passenger: UserPublicDTO | null;
   seatsBooked: number;
 }
 
-interface BookingPrivateDTO {
+export interface BookingPrivateDTO {
   id: string;
   ride: RidePublicPreviewDTO | null;
   seatsBooked: number;

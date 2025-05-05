@@ -1,12 +1,15 @@
 import dayjs from "dayjs";
+import { Op } from "sequelize";
 
-import { Review, User } from "@/models/mysql/index.js";
+import { sequelize } from "@/config/mysql.config";
+import { Booking, Review, Ride, User } from "@/models/mysql/index.js";
 import UploadService from "@/services/upload.service.js";
 import AppError from "@/utils/AppError.js";
 
-import { sequelize } from "@/config/mysql.config";
 import type { UserRole } from "@/types/index.js";
 import type { FindOptions, Transaction } from "sequelize";
+
+type UpcomingEvent = { type: "booking"; data: Booking } | { type: "ride"; data: Ride };
 
 class UserService {
   /**
@@ -36,10 +39,7 @@ class UserService {
    * @param userId - L'id de l'utilisateur
    * @returns Le user trouvé
    */
-  public static async assertUserIsDriverOrThrow(
-    userId: string,
-    options?: FindOptions
-  ): Promise<User> {
+  public static async assertUserIsDriverOrThrow(userId: string, options?: FindOptions): Promise<User> {
     const user = await UserService.findUserOrThrow(userId, options);
 
     if (!user.isDriver()) {
@@ -58,10 +58,7 @@ class UserService {
    * @param userId - L'id de l'utilisateur
    * @returns Le user trouvé
    */
-  public static async assertUserIsPassengerOrThrow(
-    userId: string,
-    options?: FindOptions
-  ): Promise<User> {
+  public static async assertUserIsPassengerOrThrow(userId: string, options?: FindOptions): Promise<User> {
     const user = await UserService.findUserOrThrow(userId, options);
 
     if (!user.isPassenger()) {
@@ -80,7 +77,7 @@ class UserService {
    * @param userId - L'id de l'utilisateur
    * @returns Les informations de l'utilisateur
    */
-  public static async getUserInfo(userId: string): Promise<User> {
+  public static async getInfo(userId: string): Promise<User> {
     const user = await this.findUserOrThrow(userId);
     return user;
   }
@@ -114,8 +111,7 @@ class UserService {
         throw new AppError({
           statusCode: 500,
           statusText: "Internal Server Error",
-          message:
-            "Une erreur est survenue lors de la mise à jour des informations de l'utilisateur.",
+          message: "Une erreur est survenue lors de la mise à jour des informations de l'utilisateur.",
         });
       }
 
@@ -144,16 +140,10 @@ class UserService {
    * @param userId - L'id de l'utilisateur
    * @returns L'url de l'avatar mis à jour
    */
-  public static async updateAvatar(
-    file: Express.Multer.File,
-    userId: string
-  ): Promise<{ url: string }> {
+  public static async updateAvatar(file: Express.Multer.File, userId: string): Promise<{ url: string }> {
     const user = await this.findUserOrThrow(userId);
 
-    const { secure_url } = await UploadService.uploadImage(
-      file,
-      `ecoride/users/${userId}/profile-picture`
-    );
+    const { secure_url } = await UploadService.uploadImage(file, `ecoride/users/${userId}/profile-picture`);
 
     await User.update({ profile_picture: secure_url }, { where: { id: user.getId() } });
 
@@ -180,10 +170,93 @@ class UserService {
 
     const averageRating = reviews.reduce((acc, review) => acc + review.rating, 0) / reviews.length;
 
-    await User.update(
-      { average_rating: averageRating },
-      { where: { id: user.getId() }, ...options }
-    );
+    await User.update({ average_rating: averageRating }, { where: { id: user.getId() }, ...options });
+  }
+
+  /**
+   * Récupère le prochain événement (réservation ou trajet) à venir d'un utilisateur
+   * @param userId - L'id de l'utilisateur
+   * @returns Le prochain événement à venir
+   */
+  public static async getNextEvent(userId: string): Promise<Booking | Ride | null> {
+    const user = await this.findUserOrThrow(userId);
+
+    const role = user.isPassenger() && user.isDriver() ? "both" : user.isDriver() ? "driver" : "passenger";
+
+    let nextBooking: Booking | null = null;
+    let nextRide: Ride | null = null;
+
+    const now = dayjs().toDate();
+
+    if (role === "passenger" || role === "both") {
+      nextBooking = await Booking.findOne({
+        where: { passenger_id: userId, status: "confirmed" },
+        include: [{ association: "ride" }],
+        order: [[{ model: Ride, as: "ride" }, "departure_datetime", "ASC"]],
+      });
+    }
+
+    if (role === "driver" || role === "both") {
+      nextRide = await Ride.findOne({
+        where: {
+          driver_id: userId,
+          status: { [Op.in]: ["open", "full", "in_progress"] },
+          departure_datetime: { [Op.gt]: now },
+        },
+        order: [["departure_datetime", "ASC"]],
+      });
+    }
+
+    if (nextBooking && nextRide) {
+      const bookingDate = nextBooking.ride?.departure_datetime;
+      const rideDate = nextRide.departure_datetime;
+
+      return bookingDate && bookingDate < rideDate ? nextBooking : nextRide;
+    }
+
+    return nextBooking || nextRide || null;
+  }
+
+  /**
+   * Récupère tous les événements à venir (trajets ou réservations) d'un utilisateur
+   * @param userId - L'id de l'utilisateur
+   * @returns Un tableau d'événements (Booking ou Ride) triés par date de départ
+   */
+  public static async getUpcomingEvents(userId: string): Promise<UpcomingEvent[]> {
+    const user: User = await this.findUserOrThrow(userId);
+
+    const now = dayjs().toDate();
+
+    let upcomingBookings: Booking[] = await Booking.findAll({
+      where: { passenger_id: user.id, status: "confirmed" },
+      include: [{ association: "ride" }],
+      order: [[{ model: Ride, as: "ride" }, "departure_datetime", "ASC"]],
+    });
+
+    let upcomingRides: Ride[] = await Ride.findAll({
+      where: {
+        driver_id: user.id,
+        status: { [Op.in]: ["open", "full"] },
+        departure_datetime: { [Op.gt]: now },
+      },
+      order: [["departure_datetime", "ASC"]],
+    });
+
+    const typedBookings = upcomingBookings.map((booking) => {
+      return { type: "booking" as const, data: booking };
+    });
+
+    const typedRides = upcomingRides.map((ride) => {
+      return { type: "ride" as const, data: ride };
+    });
+
+    return [...typedBookings, ...typedRides].sort((a, b) => {
+      const dateA = a.type === "ride" ? a.data.departure_datetime : a.data.ride?.departure_datetime;
+      const dateB = b.type === "ride" ? b.data.departure_datetime : b.data.ride?.departure_datetime;
+
+      if (!dateA || !dateB) return 0;
+      return new Date(dateA).getTime() - new Date(dateB).getTime();
+    });
   }
 }
 

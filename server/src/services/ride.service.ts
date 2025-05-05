@@ -3,7 +3,7 @@ import { Op } from "sequelize";
 
 import { sequelize } from "@/config/mysql.config.js";
 import { VEHICLE_ASSOCIATIONS } from "@/constants/index.js";
-import { Ride, User } from "@/models/mysql";
+import { Booking, Preference, Ride, User, Vehicle } from "@/models/mysql";
 import BookingService from "@/services/booking.service.js";
 import EmailService from "@/services/email.service.js";
 import PreferenceService from "@/services/preference.service.js";
@@ -48,7 +48,7 @@ class RideService {
    * @returns Le trajet trouvé.
    */
   public static async findRideOrThrow(rideId: string, options?: FindOptions): Promise<Ride> {
-    const ride = await Ride.findOne({
+    const ride: Ride | null = await Ride.findOne({
       where: { id: rideId },
       ...options,
     });
@@ -71,12 +71,8 @@ class RideService {
    * @param options - Options sequelize
    * @returns Le trajet trouvé.
    */
-  public static async findOwnedRideOrThrow(
-    userId: string,
-    rideId: string,
-    options?: FindOptions
-  ): Promise<Ride> {
-    const ride = await this.findRideOrThrow(rideId, options);
+  public static async findOwnedRideOrThrow(userId: string, rideId: string, options?: FindOptions): Promise<Ride> {
+    const ride: Ride = await this.findRideOrThrow(rideId, options);
 
     if (ride.getDriverId() !== userId) {
       throw new AppError({
@@ -96,8 +92,8 @@ class RideService {
    * @returns Le trajet créé.
    */
   public static async createRide(userId: string, data: CreateRideData): Promise<Ride> {
-    const user = await UserService.assertUserIsDriverOrThrow(userId);
-    const vehicle = await VehicleService.findOwnedVehicleOrThrow(user.getId(), data.vehicleId);
+    const user: User = await UserService.assertUserIsDriverOrThrow(userId);
+    const vehicle: Vehicle = await VehicleService.findOwnedVehicleOrThrow(user.getId(), data.vehicleId);
 
     const availablePassengerSeats = vehicle.getSeats() - 1;
 
@@ -124,9 +120,9 @@ class RideService {
     };
 
     return await sequelize.transaction(async (transaction) => {
-      const newRide = await Ride.create(dataToCreate, { transaction });
+      const newRide: Ride = await Ride.create(dataToCreate, { transaction });
 
-      const createdRide = await Ride.findOne({
+      const createdRide: Ride | null = await Ride.findOne({
         where: { id: newRide.getId() },
         include: [{ association: "vehicle", include: VEHICLE_ASSOCIATIONS }],
         transaction,
@@ -166,12 +162,9 @@ class RideService {
         [Op.like]: `${data.arrivalLocation}%`,
       },
       departure_datetime: {
-        [Op.between]: [
-          new Date(`${data.departureDate}T00:00:00`),
-          new Date(`${data.departureDate}T23:59:59`),
-        ],
+        [Op.between]: [new Date(`${data.departureDate}T00:00:00`), new Date(`${data.departureDate}T23:59:59`)],
       },
-      status: "open", // Sélectionne uniquement les trajets ouverts
+      status: "open", // Affiche uniquement les trajets ouverts
     };
 
     // Si l'utilisateur est connecté, on ne retourne pas ses propres trajets
@@ -191,7 +184,7 @@ class RideService {
       conditions.duration = { [Op.lte]: data.maxDuration };
     }
 
-    const { count, rows: rides } = await Ride.findAndCountAll({
+    const { count, rows: rides }: { count: number; rows: Ride[] } = await Ride.findAndCountAll({
       where: conditions,
       limit,
       offset,
@@ -221,12 +214,12 @@ class RideService {
    * @returns Les passagers du trajet.
    */
   public static async getRidePassengers(rideId: string): Promise<User[]> {
-    const ride = await this.findRideOrThrow(rideId);
-    const bookings = await BookingService.getRideBookings(ride.getId(), {
+    const ride: Ride = await this.findRideOrThrow(rideId);
+    const bookings: Booking[] = await BookingService.getRideBookings(ride.getId(), {
       where: { status: "confirmed" },
     });
 
-    const passengers = bookings
+    const passengers: User[] = bookings
       .map((booking) => booking.getPassenger())
       .filter((passenger): passenger is User => passenger !== null);
 
@@ -239,12 +232,9 @@ class RideService {
    * @returns Les détails du trajet.
    */
   public static async getRideDetails(rideId: string): Promise<RideDetails> {
-    const ride = await Ride.findOne({
+    const ride: Ride | null = await Ride.findOne({
       where: { id: rideId },
-      include: [
-        { association: "vehicle", include: VEHICLE_ASSOCIATIONS },
-        { association: "driver" },
-      ],
+      include: [{ association: "driver" }, { association: "vehicle", include: VEHICLE_ASSOCIATIONS }],
     });
 
     if (!ride) {
@@ -257,7 +247,7 @@ class RideService {
 
     const passengers: User[] = await this.getRidePassengers(ride.getId());
 
-    const preferences = await PreferenceService.getPreferences(ride.getDriverId());
+    const preferences: Preference[] = await PreferenceService.getPreferences(ride.getDriverId());
 
     const finalPreferences: string[] = preferences.flatMap((preference) => {
       if (preference.isCustom() && preference.getValue()) {
@@ -285,7 +275,7 @@ class RideService {
    */
   public static async startRide(rideId: string, userId: string): Promise<void> {
     return await sequelize.transaction(async (transaction) => {
-      const ride = await this.findOwnedRideOrThrow(userId, rideId, {
+      const ride: Ride = await this.findOwnedRideOrThrow(userId, rideId, {
         lock: transaction.LOCK.UPDATE,
         transaction,
       });
@@ -307,8 +297,7 @@ class RideService {
         throw new AppError({
           statusCode: 400,
           statusText: "Bad Request",
-          message:
-            "Vous ne pouvez démarrer ce trajet que dans l'heure précédant l'heure de départ.",
+          message: "Vous ne pouvez démarrer ce trajet que dans l'heure précédant l'heure de départ.",
         });
       }
 
@@ -323,7 +312,7 @@ class RideService {
    */
   public static async endRide(rideId: string, userId: string): Promise<void> {
     return await sequelize.transaction(async (transaction) => {
-      const ride = await this.findOwnedRideOrThrow(userId, rideId, {
+      const ride: Ride = await this.findOwnedRideOrThrow(userId, rideId, {
         include: [{ association: "driver" }],
         lock: transaction.LOCK.UPDATE,
         transaction,
@@ -339,16 +328,14 @@ class RideService {
 
       await ride.markAsCompleted({ transaction });
 
-      const bookings = await BookingService.getRideBookings(ride.getId(), {
+      const bookings: Booking[] = await BookingService.getRideBookings(ride.getId(), {
         where: { status: "confirmed" },
       });
 
       if (bookings.length > 0) {
-        const passengers = await this.getRidePassengers(ride.getId());
+        const passengers: User[] = await this.getRidePassengers(ride.getId());
 
-        await Promise.allSettled(
-          bookings.map((booking) => booking.markAsAwaitingFeedback({ transaction }))
-        );
+        await Promise.allSettled(bookings.map((booking) => booking.markAsAwaitingFeedback({ transaction })));
 
         await EmailService.sendBulkEmail(
           passengers.map((passenger) => ({
@@ -374,7 +361,7 @@ class RideService {
    */
   public static async cancelRide(rideId: string, userId: string): Promise<void> {
     return await sequelize.transaction(async (transaction) => {
-      const ride = await this.findOwnedRideOrThrow(userId, rideId, {
+      const ride: Ride = await this.findOwnedRideOrThrow(userId, rideId, {
         lock: transaction.LOCK.UPDATE,
         transaction,
         include: [{ association: "driver" }],
@@ -390,20 +377,16 @@ class RideService {
 
       await ride.markAsCancelled({ transaction });
 
-      const bookings = await BookingService.getRideBookings(ride.id);
+      const bookings: Booking[] = await BookingService.getRideBookings(ride.id);
 
       if (bookings.length > 0) {
         const passengers = await this.getRidePassengers(ride.id);
 
-        await Promise.allSettled(
-          bookings.map((booking) => booking.markAsCancelled({ transaction }))
-        );
+        await Promise.allSettled(bookings.map((booking) => booking.markAsCancelled({ transaction })));
 
         await Promise.allSettled(
           passengers.map(async (passenger) => {
-            const booking = bookings.find(
-              (booking) => booking.getPassengerId() === passenger.getId()
-            );
+            const booking = bookings.find((booking) => booking.getPassengerId() === passenger.getId());
 
             if (booking) {
               passenger.addCredits(booking.getSeatsBooked() * ride.getPrice(), {
@@ -433,7 +416,7 @@ class RideService {
   }
 
   /**
-   * Récupère les trajets d'un utilisateur.
+   * Récupère les trajets (créés) d'un utilisateur.
    * @param userId - L'identifiant de l'utilisateur.
    * @returns Les trajets de l'utilisateur.
    */
@@ -442,7 +425,7 @@ class RideService {
     limit: number,
     offset: number
   ): Promise<{ count: number; rides: Ride[] }> {
-    const { count, rows: rides } = await Ride.findAndCountAll({
+    const { count, rows: rides }: { count: number; rows: Ride[] } = await Ride.findAndCountAll({
       where: { driver_id: userId },
       limit,
       offset,
