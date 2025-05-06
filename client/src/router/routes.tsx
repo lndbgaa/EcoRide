@@ -1,55 +1,70 @@
 import { Suspense, lazy } from "react";
 import { Navigate } from "react-router-dom";
 
+import Protected from "@/router/Protected";
+
 import Loader from "@/components/Loader/Loader.tsx";
+
 import AdminLayout from "@/layouts/AdminLayout";
 import EmployeeDashboardLayout from "@/layouts/EmployeeDashboardLayout";
-import EmployeeIncidentsLayouts from "@/layouts/EmployeeIncidentsLayout";
+import EmployeeIncidentsLayout from "@/layouts/EmployeeIncidentsLayout";
 import EmployeeLayout from "@/layouts/EmployeeLayout";
 import HistoryLayout from "@/layouts/HistoryLayout";
 import MainLayout from "@/layouts/MainLayout";
 import RatingsLayout from "@/layouts/RatingsLayout";
 import UserDashboardLayout from "@/layouts/UserDashboardLayout";
-import ProtectedRoute from "@/router/ProtectedRoute";
-
-const HomePage = lazy(() => import("@/pages/HomePage.tsx"));
-const ContactPage = lazy(() => import("@/pages/ContactPage.tsx"));
-const CarpoolPage = lazy(() => import("@/pages/CarpoolPage.tsx"));
-const SearchPage = lazy(() => import("@/pages/SearchPage.tsx"));
-const NotFoundPage = lazy(() => import("@/pages/NotFoundPage.tsx"));
-const UnauthorizedPage = lazy(() => import("@/pages/UnauthorizedPage.tsx"));
 
 const LoginPage = lazy(() => import("@/pages/auth/LoginPage.tsx"));
 const RegisterPage = lazy(() => import("@/pages/auth/RegisterPage.tsx"));
 
-const UserInfoPage = lazy(() => import("@/pages/user/UserInfoPage"));
-const RideInfoPage = lazy(() => import("@/pages/ride/RideInfoPage"));
+const HomePage = lazy(() => import("@/pages/public/HomePage"));
+const ContactPage = lazy(() => import("@/pages/public/ContactPage"));
+const CarpoolPage = lazy(() => import("@/pages/public/CarpoolPage"));
+const SearchPage = lazy(() => import("@/pages/public/SearchPage"));
+const NotFoundPage = lazy(() => import("@/pages/error/NotFoundPage"));
+const UnauthorizedPage = lazy(() => import("@/pages/error/UnauthorizedPage"));
 
-const ProfilePage = lazy(() => import("@/pages/user/Profile/ProfilePage"));
-const RidesHistoryPage = lazy(() => import("@/pages/user/History/RidesHistoryPage"));
-const BookingsHistoryPage = lazy(() => import("@/pages/user/History/BookingsHistoryPage"));
-const GivenRatingsPage = lazy(() => import("@/pages/user/Ratings/GivenRatingsPage"));
-const ReceivedRatingsPage = lazy(() => import("@/pages/user/Ratings/ReceivedRatingsPage"));
+const UserPublicInfoPage = lazy(() => import("@/pages/user/UserPublicInfoPage"));
+const RidePublicInfoPage = lazy(() => import("@/pages/ride/RidePublicInfoPage"));
+
+const ProfilePage = lazy(() => import("@/pages/user/dashboard/ProfilePage"));
+const RidesHistoryPage = lazy(() => import("@/pages/user/dashboard/RidesHistoryPage"));
+const BookingsHistoryPage = lazy(() => import("@/pages/user/dashboard/BookingsHistoryPage"));
+const GivenRatingsPage = lazy(() => import("@/pages/user/dashboard/GivenRatingsPage"));
+const ReceivedRatingsPage = lazy(() => import("@/pages/user/dashboard/ReceivedRatingsPage"));
 const UpcomingTripsPage = lazy(() => import("@/pages/user/UpcomingTripsPage"));
 
 const PublishRidePage = lazy(() => import("@/pages/ride/PublishRidePage"));
 const BookRidePage = lazy(() => import("@/pages/ride/BookRidePage"));
 
+const FeedbackPage = lazy(() => import("@/pages/feedback/FeedbackPage"));
+const WriteReviewPage = lazy(() => import("@/pages/feedback/WriteReviewPage"));
+const ReportIncidentPage = lazy(() => import("@/pages/feedback/ReportIncidentPage"));
+
 const AdminDashboardPage = lazy(() => import("@/pages/admin/AdminDashboardPage"));
 const CreateEmployeePage = lazy(() => import("@/pages/admin/CreateEmployeePage"));
 const ManageAccountsPage = lazy(() => import("@/pages/admin/ManageAccountsPage"));
 
-const ManageReviewsPage = lazy(() => import("@/pages/employee/Reviews/ManageReviewsPage"));
-const ResolvedIncidentsPage = lazy(() => import("@/pages/employee/Incidents/ResolvedIncidentsPage"));
-const AssignedIncidentsPage = lazy(() => import("@/pages/employee/Incidents/AssignedIncidentsPage"));
-const NewIncidentsPage = lazy(() => import("@/pages/employee/Incidents/NewIncidentsPage"));
+const ManageReviewsPage = lazy(() => import("@/pages/employee/dashboard/ManageReviewsPage"));
+const ResolvedIncidentsPage = lazy(() => import("@/pages/employee/dashboard/ResolvedIncidentsPage"));
+const AssignedIncidentsPage = lazy(() => import("@/pages/employee/dashboard/AssignedIncidentsPage"));
+const NewIncidentsPage = lazy(() => import("@/pages/employee/dashboard/NewIncidentsPage"));
 
+/**
+ * Fonction pour charger les pages de manière lazy
+ * @param Component - Composant à charger
+ * @returns - Composant chargé
+ */
 const lazyLoad = (Component: React.LazyExoticComponent<React.ComponentType>) => (
   <Suspense fallback={<Loader />}>
     <Component />
   </Suspense>
 );
 
+/**
+ * Routes de l'application
+ * @returns - Routes de l'application
+ */
 const routes = [
   // Routes publiques
   {
@@ -62,29 +77,28 @@ const routes = [
       { path: "contact", element: lazyLoad(ContactPage) },
       { path: "carpool", element: lazyLoad(CarpoolPage) },
       { path: "search", element: lazyLoad(SearchPage) },
-      { path: "user/:id", element: lazyLoad(UserInfoPage) },
-      { path: "ride/:id", element: lazyLoad(RideInfoPage) },
+      { path: "user/show/:id", element: lazyLoad(UserPublicInfoPage) },
+      { path: "ride/show/:id", element: lazyLoad(RidePublicInfoPage) },
       { path: "unauthorized", element: lazyLoad(UnauthorizedPage) },
       { path: "*", element: lazyLoad(NotFoundPage) },
     ],
   },
 
+  // Routes utilisateur
   {
-    path: "/dashboard",
+    path: "/",
     element: (
-      <ProtectedRoute roles={["user"]}>
+      <Protected roles={["user"]}>
         <MainLayout />
-      </ProtectedRoute>
+      </Protected>
     ),
     children: [
+      // Tableau de bord utilisateur
       {
-        index: true,
-        element: <Navigate to="profile" />,
-      },
-      {
-        path: "",
+        path: "dashboard",
         element: <UserDashboardLayout />,
         children: [
+          { index: true, element: <Navigate to="profile" /> },
           { path: "profile", element: lazyLoad(ProfilePage) },
           {
             path: "history",
@@ -106,31 +120,32 @@ const routes = [
           },
         ],
       },
-    ],
-  },
 
-  // Routes pour les trajets à venir
-  {
-    path: "/trips",
-    element: (
-      <ProtectedRoute roles={["user"]}>
-        <MainLayout />
-      </ProtectedRoute>
-    ),
-    children: [{ index: true, element: lazyLoad(UpcomingTripsPage) }],
-  },
+      // Trajets à venir
+      {
+        path: "trips",
+        element: lazyLoad(UpcomingTripsPage),
+      },
 
-  // Routes pour la publication et la réservation des trajets
-  {
-    path: "/ride",
-    element: (
-      <ProtectedRoute roles={["user"]}>
-        <MainLayout />
-      </ProtectedRoute>
-    ),
-    children: [
-      { path: "publish", element: lazyLoad(PublishRidePage) },
-      { path: "book/:id", element: lazyLoad(BookRidePage) },
+      // Publication & réservation de trajets
+      {
+        path: "ride",
+        children: [
+          { index: true, element: <Navigate to="publish" /> },
+          { path: "publish", element: lazyLoad(PublishRidePage) },
+          { path: "book/:id", element: lazyLoad(BookRidePage) },
+        ],
+      },
+
+      // Feedbacks (avis & incidents)
+      {
+        path: "feedback",
+        children: [
+          { index: true, element: lazyLoad(FeedbackPage) },
+          { path: "review", element: lazyLoad(WriteReviewPage) },
+          { path: "incident", element: lazyLoad(ReportIncidentPage) },
+        ],
+      },
     ],
   },
 
@@ -138,9 +153,9 @@ const routes = [
   {
     path: "/admin",
     element: (
-      <ProtectedRoute roles={["admin"]}>
+      <Protected roles={["admin"]}>
         <AdminLayout />
-      </ProtectedRoute>
+      </Protected>
     ),
     children: [
       { index: true, element: <Navigate to="dashboard" /> },
@@ -154,9 +169,9 @@ const routes = [
   {
     path: "/employee",
     element: (
-      <ProtectedRoute roles={["employee"]}>
+      <Protected roles={["employee"]}>
         <EmployeeLayout />
-      </ProtectedRoute>
+      </Protected>
     ),
     children: [
       { index: true, element: <Navigate to="dashboard" /> },
@@ -171,7 +186,7 @@ const routes = [
           },
           {
             path: "incidents",
-            element: <EmployeeIncidentsLayouts />,
+            element: <EmployeeIncidentsLayout />,
             children: [
               { index: true, element: <Navigate to="assigned" /> },
               { path: "new", element: lazyLoad(NewIncidentsPage) },

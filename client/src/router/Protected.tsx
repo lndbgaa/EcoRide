@@ -12,10 +12,10 @@ interface ProtectedRouteProps {
  * Si roles est fourni, vérifie à la fois l'authentification et si l'utilisateur a l'un des rôles autorisés.
  * Si roles n'est pas fourni, vérifie seulement l'authentification.
  */
-const ProtectedRoute = ({ children, roles, redirectTo = "/login" }: ProtectedRouteProps) => {
+const Protected = ({ children, roles, redirectTo = "/login" }: ProtectedRouteProps) => {
   // const { isAuthenticated, userRole } = useAuth();
   const isAuthenticated = true;
-  const userRole = "employee";
+  const userRole = "user";
   const location = useLocation();
 
   if (!isAuthenticated) {
@@ -29,4 +29,4 @@ const ProtectedRoute = ({ children, roles, redirectTo = "/login" }: ProtectedRou
   return <>{children}</>;
 };
 
-export default ProtectedRoute;
+export default Protected;
