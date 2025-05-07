@@ -12,6 +12,6 @@ const router = Router();
 router.post("/register", registerLimiter, validate(registerUserSchema), registerUser);
 router.post("/login", authLimiter, validate(loginSchema), login);
 router.post("/logout", logout);
-router.get("/refresh-token", handleTokenRefresh);
+router.post("/refresh-token", handleTokenRefresh);
 
 export default router;

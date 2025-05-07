@@ -15,9 +15,9 @@ const optionalAuth = (req: Request, res: Response, next: NextFunction): void => 
   }
 
   const token = authHeader.split(" ")[1];
-  const payload = verifyToken(token, config.jwt.access_secret);
+  const decoded = verifyToken(token, config.jwt.access_secret);
 
-  req.user = payload;
+  req.user = decoded;
 
   next();
 };

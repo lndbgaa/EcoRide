@@ -28,14 +28,14 @@ const config = {
   clientUrl,
   port: process.env.PORT ? Number(process.env.PORT) : 8080,
   cors: {
-    origin: [clientUrl],
-    methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
+    origin: clientUrl,
+    methods: ["GET", "POST", "PUT", "DELETE", "PATCH"],
     allowedHeaders: ["Content-Type", "Authorization", "Accept"],
     credentials: true,
   },
   jwt: {
     access_secret: getEnvVar("JWT_ACCESS_SECRET"),
-    access_expiration: (process.env.JWT_ACCESS_EXPIRATION as StringValue) ?? "15m", // 15 minutes
+    access_expiration: (process.env.JWT_ACCESS_EXPIRATION as StringValue) ?? "10m", // 10 minutes
     refresh_expiration: (process.env.JWT_REFRESH_EXPIRATION as StringValue) ?? "7d", // 7 jours
   },
   mysql: {

@@ -22,8 +22,6 @@ interface RegisterUserResponse {
   accountId: string;
   accessToken: string;
   refreshToken: string;
-  expiresAt: number;
-  expiresIn: number;
 }
 
 interface RegisterEmployeeData {
@@ -41,15 +39,11 @@ interface LoginData {
 interface LoginResponse {
   accessToken: string;
   refreshToken: string;
-  expiresAt: number;
-  expiresIn: number;
 }
 
 interface RefreshAccessTokenResponse {
   accessToken: string;
   newRefreshToken: string;
-  expiresAt: number;
-  expiresIn: number;
 }
 
 const { access_secret, access_expiration, refresh_expiration } = config.jwt;
@@ -116,7 +110,7 @@ class AuthService {
         { transaction }
       );
 
-      const accessToken: string = generateToken(
+      const accessToken = generateToken(
         { id: newUser.id, role: ACCOUNT_ROLES_LABEL.USER },
         access_secret,
         access_expiration
@@ -126,8 +120,6 @@ class AuthService {
         accountId: newUser.id,
         accessToken,
         refreshToken: refreshToken.token,
-        expiresIn: ms(access_expiration),
-        expiresAt: now.add(ms(access_expiration), "ms").toDate().getTime(),
       };
     });
   }
@@ -180,7 +172,7 @@ class AuthService {
       throw new AppError({
         statusCode: 403,
         statusText: "Forbidden",
-        message: "Le compte est suspendu.",
+        message: "Votre compte est suspendu.",
       });
     }
 
@@ -200,8 +192,6 @@ class AuthService {
     return {
       accessToken,
       refreshToken: refreshToken.token,
-      expiresIn: ms(access_expiration),
-      expiresAt: now.add(ms(access_expiration), "ms").toDate().getTime(),
     };
   }
 
@@ -220,9 +210,7 @@ class AuthService {
    * @param refreshToken - Jeton de rafraîchissement
    * @returns Jeton d'accès (access token)
    */
-  public static async refreshAccessToken(
-    refreshToken: string
-  ): Promise<RefreshAccessTokenResponse> {
+  public static async refreshAccessToken(refreshToken: string): Promise<RefreshAccessTokenResponse> {
     const refreshTokenRecord = await RefreshToken.findOne({
       where: { token: refreshToken },
     });
@@ -275,17 +263,11 @@ class AuthService {
 
     const role = account.role?.label ?? ACCOUNT_ROLES_LABEL.USER;
 
-    const newAccessToken = generateToken(
-      { id: account.id, role },
-      access_secret,
-      access_expiration
-    );
+    const newAccessToken = generateToken({ id: account.id, role }, access_secret, access_expiration);
 
     return {
       accessToken: newAccessToken,
       newRefreshToken: newRefreshToken.token,
-      expiresIn: ms(access_expiration),
-      expiresAt: now.add(ms(access_expiration), "ms").toDate().getTime(),
     };
   }
 }

@@ -1,5 +1,7 @@
 import { Navigate, useLocation } from "react-router-dom";
-// import { useAuth } from "../hooks/useAuth"; // À créer plus tard
+
+import Loader from "@/components/Loader/Loader";
+import useAuth from "@/hooks/useAuth";
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
@@ -13,10 +15,12 @@ interface ProtectedRouteProps {
  * Si roles n'est pas fourni, vérifie seulement l'authentification.
  */
 const Protected = ({ children, roles, redirectTo = "/login" }: ProtectedRouteProps) => {
-  // const { isAuthenticated, userRole } = useAuth();
-  const isAuthenticated = true;
-  const userRole = "user";
+  const { isAuthenticated, isLoading, userRole } = useAuth();
   const location = useLocation();
+
+  if (isLoading) {
+    return <Loader />;
+  }
 
   if (!isAuthenticated) {
     return <Navigate to={redirectTo} state={{ from: location }} replace />;
