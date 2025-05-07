@@ -8,7 +8,7 @@ export const loginSchema = Joi.object({
     "any.required": "L'email est requis.",
     "string.empty": "L'email doit être une chaîne de caractères non vide.",
     "string.base": "L'email doit être une chaîne de caractères non vide.",
-    "string.email": "L'email doit être un email valide.",
+    "string.email": "Veuillez entrer un format d'email valide.",
   }),
   password: Joi.string().trim().required().messages({
     "any.required": "Le mot de passe est requis.",
@@ -40,8 +40,7 @@ export const registerUserSchema = Joi.object({
       "string.empty": "Le pseudo doit être une chaîne de caractères non vide.",
       "string.min": "Le pseudo doit contenir au moins 3 caractères.",
       "string.max": "Le pseudo doit contenir maximum 20 caractères.",
-      "string.pattern.base":
-        "Le pseudo ne doit contenir que des lettres, des chiffres, des tirets et des underscores.",
+      "string.pattern.base": "Le pseudo ne doit contenir que des lettres, des chiffres, des tirets et des underscores.",
     }),
   password: Joi.string()
     .trim()

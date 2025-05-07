@@ -110,8 +110,8 @@ const AuthProvider = ({ children }: { children: ReactNode }) => {
       setUserRole(decoded.role);
       setUserId(decoded.id);
     } catch (error) {
-      console.error("Erreur de connexion:", error);
       resetAuthState();
+      throw error;
     } finally {
       setIsLoading(false);
     }

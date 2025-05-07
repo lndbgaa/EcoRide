@@ -28,7 +28,7 @@ export const authLimiter = rateLimit({
     success: false,
     statusCode: 429,
     statusText: "Too Many Requests",
-    message: "Trop de tentatives de connexion, veuillez réessayer plus tard.",
+    message: "Trop de tentatives de connexion. Veuillez réessayer dans quelques minutes.",
   },
 });
 

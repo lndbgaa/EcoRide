@@ -14,8 +14,8 @@ import MainLayout from "@/layouts/MainLayout";
 import RatingsLayout from "@/layouts/RatingsLayout";
 import UserDashboardLayout from "@/layouts/UserDashboardLayout";
 
-const LoginPage = lazy(() => import("@/pages/auth/LoginPage.tsx"));
-const RegisterPage = lazy(() => import("@/pages/auth/RegisterPage.tsx"));
+const LoginPage = lazy(() => import("@/pages/auth/LoginPage/LoginPage"));
+const RegisterPage = lazy(() => import("@/pages/auth/RegisterPage/RegisterPage"));
 
 const HomePage = lazy(() => import("@/pages/public/HomePage"));
 const ContactPage = lazy(() => import("@/pages/public/ContactPage"));

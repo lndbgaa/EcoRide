@@ -9,3 +9,41 @@
   padding: 0;
   box-sizing: border-box;
 }
+
+html,
+body {
+  height: 100%;
+  width: 100%;
+}
+
+body,
+input,
+button,
+select,
+textarea {
+  font-family: var(--ff-lato);
+  font-size: var(--fs-base);
+}
+
+body {
+  background-color: var(--clr-background);
+  line-height: 1.6;
+}
+
+a {
+  text-decoration: none;
+}
+
+ul {
+  list-style: none;
+}
+
+.sr-only:not(:focus):not(:active) {
+  clip: rect(0 0 0 0);
+  clip-path: inset(50%);
+  height: 1px;
+  overflow: hidden;
+  position: absolute;
+  white-space: nowrap;
+  width: 1px;
+}

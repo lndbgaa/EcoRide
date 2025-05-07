@@ -1,0 +1,34 @@
+@import url("https://fonts.googleapis.com/css2?family=Lato:ital,wght@0,100;0,300;0,400;0,700;0,900;1,100;1,300;1,400;1,700;1,900&family=Nunito:ital,wght@0,200..1000;1,200..1000&display=swap");
+
+:root {
+  --ff-nunito: "Nunito", sans-serif;
+  --ff-lato: "Lato", sans-serif;
+
+  --clr-background: #faf9f6;
+  --clr-text-primary: #073b3a;
+  --clr-text-secondary: #5c7a71;
+
+  --clr-white: #ffffff;
+  --clr-soft-gray: #ededed;
+  --clr-medium-gray: #c4c4c4;
+
+  --clr-accent: #45a861;
+  --clr-accent-soft: #4dba6f;
+  --clr-accent-dark: #3d9756;
+
+  --clr-info: #c16e4e;
+  --clr-error: #db4a3d;
+  --clr-warning: #ff6720;
+
+  --fs-xlarge: 3.2rem;
+  --fs-large: 2.4rem;
+  --fs-medium: 1.8rem;
+  --fs-base: 1.6rem;
+  --fs-small: 1.4rem;
+  --fs-xsmall: 1.2rem;
+
+  --fw-regular: 400;
+  --fw-medium: 500;
+  --fw-bold: 700;
+  --fw-black: 900;
+}

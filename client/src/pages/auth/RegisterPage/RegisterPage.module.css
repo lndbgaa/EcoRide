@@ -1,0 +1,136 @@
+.registerPage {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+}
+
+.registerContainer {
+  width: 50rem;
+  margin-top: 15rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.signup {
+  width: 100%;
+  margin-bottom: 3rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.title {
+  margin-bottom: 2rem;
+  font-size: var(--fs-xlarge);
+  font-weight: var(--fw-bold);
+  color: var(--clr-text-secondary);
+  letter-spacing: 0.02rem;
+}
+
+.errorMessage {
+  margin-bottom: 1rem;
+  color: var(--clr-error);
+  font-weight: var(--fw-bold);
+  font-size: var(--fs-small);
+}
+
+.form {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2rem;
+}
+
+.formRow {
+  width: 100%;
+  display: flex;
+  gap: 1rem;
+}
+
+.formGroup {
+  width: 100%;
+}
+
+.input {
+  width: 100%;
+  padding: 1rem;
+  border-radius: 0.5rem;
+  border: 2px solid var(--clr-soft-gray);
+  background-color: transparent;
+  color: var(--clr-text-primary);
+}
+
+.input::placeholder {
+  color: var(--clr-medium-gray);
+  font-weight: var(--fw-regular);
+}
+
+.input:focus {
+  outline: none;
+  border: 2px solid var(--clr-accent);
+}
+
+.input:focus::placeholder {
+  color: var(--clr-accent-dark);
+}
+
+.signupButton {
+  width: 35rem;
+  padding: 1rem;
+  text-align: center;
+  border-radius: 1rem;
+  border: none;
+  background-color: var(--clr-accent);
+  color: var(--clr-white);
+  font-weight: var(--fw-bold);
+  font-size: var(--fs-medium);
+  letter-spacing: 0.02rem;
+  cursor: pointer;
+  transition: background-color 0.3s ease, transform 0.3s ease;
+}
+
+.signupButton:disabled {
+  background-color: var(--clr-soft-gray);
+  cursor: not-allowed;
+}
+
+.signupButton:hover {
+  background-color: var(--clr-accent-dark);
+}
+
+.signin {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background-color: #f8f8f8;
+  border-radius: 0.5rem;
+}
+
+.signinText {
+  margin-bottom: 1rem;
+  color: var(--clr-text-secondary);
+}
+
+.signinButton {
+  width: 35rem;
+  padding: 0.6rem;
+  text-align: center;
+  border-radius: 1rem;
+  border: 1px solid var(--clr-accent);
+  background-color: transparent;
+  color: var(--clr-accent);
+  font-weight: var(--fw-bold);
+  font-size: var(--fs-medium);
+  letter-spacing: 0.02rem;
+  cursor: pointer;
+  transition: background-color 0.3s ease, transform 0.3s ease;
+}
+
+.signinButton:hover {
+  background-color: var(--clr-accent-dark);
+  color: var(--clr-white);
+  transform: scale(1.05);
+}

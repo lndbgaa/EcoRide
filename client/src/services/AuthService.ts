@@ -40,18 +40,11 @@ class AuthService {
    * @returns Token d'accès
    */
   static async login(data: LoginData): Promise<{ accessToken: string }> {
-    try {
-      const url = "/auth/login";
+    const url = "/auth/login";
 
-      const response = await axiosPublic.post(url, data, { headers: { "Content-Type": "application/json" } });
-
-      const { accessToken } = response.data.data;
-
-      return { accessToken };
-    } catch (error) {
-      console.error("Erreur lors de la connexion:", error);
-      throw error;
-    }
+    const response = await axiosPublic.post(url, data, { headers: { "Content-Type": "application/json" } });
+    const { accessToken } = response.data.data;
+    return { accessToken };
   }
 
   /**
@@ -60,7 +53,6 @@ class AuthService {
   static async logout(): Promise<void> {
     try {
       const url = "/auth/logout";
-
       await axiosPublic.post(url, null, { withCredentials: true });
     } catch (error) {
       console.error("Erreur lors de la déconnexion:", error);
