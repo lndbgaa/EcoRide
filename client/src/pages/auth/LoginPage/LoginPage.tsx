@@ -1,3 +1,4 @@
+import classNames from "classnames";
 import { FormEvent, useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import validator from "validator";
@@ -27,15 +28,15 @@ const LoginPage = () => {
     let isValid = true;
 
     if (!email) {
-      newErrors.email = "Champ requis";
+      newErrors.email = "Ce champ est requis";
       isValid = false;
     } else if (!validator.isEmail(email)) {
-      newErrors.email = "Format invalide";
+      newErrors.email = "Oups ! Ce n’est pas un email valide. 😬";
       isValid = false;
     }
 
     if (!password) {
-      newErrors.password = "Champ requis";
+      newErrors.password = "Ce champ est requis";
       isValid = false;
     }
 
@@ -62,12 +63,7 @@ const LoginPage = () => {
     } catch (error: unknown) {
       if (error instanceof AxiosError) {
         const message = error.response?.data?.message;
-
-        if (message) {
-          setError({ auth: message });
-        } else {
-          setError({ auth: "Erreur de connexion inattendue. Veuillez réessayer." });
-        }
+        setError({ auth: message ?? "Erreur de connexion inattendue. Veuillez réessayer." });
       } else {
         setError({ auth: "Erreur de connexion inattendue. Veuillez réessayer." });
       }
@@ -81,8 +77,8 @@ const LoginPage = () => {
       <div className={styles.loginContainer}>
         <div className={styles.signin}>
           <h1 className={styles.title}>Connectez-vous</h1>
-          {error && (
-            <div className={styles.errorMessage} aria-live="polite">
+          {error.auth && (
+            <div className={classNames(styles.errorMessage, styles.authError)} aria-live="polite">
               {error.auth}
             </div>
           )}
@@ -92,14 +88,15 @@ const LoginPage = () => {
                 Email
               </label>
               {error.email && (
-                <div className={`${styles.errorMessage} ${styles.inputError}`} aria-live="polite">
+                <div id="emailError" className={classNames(styles.errorMessage, styles.inputError)} aria-live="polite">
                   {error.email}
                 </div>
               )}
               <input
                 type="email"
                 id="email"
-                className={`${styles.input} ${error.email ? styles.hasError : ""}`}
+                name="email"
+                className={classNames(styles.input, error.email && styles.hasError)}
                 value={email}
                 placeholder="Email"
                 onChange={(e) => {
@@ -107,6 +104,8 @@ const LoginPage = () => {
                   setError((prev) => ({ ...prev, email: "" }));
                 }}
                 required
+                aria-invalid={!!error.email}
+                aria-describedby={error.email ? "emailError" : undefined}
               />
             </div>
 
@@ -115,14 +114,19 @@ const LoginPage = () => {
                 Mot de passe
               </label>
               {error.password && (
-                <div className={`${styles.errorMessage} ${styles.inputError}`} aria-live="polite">
+                <div
+                  id="passwordError"
+                  className={classNames(styles.errorMessage, styles.inputError)}
+                  aria-live="polite"
+                >
                   {error.password}
                 </div>
               )}
               <input
                 type="password"
                 id="password"
-                className={`${styles.input} ${error.password ? styles.hasError : ""}`}
+                name="password"
+                className={classNames(styles.input, error.password && styles.hasError)}
                 value={password}
                 placeholder="Mot de passe"
                 onChange={(e) => {
@@ -130,6 +134,8 @@ const LoginPage = () => {
                   setError((prev) => ({ ...prev, password: "" }));
                 }}
                 required
+                aria-invalid={!!error.password}
+                aria-describedby={error.password ? "passwordError" : undefined}
               />
               <Link to="" className={styles.forgotPassword}>
                 Mot de passe oublié

@@ -93,8 +93,8 @@ const AuthProvider = ({ children }: { children: ReactNode }) => {
       setUserRole(role);
       setUserId(id);
     } catch (error) {
-      console.error("Erreur d'inscription:", error);
       resetAuthState();
+      throw error;
     } finally {
       setIsLoading(false);
     }

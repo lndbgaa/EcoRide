@@ -9,12 +9,7 @@ import type { ErrorRequestHandler, NextFunction, Request, Response } from "expre
 /**
  * Middleware de gestion des erreurs
  */
-const errorHandler: ErrorRequestHandler = (
-  err: Error,
-  req: Request,
-  res: Response,
-  next: NextFunction
-) => {
+const errorHandler: ErrorRequestHandler = (err: Error, req: Request, res: Response, next: NextFunction) => {
   if (err instanceof AppError) {
     const { statusCode, statusText, message, details, stack } = err;
 
@@ -32,7 +27,11 @@ const errorHandler: ErrorRequestHandler = (
       success: false,
       statusCode: 400,
       statusText: "Bad Request",
-      errors: err.details.map((detail) => detail.message),
+      errors: err.details.map((detail) => ({
+        field: Array.isArray(detail.path) ? detail.path.join(".") : "inconnu",
+        code: detail.type.replace(/\./g, "_").toUpperCase(),
+        message: config.env === "development" ? detail.message : "Erreur de validation du champ",
+      })),
     });
   } else {
     const statusCode = 500;

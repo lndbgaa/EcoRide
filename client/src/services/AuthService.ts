@@ -20,18 +20,11 @@ class AuthService {
    * @returns Token d'accès
    */
   static async register(data: RegisterData): Promise<{ accessToken: string }> {
-    try {
-      const url = "/auth/register";
+    const url = "/auth/register";
 
-      const response = await axiosPublic.post(url, data, { headers: { "Content-Type": "application/json" } });
-
-      const { accessToken } = response.data.data;
-
-      return { accessToken };
-    } catch (error) {
-      console.error("Erreur lors de l'inscription:", error);
-      throw error;
-    }
+    const response = await axiosPublic.post(url, data, { headers: { "Content-Type": "application/json" } });
+    const { accessToken } = response.data.data;
+    return { accessToken };
   }
 
   /**

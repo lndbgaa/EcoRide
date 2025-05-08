@@ -27,7 +27,7 @@ const UnauthorizedPage = lazy(() => import("@/pages/error/UnauthorizedPage"));
 const UserPublicInfoPage = lazy(() => import("@/pages/user/UserPublicInfoPage"));
 const RidePublicInfoPage = lazy(() => import("@/pages/ride/RidePublicInfoPage"));
 
-const ProfilePage = lazy(() => import("@/pages/user/dashboard/ProfilePage"));
+const ProfilePage = lazy(() => import("@/pages/user/dashboard/ProfilePage/ProfilePage"));
 const RidesHistoryPage = lazy(() => import("@/pages/user/dashboard/RidesHistoryPage"));
 const BookingsHistoryPage = lazy(() => import("@/pages/user/dashboard/BookingsHistoryPage"));
 const GivenRatingsPage = lazy(() => import("@/pages/user/dashboard/GivenRatingsPage"));
