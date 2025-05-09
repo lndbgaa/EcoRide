@@ -1,0 +1,53 @@
+.dashboardHeader {
+  width: 100%;
+  max-width: 60rem;
+  padding: 2rem;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+}
+
+.publishButton {
+  align-self: flex-end;
+  margin-bottom: 3rem;
+  color: var(--clr-accent);
+  background: none;
+  border: none;
+  font-size: 16px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: color 0.3s ease;
+}
+
+.publishButton:hover {
+  color: var(--clr-accent-dark);
+  text-decoration: underline;
+}
+
+.navigation {
+  position: relative;
+  display: flex;
+  margin-bottom: 2rem;
+  border-bottom: 1px solid var(--clr-soft-gray);
+}
+
+.navigation a {
+  position: relative;
+  padding: 1rem 2rem;
+  color: var(--clr-text-secondary);
+
+  transition: color 0.3s ease;
+}
+
+.navigation a[class*="active"] {
+  color: var(--clr-text-primary);
+}
+
+.slider {
+  position: absolute;
+  bottom: -1px;
+  height: 2px;
+  border-radius: 10rem;
+  background-color: var(--clr-text-primary);
+  transition: all 0.3s ease;
+}

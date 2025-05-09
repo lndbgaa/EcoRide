@@ -10,11 +10,10 @@ export const addVehicleSchema = Joi.object({
     "number.base": "L'id de la marque doit être un nombre.",
     "number.min": "L'id de la marque doit être supérieur à 0.",
   }),
-  model: Joi.string().trim().min(2).max(50).required().messages({
+  model: Joi.string().trim().max(50).required().messages({
     "any.required": "Le modèle est requis.",
     "string.base": "Le modèle doit être une chaîne de caractères non vide.",
     "string.empty": "Le modèle doit être une chaîne de caractères non vide.",
-    "string.min": "Le modèle doit contenir au moins 2 caractères.",
     "string.max": "Le modèle doit contenir maximum 50 caractères.",
   }),
   colorId: Joi.number().integer().min(1).strict().required().messages({
@@ -39,10 +38,8 @@ export const addVehicleSchema = Joi.object({
     .pattern(/^[A-Z]{2}-\d{3}-[A-Z]{2}$/i)
     .messages({
       "any.required": "La plaque d'immatriculation est requise.",
-      "string.base":
-        "La plaque d'immatriculation doit être une chaîne de caractères non vide.",
-      "string.empty":
-        "La plaque d'immatriculation doit être une chaîne de caractères non vide.",
+      "string.base": "La plaque d'immatriculation doit être une chaîne de caractères non vide.",
+      "string.empty": "La plaque d'immatriculation doit être une chaîne de caractères non vide.",
       "string.pattern.base": "Format de plaque invalide. Format attendu : AB-123-CD",
     }),
   firstRegistration: Joi.string()
@@ -59,10 +56,8 @@ export const addVehicleSchema = Joi.object({
     .messages({
       "any.required": "La date de première mise en circulation est requise.",
       "string.base": "La date de première mise en circulation doit être une date valide.",
-      "string.empty":
-        "La date de première mise en circulation doit être une date valide.",
-      "any.invalid":
-        "La date de première mise en circulation doit être une date valide antérieure à la date actuelle.",
+      "string.empty": "La date de première mise en circulation doit être une date valide.",
+      "any.invalid": "La date de première mise en circulation doit être une date valide antérieure à la date actuelle.",
     }),
 });
 

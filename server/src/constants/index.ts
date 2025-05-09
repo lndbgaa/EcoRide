@@ -43,7 +43,7 @@ export const VEHICLE_ASSOCIATIONS: Includeable[] = [
 ];
 
 export const DEFAULT_PREFERENCES = [
-  { label: "Fumeur", value: false, is_custom: false },
+  { label: "Fumeurs", value: false, is_custom: false },
   { label: "Animaux", value: false, is_custom: false },
 ] as const;
 

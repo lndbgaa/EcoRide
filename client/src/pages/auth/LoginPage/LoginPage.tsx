@@ -28,7 +28,7 @@ const LoginPage = () => {
     let isValid = true;
 
     if (!email) {
-      newErrors.email = "Ce champ est requis";
+      newErrors.email = "Champ requis";
       isValid = false;
     } else if (!validator.isEmail(email)) {
       newErrors.email = "Oups ! Ce n’est pas un email valide. 😬";
@@ -36,7 +36,7 @@ const LoginPage = () => {
     }
 
     if (!password) {
-      newErrors.password = "Ce champ est requis";
+      newErrors.password = "Champ requis";
       isValid = false;
     }
 

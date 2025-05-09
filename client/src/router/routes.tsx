@@ -12,7 +12,7 @@ import EmployeeLayout from "@/layouts/EmployeeLayout";
 import HistoryLayout from "@/layouts/HistoryLayout";
 import MainLayout from "@/layouts/MainLayout";
 import RatingsLayout from "@/layouts/RatingsLayout";
-import UserDashboardLayout from "@/layouts/UserDashboardLayout";
+import UserDashboardLayout from "@/layouts/UserDashboard/UserDashboardLayout";
 
 const LoginPage = lazy(() => import("@/pages/auth/LoginPage/LoginPage"));
 const RegisterPage = lazy(() => import("@/pages/auth/RegisterPage/RegisterPage"));
@@ -119,6 +119,31 @@ const routes = [
             ],
           },
         ],
+      },
+
+      {
+        path: "/dashboard/profile/picture/edit",
+        //element: <Protected roles={["user"]}>{lazyLoad(ProfilePictureEditPage)}</Protected>,
+      },
+
+      {
+        path: "/dashboard/profile/info/edit",
+        //element: <Protected roles={["user"]}>{lazyLoad(ProfileInfoEditPage)}</Protected>,
+      },
+
+      {
+        path: "/dashboard/profile/vehicle/:id/show",
+        //element: <Protected roles={["user"]}>{lazyLoad(ProfileVehicleAddPage)}</Protected>,
+      },
+
+      {
+        path: "/dashboard/profile/vehicle/add",
+        //element: <Protected roles={["user"]}>{lazyLoad(ProfileVehicleAddPage)}</Protected>,
+      },
+
+      {
+        path: "/dashboard/profile/preference/add",
+        //element: <Protected roles={["user"]}>{lazyLoad(ProfilePreferenceAddPage)}</Protected>,
       },
 
       // Trajets à venir

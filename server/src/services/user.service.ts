@@ -181,31 +181,22 @@ class UserService {
   public static async getNextEvent(userId: string): Promise<Booking | Ride | null> {
     const user = await this.findUserOrThrow(userId);
 
-    const role = user.isPassenger() && user.isDriver() ? "both" : user.isDriver() ? "driver" : "passenger";
-
-    let nextBooking: Booking | null = null;
-    let nextRide: Ride | null = null;
-
     const now = dayjs().toDate();
 
-    if (role === "passenger" || role === "both") {
-      nextBooking = await Booking.findOne({
-        where: { passenger_id: userId, status: "confirmed" },
-        include: [{ association: "ride" }],
-        order: [[{ model: Ride, as: "ride" }, "departure_datetime", "ASC"]],
-      });
-    }
+    const nextBooking: Booking | null = await Booking.findOne({
+      where: { passenger_id: userId, status: "confirmed" },
+      include: [{ association: "ride" }],
+      order: [[{ model: Ride, as: "ride" }, "departure_datetime", "ASC"]],
+    });
 
-    if (role === "driver" || role === "both") {
-      nextRide = await Ride.findOne({
-        where: {
-          driver_id: userId,
-          status: { [Op.in]: ["open", "full", "in_progress"] },
-          departure_datetime: { [Op.gt]: now },
-        },
-        order: [["departure_datetime", "ASC"]],
-      });
-    }
+    const nextRide: Ride | null = await Ride.findOne({
+      where: {
+        driver_id: userId,
+        status: { [Op.in]: ["open", "full", "in_progress"] },
+        departure_datetime: { [Op.gt]: now },
+      },
+      order: [["departure_datetime", "ASC"]],
+    });
 
     if (nextBooking && nextRide) {
       const bookingDate = nextBooking.ride?.departure_datetime;

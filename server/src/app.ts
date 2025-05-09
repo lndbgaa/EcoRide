@@ -18,7 +18,6 @@ import config from "@/config/app.config.js";
 import connectMongo from "@/config/mongo.config.js";
 import { connectMySQL } from "@/config/mysql.config.js";
 import errorHandler from "@/middlewares/errorHandler.js";
-import { globalLimiter } from "@/middlewares/rateLimiter.js";
 import sanitizeAll from "@/middlewares/sanitizeAll.js";
 import adminRoutes from "@/routes/admin.route.js";
 import authRoutes from "@/routes/auth.route.js";
@@ -38,7 +37,7 @@ app.use(express.urlencoded({ extended: true }));
 
 app.use(cookieParser());
 app.use(sanitizeAll);
-app.use(globalLimiter);
+//app.use(globalLimiter);
 app.use(cors(config.cors));
 app.use(helmet({ contentSecurityPolicy: false }));
 

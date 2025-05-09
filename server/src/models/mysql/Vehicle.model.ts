@@ -18,8 +18,8 @@ export interface VehiclePublicDTO {
 
 export interface VehiclePrivateDTO extends VehiclePublicDTO {
   seats: number;
-  license_plate: string;
-  first_registration: string;
+  licensePlate: string;
+  firstRegistration: string;
 }
 
 /**
@@ -71,8 +71,8 @@ class Vehicle extends Model {
     return {
       ...this.toPublicDTO(),
       seats: this.seats,
-      license_plate: this.license_plate,
-      first_registration: toDateOnly(this.first_registration),
+      licensePlate: this.license_plate,
+      firstRegistration: toDateOnly(this.first_registration),
     };
   }
 }
@@ -157,8 +157,7 @@ Vehicle.init(
             throw new AppError({
               statusCode: 400,
               statusText: "Bad Request",
-              message:
-                "La date de première immatriculation doit être antérieure à la date actuelle.",
+              message: "La date de première immatriculation doit être antérieure à la date actuelle.",
             });
           }
         },

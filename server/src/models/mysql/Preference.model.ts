@@ -6,7 +6,7 @@ export interface PreferencePrivateDTO {
   id: string;
   label: string;
   value: boolean;
-  is_custom: boolean;
+  isCustom: boolean;
 }
 
 class Preference extends Model {
@@ -44,7 +44,7 @@ class Preference extends Model {
       id: this.id,
       label: this.label,
       value: this.value,
-      is_custom: this.is_custom,
+      isCustom: this.is_custom,
     };
   }
 }

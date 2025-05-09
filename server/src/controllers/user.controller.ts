@@ -79,13 +79,13 @@ export const updateUserAvatar = catchAsync(async (req: MulterRequest, res: Respo
 /**
  * Gère la récupération du prochain événement à venir d'un utilisateur
  */
-export const getUserNextEvent = catchAsync(async (req: Request, res: Response): Promise<void> => {
+export const getUserNextEvent = catchAsync(async (req: Request, res: Response): Promise<Response> => {
   const userId = req.user.id;
 
   const nextEvent: Booking | Ride | null = await UserService.getNextEvent(userId);
 
   if (!nextEvent) {
-    res.status(200).json({
+    return res.status(200).json({
       success: true,
       message: "Aucun événement à venir.",
     });
@@ -99,7 +99,7 @@ export const getUserNextEvent = catchAsync(async (req: Request, res: Response): 
     dto = nextEvent.toPrivatePreviewDTO();
   }
 
-  res.status(200).json({
+  return res.status(200).json({
     success: true,
     message: "Prochain événement récupéré avec succès.",
     type: nextEvent instanceof Booking ? "booking" : "ride",
@@ -110,7 +110,7 @@ export const getUserNextEvent = catchAsync(async (req: Request, res: Response): 
 /**
  * Gère la récupération des événements à venir d'un utilisateur
  */
-export const getUserUpcomingEvents = catchAsync(async (req: Request, res: Response): Promise<void> => {
+export const getUserUpcomingEvents = catchAsync(async (req: Request, res: Response): Promise<Response> => {
   const userId = req.user.id;
 
   const upcomingEvents = await UserService.getUpcomingEvents(userId);
@@ -122,7 +122,7 @@ export const getUserUpcomingEvents = catchAsync(async (req: Request, res: Respon
     return type === "booking" ? data.toPrivateDTO() : data.toPrivatePreviewDTO();
   });
 
-  res.status(200).json({
+  return res.status(200).json({
     success: true,
     message,
     data: dto,
