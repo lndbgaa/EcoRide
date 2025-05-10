@@ -5,11 +5,13 @@ import { Link, useNavigate } from "react-router-dom";
 import validator from "validator";
 
 import useAuth from "@/hooks/useAuth";
+
 import styles from "./RegisterPage.module.css";
 
 const RegisterPage = () => {
   const [error, setError] = useState<{ [key: string]: string }>({});
-  const [isLoading, setIsLoading] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
+
   const [formData, setFormData] = useState({
     email: "",
     pseudo: "",
@@ -29,64 +31,47 @@ const RegisterPage = () => {
   }, [isAuthenticated, navigate]);
 
   const validateData = (data: typeof formData) => {
-    const newErrors: { [key: string]: string } = {};
-    let isValid = true;
+    setError({});
 
-    if (!data.firstName) {
-      newErrors.firstName = "Champ requis";
-      isValid = false;
-    } else if (!/^[a-zA-Z- ]+$/.test(data.firstName)) {
-      newErrors.firstName = "Invalide (lettres et tirets uniquement)";
-      isValid = false;
+    if (!/^[a-zA-Z- ]+$/.test(data.firstName)) {
+      setError({ firstName: "Veuillez entrer un prénom valide (lettres et tirets uniquement)" });
+      return false;
     }
 
-    if (!data.lastName) {
-      newErrors.lastName = "Champ requis";
-      isValid = false;
-    } else if (!/^[a-zA-Z- ]+$/.test(data.lastName)) {
-      newErrors.lastName = "Invalide (lettres et tirets uniquement)";
-      isValid = false;
+    if (!/^[a-zA-Z- ]+$/.test(data.lastName)) {
+      setError({ lastName: "Veuillez entrer un nom valide (lettres et tirets uniquement)" });
+      return false;
     }
 
-    if (!data.email) {
-      newErrors.email = "Champ requis";
-      isValid = false;
-    } else if (!validator.isEmail(data.email)) {
-      newErrors.email = "Oups ! Ce n’est pas un email valide 😬";
-      isValid = false;
+    if (!validator.isEmail(data.email)) {
+      setError({ email: "Veuillez entrer un email valide (ex: test@test.com)" });
+      return false;
     }
 
-    if (!data.pseudo) {
-      newErrors.pseudo = "Champ requis";
-      isValid = false;
-    } else if (!/^[a-zA-Z0-9_-]+$/.test(data.pseudo)) {
-      newErrors.pseudo = "Invalide (lettres, chiffres, tirets et underscores uniquement)";
-      isValid = false;
+    if (!/^[a-zA-Z0-9_-]+$/.test(data.pseudo)) {
+      setError({ pseudo: "Veuillez entrer un pseudo valide (lettres, chiffres, tirets et underscores uniquement)" });
+      return false;
     }
 
-    if (!data.password) {
-      newErrors.password = "Champ requis";
-      isValid = false;
-    } else if (data.password.length < 8) {
-      newErrors.password = "Mot de passe trop court (8 caractères minimum)";
-      isValid = false;
-    } else if (!/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/.test(data.password)) {
-      newErrors.password = "Invalide (1 min., 1 maj., 1 chiffre, 1 spécial)";
-      isValid = false;
+    if (!/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/.test(data.password)) {
+      setError({
+        password:
+          "Le mot de passe doit contenir au moins 8 caractères, avec une minuscule, une majuscule, un chiffre et un caractère spécial.",
+      });
+      return false;
     }
 
     if (!data.confirmPassword) {
-      newErrors.confirmPassword = "Champ requis";
-      isValid = false;
+      setError({ confirmPassword: "Veuillez confirmer le mot de passe" });
+      return false;
     }
 
     if (data.password !== data.confirmPassword && data.confirmPassword) {
-      newErrors.confirmPassword = "Les mots de passe ne correspondent pas";
-      isValid = false;
+      setError({ confirmPassword: "Les mots de passe ne correspondent pas" });
+      return false;
     }
 
-    setError(newErrors);
-    return isValid;
+    return true;
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -96,18 +81,13 @@ const RegisterPage = () => {
       ...prev,
       [name]: value,
     }));
-
-    setError((prev) => ({
-      ...prev,
-      [name]: "",
-    }));
   };
 
   const handleSubmit = async (e: FormEvent) => {
-    if (isLoading) return;
+    if (isSubmitting) return;
 
     e.preventDefault();
-    setIsLoading(true);
+    setIsSubmitting(true);
 
     const cleanedData = {
       ...formData,
@@ -117,15 +97,12 @@ const RegisterPage = () => {
       pseudo: formData.pseudo.trim(),
     };
 
-    setFormData((prev) => ({
-      ...prev,
-      ...cleanedData,
-    }));
+    console.log(cleanedData);
 
     const isValid = validateData(cleanedData);
 
     if (!isValid) {
-      setIsLoading(false);
+      setIsSubmitting(false);
       return;
     }
 
@@ -140,12 +117,12 @@ const RegisterPage = () => {
         setError({ auth: "Erreur lors de l'inscription, veuillez réessayer." });
       }
     } finally {
-      setIsLoading(false);
+      setIsSubmitting(false);
     }
   };
 
   return (
-    <div className={styles.registerPage}>
+    <div className={styles.pageContainer}>
       <div className={styles.registerContainer}>
         <div className={styles.signup}>
           <h1 className={styles.title}>Inscrivez-vous</h1>
@@ -169,7 +146,6 @@ const RegisterPage = () => {
                   value={formData.firstName}
                   placeholder="Prénom"
                   onChange={handleChange}
-                  required
                   aria-invalid={!!error.firstName}
                   aria-describedby={error.firstName ? "firstNameError" : undefined}
                 />
@@ -195,7 +171,6 @@ const RegisterPage = () => {
                   value={formData.lastName}
                   placeholder="Nom"
                   onChange={handleChange}
-                  required
                   aria-invalid={!!error.lastName}
                   aria-describedby={error.lastName ? "lastNameError" : undefined}
                 />
@@ -222,7 +197,6 @@ const RegisterPage = () => {
                 value={formData.email}
                 placeholder="Email"
                 onChange={handleChange}
-                required
                 aria-invalid={!!error.email}
                 aria-describedby={error.email ? "emailError" : undefined}
               />
@@ -244,7 +218,6 @@ const RegisterPage = () => {
                 value={formData.pseudo}
                 placeholder="Pseudo"
                 onChange={handleChange}
-                required
                 aria-invalid={!!error.pseudo}
                 aria-describedby={error.pseudo ? "pseudoError" : undefined}
               />
@@ -267,7 +240,6 @@ const RegisterPage = () => {
                 placeholder="Mot de passe"
                 onChange={handleChange}
                 minLength={8}
-                required
                 aria-invalid={!!error.password}
                 aria-describedby={error.password ? "passwordError" : undefined}
               />
@@ -293,7 +265,6 @@ const RegisterPage = () => {
                 value={formData.confirmPassword}
                 placeholder="Confirmer le mot de passe"
                 onChange={handleChange}
-                required
                 aria-invalid={!!error.confirmPassword}
                 aria-describedby={error.confirmPassword ? "confirmPasswordError" : undefined}
               />
@@ -307,8 +278,8 @@ const RegisterPage = () => {
                 </div>
               )}
             </div>
-            <button type="submit" className={styles.signupButton} disabled={isLoading}>
-              {isLoading ? "Inscription en cours..." : "Inscription"}
+            <button type="submit" className={styles.signupButton} disabled={isSubmitting}>
+              {isSubmitting ? "Inscription en cours..." : "Inscription"}
             </button>
           </form>
         </div>

@@ -23,16 +23,19 @@ const CarpoolPage = lazy(() => import("@/pages/public/CarpoolPage"));
 const SearchPage = lazy(() => import("@/pages/public/SearchPage"));
 const NotFoundPage = lazy(() => import("@/pages/error/NotFoundPage"));
 const UnauthorizedPage = lazy(() => import("@/pages/error/UnauthorizedPage"));
+const ErrorPage = lazy(() => import("@/pages/error/ErrorPage"));
 
 const UserPublicInfoPage = lazy(() => import("@/pages/user/UserPublicInfoPage"));
 const RidePublicInfoPage = lazy(() => import("@/pages/ride/RidePublicInfoPage"));
 
-const ProfilePage = lazy(() => import("@/pages/user/dashboard/ProfilePage/ProfilePage"));
+const ProfilePage = lazy(() => import("@/pages/user/ProfilePage/ProfilePage"));
 const RidesHistoryPage = lazy(() => import("@/pages/user/dashboard/RidesHistoryPage"));
 const BookingsHistoryPage = lazy(() => import("@/pages/user/dashboard/BookingsHistoryPage"));
 const GivenRatingsPage = lazy(() => import("@/pages/user/dashboard/GivenRatingsPage"));
 const ReceivedRatingsPage = lazy(() => import("@/pages/user/dashboard/ReceivedRatingsPage"));
 const UpcomingTripsPage = lazy(() => import("@/pages/user/UpcomingTripsPage"));
+
+const AddVehiclePage = lazy(() => import("@/pages/user/AddVehiclePage/AddVehiclePage"));
 
 const PublishRidePage = lazy(() => import("@/pages/ride/PublishRidePage"));
 const BookRidePage = lazy(() => import("@/pages/ride/BookRidePage"));
@@ -77,9 +80,10 @@ const routes = [
       { path: "contact", element: lazyLoad(ContactPage) },
       { path: "carpool", element: lazyLoad(CarpoolPage) },
       { path: "search", element: lazyLoad(SearchPage) },
-      { path: "user/show/:id", element: lazyLoad(UserPublicInfoPage) },
-      { path: "ride/show/:id", element: lazyLoad(RidePublicInfoPage) },
+      { path: "user/:id/show", element: lazyLoad(UserPublicInfoPage) },
+      { path: "ride/:id/show", element: lazyLoad(RidePublicInfoPage) },
       { path: "unauthorized", element: lazyLoad(UnauthorizedPage) },
+      { path: "error", element: lazyLoad(ErrorPage) },
       { path: "*", element: lazyLoad(NotFoundPage) },
     ],
   },
@@ -138,7 +142,7 @@ const routes = [
 
       {
         path: "/dashboard/profile/vehicle/add",
-        //element: <Protected roles={["user"]}>{lazyLoad(ProfileVehicleAddPage)}</Protected>,
+        element: <Protected roles={["user"]}>{lazyLoad(AddVehiclePage)}</Protected>,
       },
 
       {

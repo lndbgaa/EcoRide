@@ -22,6 +22,7 @@ import sanitizeAll from "@/middlewares/sanitizeAll.js";
 import adminRoutes from "@/routes/admin.route.js";
 import authRoutes from "@/routes/auth.route.js";
 import bookingsRoutes from "@/routes/booking.route.js";
+import catalogRoutes from "@/routes/catalog.routes.js";
 import employeesRoutes from "@/routes/employee.route.js";
 import incidentsRoutes from "@/routes/incident.route.js";
 import reviewsRoutes from "@/routes/review.route.js";
@@ -53,6 +54,7 @@ app.use("/api/v1/rides", ridesRoutes);
 app.use("/api/v1/bookings", bookingsRoutes);
 app.use("/api/v1/reviews", reviewsRoutes);
 app.use("/api/v1/incidents", incidentsRoutes);
+app.use("/api/v1/catalog", catalogRoutes);
 
 app.use((req, res, next) => {
   next(

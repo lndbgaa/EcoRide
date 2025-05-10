@@ -1,3 +1,4 @@
+import { AxiosError } from "axios";
 import classNames from "classnames";
 import { FormEvent, useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
@@ -5,12 +6,12 @@ import validator from "validator";
 
 import useAuth from "@/hooks/useAuth";
 
-import { AxiosError } from "axios";
 import styles from "./LoginPage.module.css";
 
 const LoginPage = () => {
+  const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [error, setError] = useState<{ [key: string]: string }>({});
-  const [isLoading, setIsLoading] = useState<boolean>(false);
+
   const [email, setEmail] = useState<string>("");
   const [password, setPassword] = useState<string>("");
 
@@ -23,52 +24,50 @@ const LoginPage = () => {
     }
   }, [isAuthenticated, navigate]);
 
-  const validateForm = (): boolean => {
-    const newErrors: { [key: string]: string } = {};
-    let isValid = true;
+  const validateFormData = (): boolean => {
+    setError({});
 
     if (!email) {
-      newErrors.email = "Champ requis";
-      isValid = false;
+      setError({ email: "Champ requis" });
+      return false;
     } else if (!validator.isEmail(email)) {
-      newErrors.email = "Oups ! Ce n’est pas un email valide. 😬";
-      isValid = false;
+      setError({ email: "Oups ! Ce n’est pas un email valide. 😬" });
+      return false;
     }
 
     if (!password) {
-      newErrors.password = "Champ requis";
-      isValid = false;
+      setError({ password: "Champ requis" });
+      return false;
     }
 
-    setError(newErrors);
-    return isValid;
+    return true;
   };
 
   const handleSubmit = async (e: FormEvent) => {
-    if (isLoading) return;
+    if (isSubmitting) return;
 
     e.preventDefault();
-    setIsLoading(true);
+    setIsSubmitting(true);
 
-    const isValid = validateForm();
+    const isValid = validateFormData();
 
     if (!isValid) {
-      setIsLoading(false);
+      setIsSubmitting(false);
       return;
     }
 
     try {
       await login({ email, password });
       navigate("/search");
-    } catch (error: unknown) {
+    } catch (error) {
       if (error instanceof AxiosError) {
         const message = error.response?.data?.message;
-        setError({ auth: message ?? "Erreur de connexion inattendue. Veuillez réessayer." });
+        setError({ submitLogin: message ?? "Erreur de connexion inattendue. Veuillez réessayer." });
       } else {
-        setError({ auth: "Erreur de connexion inattendue. Veuillez réessayer." });
+        setError({ submitLogin: "Erreur de connexion inattendue. Veuillez réessayer." });
       }
     } finally {
-      setIsLoading(false);
+      setIsSubmitting(false);
     }
   };
 
@@ -77,9 +76,9 @@ const LoginPage = () => {
       <div className={styles.loginContainer}>
         <div className={styles.signin}>
           <h1 className={styles.title}>Connectez-vous</h1>
-          {error.auth && (
+          {error.submitLogin && (
             <div className={classNames(styles.errorMessage, styles.authError)} aria-live="polite">
-              {error.auth}
+              {error.submitLogin}
             </div>
           )}
           <form noValidate className={styles.form} onSubmit={handleSubmit}>
@@ -142,8 +141,8 @@ const LoginPage = () => {
               </Link>
             </div>
 
-            <button type="submit" className={styles.signinButton} disabled={isLoading}>
-              {isLoading ? "Connexion en cours..." : "Connexion"}
+            <button type="submit" className={styles.signinButton} disabled={isSubmitting}>
+              {isSubmitting ? "Connexion en cours..." : "Connexion"}
             </button>
           </form>
         </div>

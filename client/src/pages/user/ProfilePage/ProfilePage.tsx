@@ -1,26 +1,33 @@
 import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
-import styles from "./ProfilePage.module.css";
+import { Link, useNavigate } from "react-router-dom";
 
 import DeleteIcon from "@/assets/images/cross.svg?react";
-import DefaultAvatar from "@/assets/images/default-avatar.svg?react";
+import DefaultAvatar from "@/assets/images/default-avatar.jpg";
 import RightArrow from "@/assets/images/right-arrow.svg?react";
 
+import Loader from "@/components/Loader/Loader";
 import useUser from "@/hooks/useUser";
 import PreferenceService from "@/services/PreferenceService";
 import UserService from "@/services/UserService";
 import { Preference } from "@/types/PreferenceTypes";
 import { Vehicle } from "@/types/VehicleTypes";
+
+import styles from "./ProfilePage.module.css";
+
 const ProfilePage = () => {
-  const [isDriver, setIsDriver] = useState(false);
-  const [isPassenger, setIsPassenger] = useState(false);
+  const [isDriver, setIsDriver] = useState<boolean>(false);
+  const [isPassenger, setIsPassenger] = useState<boolean>(false);
   const [vehicles, setVehicles] = useState<Vehicle[]>([]);
   const [preferences, setPreferences] = useState<Preference[]>([]);
+  const [isDriverDataLoading, setIsDriverDataLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
 
-  const { user, toggleUserRole } = useUser();
-  const { credits, firstName } = user ?? {};
+  const { user, toggleUserRole, isLoading: isUserLoading, error: userError } = useUser();
+  const { credits, firstName, memberSince, avatar, id: userId } = user ?? {};
 
-  const handleRoleChange = async (role: string) => {
+  const navigate = useNavigate();
+
+  const handleRoleChange = async (role: string): Promise<void> => {
     await toggleUserRole(role);
 
     if (role === "driver") {
@@ -30,48 +37,53 @@ const ProfilePage = () => {
     }
   };
 
-  const handlePreferenceChange = async (id: string) => {
+  const handlePreferenceChange = async (id: string): Promise<void> => {
     await PreferenceService.togglePreferenceValue(id);
-
     setPreferences((prev) => prev.map((p) => (p.id === id ? { ...p, value: !p.value } : p)));
   };
 
-  const handleDeletePreference = async (id: string) => {
+  const handleDeletePreference = async (id: string): Promise<void> => {
     await PreferenceService.deletePreference(id);
-
     setPreferences((prev) => prev.filter((p) => p.id !== id));
   };
 
   useEffect(() => {
-    if (user?.isDriver) {
-      setIsDriver(true);
-    }
-    if (user?.isPassenger) {
-      setIsPassenger(true);
+    if (user) {
+      setIsDriver(user.isDriver);
+      setIsPassenger(user.isPassenger);
     }
   }, [user]);
 
   useEffect(() => {
-    const fetchVehicles = async (): Promise<void> => {
-      const vehicles = await UserService.getUserVehicles();
-      setVehicles(vehicles);
+    if (!isDriver) return;
+
+    const fetchDriverData = async (): Promise<void> => {
+      try {
+        setIsDriverDataLoading(true);
+        const [vehicles, preferences] = await Promise.all([
+          UserService.getUserVehicles(),
+          UserService.getUserPreferences(),
+        ]);
+
+        setVehicles(vehicles);
+        setPreferences(preferences);
+      } catch (error) {
+        setError(error as string);
+      } finally {
+        setIsDriverDataLoading(false);
+      }
     };
 
-    if (isDriver) {
-      fetchVehicles();
-    }
+    fetchDriverData();
   }, [isDriver]);
 
-  useEffect(() => {
-    const fetchPreferences = async (): Promise<void> => {
-      const preferences = await UserService.getUserPreferences();
-      setPreferences(preferences);
-    };
+  if (isUserLoading || isDriverDataLoading) {
+    return <Loader />;
+  }
 
-    if (isDriver) {
-      fetchPreferences();
-    }
-  }, [isDriver]);
+  if (userError || error) {
+    navigate("/error");
+  }
 
   return (
     <div className={styles.profilePage}>
@@ -79,10 +91,24 @@ const ProfilePage = () => {
         <p className={styles.credits}>
           Crédits : <span>{credits}</span>
         </p>
-        <div className={styles.avatarName}>
-          <DefaultAvatar className={styles.avatar} />
-          <p className={styles.name}>{firstName}</p>
-        </div>
+        <Link to={`/user/${userId}/show`} className={styles.profileSummary}>
+          <div className={styles.content}>
+            {avatar ? (
+              <img src={avatar} alt="avatar" className={styles.avatarImage} />
+            ) : (
+              <img src={DefaultAvatar} alt="avatar" className={styles.avatarImage} />
+            )}
+
+            <div className={styles.textContent}>
+              <p className={styles.userName}>{firstName}</p>
+              <p className={styles.memberSince}>
+                Membre depuis le <span>{memberSince}</span>
+              </p>
+            </div>
+          </div>
+
+          <RightArrow />
+        </Link>
 
         <div className={styles.profileEditLinks}>
           <Link to="/dashboard/profile/picture/edit" className={styles.profileEditLink}>
@@ -128,7 +154,7 @@ const ProfilePage = () => {
           <div className={styles.vehiclesSection}>
             <p className={styles.sectionTitle}>Véhicules</p>
             <div className={styles.vehicleList}>
-              {vehicles?.length > 0 &&
+              {vehicles?.length > 0 ? (
                 vehicles.map((vehicle) => (
                   <Link
                     to={`/dashboard/profile/vehicle/${vehicle.id}/show`}
@@ -145,7 +171,10 @@ const ProfilePage = () => {
 
                     <RightArrow />
                   </Link>
-                ))}
+                ))
+              ) : (
+                <p className={styles.noVehicles}>Aucun véhicule ajouté.</p>
+              )}
             </div>
             <Link to="/dashboard/profile/vehicle/add" className={styles.addVehicleLink}>
               + Ajouter un véhicule

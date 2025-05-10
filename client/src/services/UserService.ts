@@ -7,7 +7,7 @@ class UserService {
    */
   static async getUserInfo(): Promise<User> {
     const url = "/users/me";
-    const response = await axiosPrivate.get(url, { headers: { "Content-Type": "application/json" } });
+    const response = await axiosPrivate.get(url);
     const { data } = response.data;
     return data;
   }
@@ -25,7 +25,7 @@ class UserService {
    */
   static async getUserVehicles() {
     const url = "/users/me/vehicles";
-    const response = await axiosPrivate.get(url, { headers: { "Content-Type": "application/json" } });
+    const response = await axiosPrivate.get(url);
     const { data } = response.data;
     return data;
   }
@@ -35,7 +35,7 @@ class UserService {
    */
   static async getUserPreferences() {
     const url = "/users/me/preferences";
-    const response = await axiosPrivate.get(url, { headers: { "Content-Type": "application/json" } });
+    const response = await axiosPrivate.get(url);
     const { data } = response.data;
     return data;
   }
@@ -46,7 +46,7 @@ class UserService {
   static async getUserNextEvent() {
     try {
       const url = "/users/me/events/next";
-      const response = await axiosPrivate.get(url, { headers: { "Content-Type": "application/json" } });
+      const response = await axiosPrivate.get(url);
 
       return response.data ?? null;
     } catch (error) {

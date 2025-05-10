@@ -2,7 +2,7 @@ import dayjs from "dayjs";
 
 import { sequelize } from "@/config/mysql.config.js";
 import { VEHICLE_ASSOCIATIONS } from "@/constants/index.js";
-import { Vehicle } from "@/models/mysql";
+import { Vehicle, VehicleBrand, VehicleColor, VehicleEnergy } from "@/models/mysql";
 import UserService from "@/services/user.service.js";
 import AppError from "@/utils/AppError.js";
 
@@ -53,10 +53,7 @@ class VehicleService {
    * @param vehicleId - L'id du véhicule
    * @returns Le véhicule trouvé
    */
-  public static async findOwnedVehicleOrThrow(
-    userId: string,
-    vehicleId: string
-  ): Promise<Vehicle> {
+  public static async findOwnedVehicleOrThrow(userId: string, vehicleId: string): Promise<Vehicle> {
     const vehicle = await this.findVehicleOrThrow(vehicleId);
 
     if (vehicle.getOwnerId() !== userId) {
@@ -90,10 +87,7 @@ class VehicleService {
    * @param data - Les données du véhicule à créer
    * @returns Le véhicule créé
    */
-  public static async createVehicle(
-    userId: string,
-    data: CreateVehicleData
-  ): Promise<Vehicle> {
+  public static async createVehicle(userId: string, data: CreateVehicleData): Promise<Vehicle> {
     await UserService.assertUserIsDriverOrThrow(userId);
 
     const doesLicensePlateExist: boolean = !!(await Vehicle.findOne({
@@ -161,11 +155,7 @@ class VehicleService {
    * @param data - Les données du véhicule à mettre à jour
    * @returns Le véhicule mis à jour
    */
-  public static async updateVehicle(
-    userId: string,
-    vehicleId: string,
-    data: UpdateVehicleData
-  ): Promise<Vehicle> {
+  public static async updateVehicle(userId: string, vehicleId: string, data: UpdateVehicleData): Promise<Vehicle> {
     const user = await UserService.assertUserIsDriverOrThrow(userId);
     const vehicle = await this.findOwnedVehicleOrThrow(user.id, vehicleId);
 
@@ -211,6 +201,30 @@ class VehicleService {
     const vehicle = await this.findOwnedVehicleOrThrow(user.id, vehicleId);
 
     await vehicle.destroy();
+  }
+
+  /**
+   * Récupère toutes les marques de véhicules
+   * @returns Les marques de véhicules
+   */
+  public static async getVehicleBrands(): Promise<VehicleBrand[]> {
+    return await VehicleBrand.findAll();
+  }
+
+  /**
+   * Récupère toutes les couleurs de véhicules
+   * @returns Les couleurs de véhicules
+   */
+  public static async getVehicleColors(): Promise<VehicleColor[]> {
+    return await VehicleColor.findAll();
+  }
+
+  /**
+   * Récupère toutes les énergies de véhicules
+   * @returns Les énergies de véhicules
+   */
+  public static async getVehicleEnergies(): Promise<VehicleEnergy[]> {
+    return await VehicleEnergy.findAll();
   }
 }
 

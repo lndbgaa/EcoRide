@@ -8,3 +8,13 @@ export interface Vehicle {
   licensePlate: string;
   firstRegistration: string;
 }
+
+export interface CreateVehicleData {
+  brandId: number;
+  model: string;
+  colorId: number;
+  energyId: number;
+  seats: number;
+  licensePlate: string;
+  firstRegistration: string;
+}

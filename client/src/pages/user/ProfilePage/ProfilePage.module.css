@@ -1,6 +1,6 @@
 .profilePage {
-  margin-bottom: 4rem;
   width: 100%;
+  margin-bottom: 2rem;
   display: flex;
   flex-direction: column;
   gap: 4rem;
@@ -9,7 +9,7 @@
 .infoSection {
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
+  gap: 2rem;
 }
 
 .credits {
@@ -21,29 +21,83 @@
   color: var(--clr-text-secondary);
 }
 
-.avatarName {
+.profileSummary {
+  position: relative;
+  padding-top: 1rem;
+  padding-right: 1rem;
+  padding-bottom: 1rem;
+  padding-left: 0.25rem;
   display: flex;
+  justify-content: space-between;
   align-items: center;
-  gap: 0.2rem;
+  border-top-right-radius: 1rem;
+  border-bottom-right-radius: 1rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
 }
 
-.name {
+.profileSummary:hover,
+.vehicleItem:hover,
+.customPreferenceItem:hover {
+  background-color: var(--clr-soft-gray);
+}
+
+.profileSummary::before,
+.vehicleItem::before,
+.customPreferenceItem::before {
+  position: absolute;
+  content: "";
+  top: 0;
+  left: -2rem;
+  height: 100%;
+  width: 2rem;
+  border-top-left-radius: 1rem;
+  border-bottom-left-radius: 1rem;
+  background-color: var(--clr-soft-gray);
+  opacity: 0;
+  transition: all 0.3s ease;
+}
+
+.profileSummary:hover::before,
+.vehicleItem:hover::before,
+.customPreferenceItem:hover::before {
+  opacity: 1;
+}
+
+.profileSummary .content {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+}
+
+.profileSummary .content .avatarImage {
+  width: 10rem;
+  height: 10rem;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.profileSummary .content .userName {
   font-size: var(--fs-xlarge);
   font-weight: var(--fw-bold);
   color: var(--clr-text-primary);
 }
 
+.profileSummary .content .memberSince {
+  font-size: var(--fs-small);
+  color: var(--clr-medium-gray);
+}
+
 .profileEditLinks {
-  margin-bottom: 1rem;
   display: flex;
   flex-direction: column;
-  gap: 0.25rem;
+  gap: 1rem;
 }
 
 .profileEditLink,
 .addVehicleLink,
 .addPreferenceLink {
-  display: inline-block;
+  display: block;
   color: var(--clr-accent);
   font-weight: var(--fw-bold);
   transition: color 0.3s ease;
@@ -71,10 +125,10 @@
 
 .roleChoice,
 .defaultPreferenceItem {
+  position: relative;
   display: inline-flex;
   align-items: center;
   gap: 1rem;
-  position: relative;
   cursor: pointer;
   user-select: none;
 }
@@ -82,13 +136,14 @@
 .roleChoice input,
 .defaultPreferenceItem input {
   position: absolute;
-  opacity: 0;
-  cursor: pointer;
   height: 0;
   width: 0;
+  opacity: 0;
+  cursor: pointer;
 }
 
-.roleChoice span {
+.roleChoice span,
+.defaultPreferenceItem span {
   font-weight: var(--fw-medium);
   color: var(--clr-text-primary);
 }
@@ -115,6 +170,7 @@
 .defaultPreferenceItem .checkboxMark:after {
   position: absolute;
   content: "";
+  display: none;
   left: 0.8rem;
   top: 0.4rem;
   width: 0.5rem;
@@ -143,38 +199,21 @@
   gap: 0.5rem;
 }
 
+.noVehicles {
+  color: var(--clr-text-secondary);
+  font-weight: var(--fw-medium);
+  font-size: var(--fs-small);
+}
+
 .vehicleItem {
   position: relative;
   padding: 0.5rem 1rem 0.5rem 0;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  gap: 0.25rem;
   border-top-right-radius: 1rem;
   border-bottom-right-radius: 1rem;
   transition: all 0.3s ease;
-}
-
-.vehicleItem:hover {
-  background-color: var(--clr-soft-gray);
-}
-
-.vehicleItem::before {
-  position: absolute;
-  content: "";
-  top: 0;
-  left: -2rem;
-  height: 100%;
-  width: 2rem;
-  opacity: 0;
-  border-top-left-radius: 1rem;
-  border-bottom-left-radius: 1rem;
-  background-color: var(--clr-soft-gray);
-  transition: all 0.3s ease;
-}
-
-.vehicleItem:hover::before {
-  opacity: 1;
 }
 
 .vehicleInfo {
@@ -197,36 +236,16 @@
 
 .customPreferenceItem {
   position: relative;
-  padding: 0.25rem 1rem 0.25rem 0;
+  padding-top: 0.25rem;
+  padding-right: 1rem;
+  padding-bottom: 0.25rem;
+  padding-left: 0;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  gap: 1rem;
   border-top-right-radius: 1rem;
   border-bottom-right-radius: 1rem;
   transition: all 0.3s ease;
-}
-
-.customPreferenceItem:hover {
-  background-color: var(--clr-soft-gray);
-}
-
-.customPreferenceItem::before {
-  position: absolute;
-  content: "";
-  top: 0;
-  left: -2rem;
-  height: 100%;
-  width: 2rem;
-  opacity: 0;
-  border-top-left-radius: 1rem;
-  border-bottom-left-radius: 1rem;
-  background-color: var(--clr-soft-gray);
-  transition: all 0.3s ease;
-}
-
-.customPreferenceItem:hover::before {
-  opacity: 1;
 }
 
 .deleteButton {
@@ -250,4 +269,45 @@
 .deleteIcon {
   width: 100%;
   height: 100%;
+}
+
+/* On retire les effets de survol sur les appareils tactiles */
+@media (hover: none) and (pointer: coarse) {
+  .profileSummary:hover,
+  .vehicleItem:hover,
+  .customPreferenceItem:hover {
+    background-color: transparent;
+  }
+
+  .profileSummary:hover::before,
+  .vehicleItem:hover::before,
+  .customPreferenceItem:hover::before {
+    opacity: 0;
+  }
+
+  .profileSummary:active,
+  .vehicleItem:active,
+  .customPreferenceItem:active {
+    background-color: var(--clr-soft-gray);
+  }
+
+  .profileSummary::before,
+  .vehicleItem::before,
+  .customPreferenceItem::before {
+    left: -1rem;
+    width: 1rem;
+  }
+
+  .profileSummary:active::before,
+  .vehicleItem:active::before,
+  .customPreferenceItem:active::before {
+    opacity: 1;
+  }
+}
+
+.error {
+  text-align: center;
+  color: var(--clr-text-secondary);
+  font-weight: var(--fw-medium);
+  font-size: var(--fs-small);
 }

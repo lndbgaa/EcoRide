@@ -46,7 +46,7 @@ class AuthService {
   static async logout(): Promise<void> {
     try {
       const url = "/auth/logout";
-      await axiosPublic.post(url, null, { withCredentials: true });
+      await axiosPublic.post(url, null);
     } catch (error) {
       console.error("Erreur lors de la déconnexion:", error);
       throw error;

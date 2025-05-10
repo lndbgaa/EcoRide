@@ -22,14 +22,13 @@ UserContext.displayName = "UserContext";
 
 const UserProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     const fetchUser = async () => {
       const storedToken = localStorage.getItem("accessToken");
       if (!storedToken) {
-        console.log("No token found");
         setIsLoading(false);
         return;
       }
@@ -38,9 +37,12 @@ const UserProvider = ({ children }: { children: ReactNode }) => {
         setIsLoading(true);
         const response = await UserService.getUserInfo();
         setUser(response);
+        setError(null);
       } catch (err) {
         console.error(err);
-        setError("Impossible de récupérer les infos utilisateur.");
+        setError(
+          "Oups, quelque chose s'est mal passé lors de la récupération de vos informations. Veuillez réessayer plus tard."
+        );
       } finally {
         setIsLoading(false);
       }
