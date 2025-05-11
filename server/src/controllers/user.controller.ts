@@ -1,17 +1,19 @@
 import { Booking, Ride, User } from "@/models/mysql/index.js";
 import UserService from "@/services/user.service.js";
+import VehicleService from "@/services/vehicle.service.js";
 import AppError from "@/utils/AppError.js";
 import catchAsync from "@/utils/catchAsync.js";
 
 import type { BookingPrivateDTO } from "@/models/mysql/Booking.model.js";
 import type { RidePrivatePreviewDTO } from "@/models/mysql/Ride.model.js";
+import PreferenceService from "@/services/preference.service";
 import type { MulterRequest } from "@/types/express.js";
 import type { Request, Response } from "express";
 
 /**
- * Gère la récupération des informations de profil d'un utilisateur
+ * Gère la récupération des informations de profil de l'utilisateur connecté
  */
-export const getUserInfo = catchAsync(async (req: Request, res: Response): Promise<void> => {
+export const getMyInfo = catchAsync(async (req: Request, res: Response): Promise<void> => {
   const userId = req.user.id;
 
   const user: User = await UserService.getInfo(userId);
@@ -24,9 +26,9 @@ export const getUserInfo = catchAsync(async (req: Request, res: Response): Promi
 });
 
 /**
- * Gère la mise à jour des informations de profil d'un utilisateur
+ * Gère la mise à jour des informations de profil de l'utilisateur connecté
  */
-export const updateUserInfo = catchAsync(async (req: Request, res: Response): Promise<void> => {
+export const updateMyInfo = catchAsync(async (req: Request, res: Response): Promise<void> => {
   const userId = req.user.id;
   const data = req.body;
 
@@ -40,9 +42,9 @@ export const updateUserInfo = catchAsync(async (req: Request, res: Response): Pr
 });
 
 /**
- * Gère la mise à jour du rôle d'un utilisateur
+ * Gère la mise à jour du rôle de l'utilisateur connecté
  */
-export const updateUserRole = catchAsync(async (req: Request, res: Response): Promise<void> => {
+export const updateMyRole = catchAsync(async (req: Request, res: Response): Promise<void> => {
   const userId = req.user.id;
   const { role } = req.body;
 
@@ -52,9 +54,9 @@ export const updateUserRole = catchAsync(async (req: Request, res: Response): Pr
 });
 
 /**
- * Gère la mise à jour de la photo de profil d'un utilisateur
+ * Gère la mise à jour de la photo de profil de l'utilisateur connecté
  */
-export const updateUserAvatar = catchAsync(async (req: MulterRequest, res: Response): Promise<void> => {
+export const updateMyAvatar = catchAsync(async (req: MulterRequest, res: Response): Promise<void> => {
   const userId = req.user.id;
 
   const { file } = req;
@@ -77,9 +79,43 @@ export const updateUserAvatar = catchAsync(async (req: MulterRequest, res: Respo
 });
 
 /**
- * Gère la récupération du prochain événement à venir d'un utilisateur
+ * Gère la récupération d'un véhicule par l'utilisateur connecté
  */
-export const getUserNextEvent = catchAsync(async (req: Request, res: Response): Promise<Response> => {
+export const getMyVehicles = catchAsync(async (req: Request, res: Response): Promise<void> => {
+  const userId = req.user.id;
+
+  const vehicles = await VehicleService.getUserVehicles(userId);
+
+  const dto = vehicles.map((vehicle) => vehicle.toPrivateDTO());
+
+  res.status(200).json({
+    success: true,
+    message: "Véhicules récupérés avec succès.",
+    data: dto,
+  });
+});
+
+/**
+ * Gère la récupération des préférences de l'utilisateur connecté
+ */
+export const getMyPreferences = catchAsync(async (req: Request, res: Response): Promise<void> => {
+  const userId = req.user.id;
+
+  const preferences = await PreferenceService.getPreferences(userId);
+
+  const dto = preferences.map((preference) => preference.toPrivateDTO());
+
+  res.status(200).json({
+    success: true,
+    message: "Préférences récupérées avec succès.",
+    data: dto,
+  });
+});
+
+/**
+ * Gère la récupération du prochain événement à venir de l'utilisateur connecté
+ */
+export const getMyNextEvent = catchAsync(async (req: Request, res: Response): Promise<Response> => {
   const userId = req.user.id;
 
   const nextEvent: Booking | Ride | null = await UserService.getNextEvent(userId);
@@ -108,9 +144,9 @@ export const getUserNextEvent = catchAsync(async (req: Request, res: Response): 
 });
 
 /**
- * Gère la récupération des événements à venir d'un utilisateur
+ * Gère la récupération des événements à venir de l'utilisateur connecté
  */
-export const getUserUpcomingEvents = catchAsync(async (req: Request, res: Response): Promise<Response> => {
+export const getMyUpcomingEvents = catchAsync(async (req: Request, res: Response): Promise<Response> => {
   const userId = req.user.id;
 
   const upcomingEvents = await UserService.getUpcomingEvents(userId);

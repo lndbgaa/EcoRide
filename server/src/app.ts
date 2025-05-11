@@ -28,6 +28,7 @@ import incidentsRoutes from "@/routes/incident.route.js";
 import reviewsRoutes from "@/routes/review.route.js";
 import ridesRoutes from "@/routes/ride.route.js";
 import usersRoutes from "@/routes/user.route.js";
+import vehiclesRoutes from "@/routes/vehicle.route.js";
 import AppError from "@/utils/AppError.js";
 
 const app = express();
@@ -50,6 +51,7 @@ app.use("/api/v1/auth", authRoutes);
 app.use("/api/v1/users", usersRoutes);
 app.use("/api/v1/admin", adminRoutes);
 app.use("/api/v1/employees", employeesRoutes);
+app.use("/api/v1/vehicles", vehiclesRoutes);
 app.use("/api/v1/rides", ridesRoutes);
 app.use("/api/v1/bookings", bookingsRoutes);
 app.use("/api/v1/reviews", reviewsRoutes);

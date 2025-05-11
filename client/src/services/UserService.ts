@@ -3,7 +3,7 @@ import { axiosPrivate } from "../../api/axiosInstance";
 
 class UserService {
   /**
-   * Récupérer les informations de l'utilisateur connecté
+   * Récupère les informations de l'utilisateur connecté
    */
   static async getUserInfo(): Promise<User> {
     const url = "/users/me";
@@ -13,7 +13,7 @@ class UserService {
   }
 
   /**
-   * Modifier le rôle de l'utilisateur connecté
+   * Modifie le rôle de l'utilisateur connecté
    */
   static async toggleUserRole(role: string) {
     const url = "/users/me/role";
@@ -21,7 +21,7 @@ class UserService {
   }
 
   /**
-   * Récupérer les véhicules de l'utilisateur connecté
+   * Récupère les véhicules de l'utilisateur connecté
    */
   static async getUserVehicles() {
     const url = "/users/me/vehicles";
@@ -31,7 +31,7 @@ class UserService {
   }
 
   /**
-   * Récupérer les préférences de l'utilisateur connecté
+   * Récupère les préférences de l'utilisateur connecté
    */
   static async getUserPreferences() {
     const url = "/users/me/preferences";
@@ -41,7 +41,7 @@ class UserService {
   }
 
   /**
-   * Récupérer le prochain événement de l'utilisateur connecté (réservation, trajet)
+   * Récupère le prochain événement de l'utilisateur connecté (réservation, trajet)
    */
   static async getUserNextEvent() {
     try {

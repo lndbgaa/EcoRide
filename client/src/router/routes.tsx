@@ -25,18 +25,18 @@ const NotFoundPage = lazy(() => import("@/pages/error/NotFoundPage"));
 const UnauthorizedPage = lazy(() => import("@/pages/error/UnauthorizedPage"));
 const ErrorPage = lazy(() => import("@/pages/error/ErrorPage"));
 
-const UserPublicInfoPage = lazy(() => import("@/pages/user/UserPublicInfoPage"));
+const UserPublicInfoPage = lazy(() => import("@/pages/user/PublicInfoPage/UserPublicInfoPage"));
 const RidePublicInfoPage = lazy(() => import("@/pages/ride/RidePublicInfoPage"));
 
 const ProfilePage = lazy(() => import("@/pages/user/ProfilePage/ProfilePage"));
-const RidesHistoryPage = lazy(() => import("@/pages/user/dashboard/RidesHistoryPage"));
-const BookingsHistoryPage = lazy(() => import("@/pages/user/dashboard/BookingsHistoryPage"));
-const GivenRatingsPage = lazy(() => import("@/pages/user/dashboard/GivenRatingsPage"));
-const ReceivedRatingsPage = lazy(() => import("@/pages/user/dashboard/ReceivedRatingsPage"));
-const UpcomingTripsPage = lazy(() => import("@/pages/user/UpcomingTripsPage"));
+const RidesHistoryPage = lazy(() => import("@/pages/user/RidesHistoryPage/RidesHistoryPage"));
+const BookingsHistoryPage = lazy(() => import("@/pages/user/BookingsHistoryPage.tsx/BookingsHistoryPage"));
+const GivenRatingsPage = lazy(() => import("@/pages/user/GivenRatingsPage/GivenRatingsPage"));
+const ReceivedRatingsPage = lazy(() => import("@/pages/user/ReceivedRatingsPage/ReceivedRatingsPage"));
+const UpcomingTripsPage = lazy(() => import("@/pages/user/UpcomingTripsPage/UpcomingTripsPage"));
 
 const AddVehiclePage = lazy(() => import("@/pages/user/AddVehiclePage/AddVehiclePage"));
-
+const ShowVehiclePage = lazy(() => import("@/pages/user/ShowVehiclePage/ShowVehiclePage"));
 const PublishRidePage = lazy(() => import("@/pages/ride/PublishRidePage"));
 const BookRidePage = lazy(() => import("@/pages/ride/BookRidePage"));
 
@@ -137,7 +137,7 @@ const routes = [
 
       {
         path: "/dashboard/profile/vehicle/:id/show",
-        //element: <Protected roles={["user"]}>{lazyLoad(ProfileVehicleAddPage)}</Protected>,
+        element: <Protected roles={["user"]}>{lazyLoad(ShowVehiclePage)}</Protected>,
       },
 
       {

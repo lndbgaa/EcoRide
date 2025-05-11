@@ -57,9 +57,10 @@ const ProfilePage = () => {
   useEffect(() => {
     if (!isDriver) return;
 
+    setIsDriverDataLoading(true);
+
     const fetchDriverData = async (): Promise<void> => {
       try {
-        setIsDriverDataLoading(true);
         const [vehicles, preferences] = await Promise.all([
           UserService.getUserVehicles(),
           UserService.getUserPreferences(),

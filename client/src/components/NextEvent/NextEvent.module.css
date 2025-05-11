@@ -128,6 +128,14 @@
   background-color: var(--clr-accent-dark);
 }
 
+.errorMessage {
+  margin-top: 1rem;
+  text-align: center;
+  color: var(--clr-error);
+  font-weight: var(--fw-bold);
+  font-size: var(--fs-small);
+}
+
 @media screen and (max-width: 480px) {
   .eventDetails {
     padding: 2rem;

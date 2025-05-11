@@ -1,0 +1,15 @@
+.Toastify__toast--success {
+  color: var(--clr-accent) !important;
+}
+
+.Toastify__toast--error {
+  color: var(--clr-error) !important;
+}
+
+.Toastify__toast--info {
+  color: var(--clr-info) !important;
+}
+
+.Toastify__toast--warning {
+  color: var(--clr-warning) !important;
+}

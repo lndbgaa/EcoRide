@@ -30,7 +30,7 @@ class VehicleService {
    * @param vehicleId - L'id du véhicule
    * @returns Le véhicule trouvé
    */
-  public static async findVehicleOrThrow(vehicleId: string): Promise<Vehicle> {
+  public static async findVehicleById(vehicleId: string): Promise<Vehicle> {
     const vehicle = await Vehicle.findOne({
       where: { id: vehicleId },
       include: VEHICLE_ASSOCIATIONS,
@@ -53,8 +53,8 @@ class VehicleService {
    * @param vehicleId - L'id du véhicule
    * @returns Le véhicule trouvé
    */
-  public static async findOwnedVehicleOrThrow(userId: string, vehicleId: string): Promise<Vehicle> {
-    const vehicle = await this.findVehicleOrThrow(vehicleId);
+  public static async findOwnedVehicleById(userId: string, vehicleId: string): Promise<Vehicle> {
+    const vehicle = await this.findVehicleById(vehicleId);
 
     if (vehicle.getOwnerId() !== userId) {
       throw new AppError({
@@ -157,7 +157,7 @@ class VehicleService {
    */
   public static async updateVehicle(userId: string, vehicleId: string, data: UpdateVehicleData): Promise<Vehicle> {
     const user = await UserService.assertUserIsDriverOrThrow(userId);
-    const vehicle = await this.findOwnedVehicleOrThrow(user.id, vehicleId);
+    const vehicle = await this.findOwnedVehicleById(user.id, vehicleId);
 
     const dataToUpdate: Partial<Vehicle> = {
       brand_id: data.brandId,
@@ -198,7 +198,7 @@ class VehicleService {
    */
   public static async deleteVehicle(userId: string, vehicleId: string): Promise<void> {
     const user = await UserService.findUserOrThrow(userId);
-    const vehicle = await this.findOwnedVehicleOrThrow(user.id, vehicleId);
+    const vehicle = await this.findOwnedVehicleById(user.id, vehicleId);
 
     await vehicle.destroy();
   }

@@ -1,13 +1,13 @@
+import Dropdown from "@/components/Dropdown/Dropdown";
+import Loader from "@/components/Loader/Loader";
+import CatalogService from "@/services/CatalogService";
+import VehicleService from "@/services/VehicleService";
 import { AxiosError } from "axios";
 import classNames from "classnames";
 import dayjs from "dayjs";
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-
-import Dropdown from "@/components/Dropdown/Dropdown";
-import Loader from "@/components/Loader/Loader";
-import CatalogService from "@/services/CatalogService";
-import VehicleService from "@/services/VehicleService";
+import { toast } from "react-toastify";
 
 import styles from "./AddVehiclePage.module.css";
 
@@ -112,13 +112,14 @@ const AddVehiclePage = () => {
 
     try {
       await VehicleService.addVehicle(cleanedData);
+      toast.success("Véhicule ajouté avec succès");
       navigate("/dashboard");
     } catch (error) {
       if (error instanceof AxiosError) {
         const message = error.response?.data?.message;
-        setError({ submitVehicle: message ?? "Erreur lors de l'ajout du véhicule" });
+        toast.error(message ?? "Erreur lors de l'ajout du véhicule");
       } else {
-        setError({ submitVehicle: "Erreur lors de l'ajout du véhicule" });
+        toast.error("Erreur lors de l'ajout du véhicule");
       }
     } finally {
       setIsSubmitting(false);
@@ -138,22 +139,18 @@ const AddVehiclePage = () => {
         setColorOptions(colors);
         setEnergyOptions(energies);
         setError({});
-      } catch (error) {
-        setError((prev) => ({ ...prev, initDataLoad: error as string }));
+      } catch {
+        navigate("/error");
       } finally {
         setIsLoading(false);
       }
     };
 
     fetchVehicleOptions();
-  }, []);
+  }, [navigate]);
 
   if (isLoading) {
     return <Loader />;
-  }
-
-  if (error.initDataLoad) {
-    navigate("/error");
   }
 
   return (

@@ -2,50 +2,87 @@ import dayjs from "dayjs";
 import customParseFormat from "dayjs/plugin/customParseFormat";
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
+import { toast } from "react-toastify";
 
 dayjs.extend(customParseFormat);
 
+import Loader from "@/components/Loader/Loader";
 import BookingService from "@/services/BookingService";
 import RideService from "@/services/RideService";
-import { Booking } from "@/types/BookingTypes";
-import { Ride } from "@/types/RideTypes";
+import UserService from "@/services/UserService";
 import { formatDuration } from "@/utils/dateUtils";
-import Loader from "../Loader/Loader";
+import ConfirmationModal from "../ConfirmationModal/ConfirmationModal";
 
 import styles from "./NextEvent.module.css";
+
+import type { Booking } from "@/types/BookingTypes";
+import type { Ride } from "@/types/RideTypes";
+
+type ModalType = "cancelRide" | "startRide" | "endRide" | "cancelBooking" | null;
+
+const modalTitles = {
+  cancelRide: "Confirmation d'annulation de trajet",
+  startRide: "Confirmation de démarrage de trajet",
+  endRide: "Confirmation d'arrivée à destination",
+  cancelBooking: "Confirmation d'annulation de réservation",
+};
+
+const modalMessages = {
+  cancelRide: "Souhaitez-vous annuler ce trajet ? Les passagers en seront automatiquement informés.",
+  startRide: "Voulez-vous démarrer ce trajet maintenant ?",
+  endRide: "Confirmez-vous être arrivé(e) à destination ?",
+  cancelBooking: "Souhaitez-vous annuler cette réservation ?",
+};
+
+const successMessages = {
+  cancelRide: "Le trajet a été annulé avec succès.",
+  startRide: "Le trajet a démarré avec succès.",
+  endRide: "L’arrivée à destination a été confirmée avec succès.",
+  cancelBooking: "La réservation a été annulée avec succès.",
+};
 
 const NextEvent = () => {
   const [nextEvent, setNextEvent] = useState<Ride | Booking | null>(null);
   const [eventType, setEventType] = useState<"ride" | "booking" | null>(null);
   const [canStartRideNow, setCanStartRideNow] = useState<boolean | null>(null);
   const [canEndRideNow, setCanEndRideNow] = useState<boolean | null>(null);
-  const [isLoading, setIsLoading] = useState(false); // TODO: remettre a true si on veut afficher le loader
+  const [isLoading, setIsLoading] = useState(true);
+  const [modalType, setModalType] = useState<ModalType>(null);
 
-  const handleCancelRide = async () => {
-    if (!nextEvent) return;
-    if (!window.confirm("Êtes-vous sûr(e) de vouloir annuler ce trajet ?")) return; // TODO: ajouter un modal de confirmation
-    await RideService.cancelRide(nextEvent.id);
+  const handleConfirm = async () => {
+    if (!nextEvent || !modalType) return;
+
+    try {
+      switch (modalType) {
+        case "cancelRide":
+          await RideService.cancelRide(nextEvent.id);
+          toast.success(successMessages.cancelRide);
+          setNextEvent(null);
+          setEventType(null);
+          break;
+        case "startRide":
+          await RideService.startRide(nextEvent.id);
+          toast.success(successMessages.startRide);
+          break;
+        case "endRide":
+          await RideService.endRide(nextEvent.id);
+          toast.success(successMessages.endRide);
+          break;
+        case "cancelBooking":
+          await BookingService.cancelBooking(nextEvent.id);
+          toast.success(successMessages.cancelBooking);
+          setNextEvent(null);
+          setEventType(null);
+          break;
+      }
+    } catch {
+      toast.error("Oups ! Une erreur est survenue. Veuillez réessayer plus tard.");
+    } finally {
+      setModalType(null);
+    }
   };
 
-  const handleStartRide = async () => {
-    if (!nextEvent) return;
-    if (!window.confirm("Êtes-vous sûr(e) de vouloir démarrer ce trajet ?")) return; // TODO: ajouter un modal de confirmation
-    await RideService.startRide(nextEvent.id);
-  };
-
-  const handleEndRide = async () => {
-    if (!nextEvent) return;
-    if (!window.confirm("Êtes-vous sûr(e) de vouloir clôturer ce trajet ?")) return; // TODO: ajouter un modal de confirmation
-    await RideService.endRide(nextEvent.id);
-  };
-
-  const handleCancelBooking = async () => {
-    if (!nextEvent) return;
-    if (!window.confirm("Êtes-vous sûr(e) de vouloir annuler cette réservation ?")) return; // TODO: ajouter un modal de confirmation
-    await BookingService.cancelBooking(nextEvent.id);
-  };
-
-  /*useEffect(() => {
+  useEffect(() => {
     const fetchNextEvent = async () => {
       const response = await UserService.getUserNextEvent();
 
@@ -61,7 +98,7 @@ const NextEvent = () => {
     };
 
     fetchNextEvent();
-  }, []); */
+  }, []);
 
   useEffect(() => {
     if (!nextEvent || eventType !== "ride") return;
@@ -121,15 +158,15 @@ const NextEvent = () => {
           </Link>
 
           {canStartRideNow ? (
-            <button className={styles.startButton} onClick={handleStartRide}>
+            <button className={styles.startButton} onClick={() => setModalType("startRide")}>
               Démarrer
             </button>
           ) : canEndRideNow ? (
-            <button className={styles.endButton} onClick={handleEndRide}>
+            <button className={styles.endButton} onClick={() => setModalType("endRide")}>
               Arriver à destination
             </button>
           ) : (
-            <button className={styles.cancelButton} onClick={handleCancelRide}>
+            <button className={styles.cancelButton} onClick={() => setModalType("cancelRide")}>
               Annuler
             </button>
           )}
@@ -140,10 +177,19 @@ const NextEvent = () => {
             Voir
           </Link>
 
-          <button className={styles.cancelButton} onClick={handleCancelBooking}>
+          <button className={styles.cancelButton} onClick={() => setModalType("cancelBooking")}>
             Annuler
           </button>
         </div>
+      )}
+
+      {modalType && (
+        <ConfirmationModal
+          title={modalType ? modalTitles[modalType] : ""}
+          message={modalType ? modalMessages[modalType] : ""}
+          onConfirm={handleConfirm}
+          onCancel={() => setModalType(null)}
+        />
       )}
     </div>
   );
