@@ -2,6 +2,7 @@ import { AxiosError } from "axios";
 import classNames from "classnames";
 import { FormEvent, useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { toast } from "react-toastify";
 import validator from "validator";
 
 import useAuth from "@/hooks/useAuth";
@@ -34,29 +35,29 @@ const RegisterPage = () => {
     setError({});
 
     if (!/^[a-zA-Z- ]+$/.test(data.firstName)) {
-      setError({ firstName: "Veuillez entrer un prénom valide (lettres et tirets uniquement)" });
+      setError({ firstName: "Prénom invalide (lettres et tirets uniquement)" });
       return false;
     }
 
     if (!/^[a-zA-Z- ]+$/.test(data.lastName)) {
-      setError({ lastName: "Veuillez entrer un nom valide (lettres et tirets uniquement)" });
+      setError({ lastName: "Nom invalide (lettres et tirets uniquement)" });
       return false;
     }
 
     if (!validator.isEmail(data.email)) {
-      setError({ email: "Veuillez entrer un email valide (ex: test@test.com)" });
+      setError({ email: "Email invalide" });
       return false;
     }
 
     if (!/^[a-zA-Z0-9_-]+$/.test(data.pseudo)) {
-      setError({ pseudo: "Veuillez entrer un pseudo valide (lettres, chiffres, tirets et underscores uniquement)" });
+      setError({ pseudo: "Pseudo invalide (lettres, chiffres, tirets et underscores uniquement)" });
       return false;
     }
 
     if (!/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/.test(data.password)) {
       setError({
         password:
-          "Le mot de passe doit contenir au moins 8 caractères, avec une minuscule, une majuscule, un chiffre et un caractère spécial.",
+          "Mot de passe invalide (au moins 8 caractères, avec une minuscule, une majuscule, un chiffre et un caractère spécial)",
       });
       return false;
     }
@@ -112,9 +113,9 @@ const RegisterPage = () => {
     } catch (error: unknown) {
       if (error instanceof AxiosError) {
         const message = error.response?.data?.message;
-        setError({ auth: message ?? "Erreur lors de l'inscription, veuillez réessayer." });
+        toast.error(message ?? "Erreur lors de l'inscription, veuillez réessayer.");
       } else {
-        setError({ auth: "Erreur lors de l'inscription, veuillez réessayer." });
+        toast.error("Erreur lors de l'inscription, veuillez réessayer.");
       }
     } finally {
       setIsSubmitting(false);

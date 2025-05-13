@@ -70,7 +70,7 @@ const ShowVehiclePage = () => {
   return (
     <div className={styles.pageContainer}>
       <div className={styles.vehicleContainer}>
-        <h1 className={styles.title}>Votre véhicule</h1>
+        <h1 className={styles.title}>Mon véhicule</h1>
 
         <div className={styles.infoContainer}>
           <div className={styles.infoRow}>

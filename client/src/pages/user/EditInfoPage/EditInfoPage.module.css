@@ -4,11 +4,11 @@
   justify-content: center;
 }
 
-.addVehicleContainer {
+.updateInfoContainer {
   width: 100%;
   max-width: 50rem;
-  margin-top: 10rem; /* !!! */
-  margin-bottom: 2rem; /* !!! */
+  margin-top: 10rem;
+  margin-bottom: 2rem;
   padding: 0 2rem;
   display: flex;
   flex-direction: column;
@@ -31,6 +31,12 @@
   gap: 1.5rem;
 }
 
+.formRow {
+  width: 100%;
+  display: flex;
+  gap: 1rem;
+}
+
 .formGroup {
   width: 100%;
   display: flex;
@@ -41,6 +47,7 @@
   color: var(--clr-medium-gray);
   font-size: var(--fs-small);
   font-weight: var(--fw-medium);
+  margin-bottom: 0.5rem;
 }
 
 .input {
@@ -102,39 +109,34 @@
   background-color: var(--clr-medium-gray);
 }
 
-.addButton {
+.updateButton {
   background-color: var(--clr-accent);
   color: var(--clr-white);
   border: none;
 }
 
-.addButton:hover {
+.updateButton:hover {
   background-color: var(--clr-accent-dark);
 }
 
-.addButton:disabled {
+.updateButton:disabled {
   background-color: var(--clr-soft-gray);
   cursor: not-allowed;
 }
 
-.errorMessage {
-  text-align: center;
-  margin-bottom: 1rem;
+.inputErrorMessage {
   width: 100%;
+  margin-top: 0.2rem;
+  margin-bottom: 0.5rem;
   color: var(--clr-error);
   font-weight: var(--fw-bold);
   font-size: var(--fs-small);
 }
 
-.inputErrorMessage {
-  margin-top: 0;
-  text-align: left;
-}
-
 /* Media queries */
 @media screen and (max-width: 768px) {
-  .addVehicleContainer {
-    margin-top: 5rem; /* !!! */
+  .updateInfoContainer {
+    margin-top: 5rem;
   }
 
   .buttonsContainer {
@@ -148,6 +150,10 @@
 }
 
 @media screen and (max-width: 480px) {
+  .updateInfoContainer {
+    margin-top: 3rem;
+  }
+
   .title {
     font-size: var(--fs-large);
   }

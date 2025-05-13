@@ -74,7 +74,7 @@ export const updateMyAvatar = catchAsync(async (req: MulterRequest, res: Respons
   res.status(200).json({
     success: true,
     message: "Photo de profil mise à jour avec succès.",
-    data: { avatar: url },
+    data: { url },
   });
 });
 

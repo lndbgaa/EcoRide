@@ -2,6 +2,7 @@ import { AxiosError } from "axios";
 import classNames from "classnames";
 import { FormEvent, useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { toast } from "react-toastify";
 import validator from "validator";
 
 import useAuth from "@/hooks/useAuth";
@@ -62,9 +63,9 @@ const LoginPage = () => {
     } catch (error) {
       if (error instanceof AxiosError) {
         const message = error.response?.data?.message;
-        setError({ submitLogin: message ?? "Erreur de connexion inattendue. Veuillez réessayer." });
+        toast.error(message ?? "Erreur de connexion inattendue. Veuillez réessayer.");
       } else {
-        setError({ submitLogin: "Erreur de connexion inattendue. Veuillez réessayer." });
+        toast.error("Erreur de connexion inattendue. Veuillez réessayer.");
       }
     } finally {
       setIsSubmitting(false);

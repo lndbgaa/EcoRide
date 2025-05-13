@@ -65,10 +65,7 @@ class User extends Account {
   /**
    *  Ajoute des crédits au compte utilisateur.
    */
-  public async addCredits(
-    amount: number,
-    options?: { transaction?: Transaction }
-  ): Promise<void> {
+  public async addCredits(amount: number, options?: { transaction?: Transaction }): Promise<void> {
     if (amount <= 0)
       throw new AppError({
         statusCode: 400,
@@ -83,10 +80,7 @@ class User extends Account {
   /**
    * Retire des crédits du compte utilisateur.
    */
-  public async removeCredits(
-    amount: number,
-    options?: { transaction?: Transaction }
-  ): Promise<void> {
+  public async removeCredits(amount: number, options?: { transaction?: Transaction }): Promise<void> {
     if (amount <= 0)
       throw new AppError({
         statusCode: 400,
@@ -142,9 +136,7 @@ class User extends Account {
 
   public toPrivateDTO(): UserPrivateDTO {
     const lastLogin = this.last_login
-      ? `le ${dayjs(this.last_login)
-          .tz("Europe/Paris", true)
-          .format("DD/MM/YYYY")} à ${dayjs(this.last_login)
+      ? `le ${dayjs(this.last_login).tz("Europe/Paris", true).format("DD/MM/YYYY")} à ${dayjs(this.last_login)
           .tz("Europe/Paris", true)
           .format("HH:mm")}`
       : null;
@@ -156,7 +148,7 @@ class User extends Account {
       lastName: this.last_name,
       phone: this.phone ?? null,
       address: this.address ?? null,
-      birthDate: this.birth_date ? toDateOnly(this.birth_date) : null,
+      birthDate: this.birth_date ? dayjs(this.birth_date).format("YYYY-MM-DD") : null,
       isPassenger: this.is_passenger,
       isDriver: this.is_driver,
       credits: this.credits,

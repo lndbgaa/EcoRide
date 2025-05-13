@@ -27,16 +27,17 @@ const ErrorPage = lazy(() => import("@/pages/error/ErrorPage"));
 
 const UserPublicInfoPage = lazy(() => import("@/pages/user/PublicInfoPage/UserPublicInfoPage"));
 const RidePublicInfoPage = lazy(() => import("@/pages/ride/RidePublicInfoPage"));
-
 const ProfilePage = lazy(() => import("@/pages/user/ProfilePage/ProfilePage"));
+const EditAvatarPage = lazy(() => import("@/pages/user/EditAvatarPage/EditAvatarPage"));
 const RidesHistoryPage = lazy(() => import("@/pages/user/RidesHistoryPage/RidesHistoryPage"));
 const BookingsHistoryPage = lazy(() => import("@/pages/user/BookingsHistoryPage.tsx/BookingsHistoryPage"));
 const GivenRatingsPage = lazy(() => import("@/pages/user/GivenRatingsPage/GivenRatingsPage"));
 const ReceivedRatingsPage = lazy(() => import("@/pages/user/ReceivedRatingsPage/ReceivedRatingsPage"));
 const UpcomingTripsPage = lazy(() => import("@/pages/user/UpcomingTripsPage/UpcomingTripsPage"));
-
+const EditInfoPage = lazy(() => import("@/pages/user/EditInfoPage/EditInfoPage"));
 const AddVehiclePage = lazy(() => import("@/pages/user/AddVehiclePage/AddVehiclePage"));
 const ShowVehiclePage = lazy(() => import("@/pages/user/ShowVehiclePage/ShowVehiclePage"));
+const AddPreferencePage = lazy(() => import("@/pages/user/AddPreferencePage/AddPreferencePage"));
 const PublishRidePage = lazy(() => import("@/pages/ride/PublishRidePage"));
 const BookRidePage = lazy(() => import("@/pages/ride/BookRidePage"));
 
@@ -127,12 +128,12 @@ const routes = [
 
       {
         path: "/dashboard/profile/picture/edit",
-        //element: <Protected roles={["user"]}>{lazyLoad(ProfilePictureEditPage)}</Protected>,
+        element: <Protected roles={["user"]}>{lazyLoad(EditAvatarPage)}</Protected>,
       },
 
       {
         path: "/dashboard/profile/info/edit",
-        //element: <Protected roles={["user"]}>{lazyLoad(ProfileInfoEditPage)}</Protected>,
+        element: <Protected roles={["user"]}>{lazyLoad(EditInfoPage)}</Protected>,
       },
 
       {
@@ -147,7 +148,7 @@ const routes = [
 
       {
         path: "/dashboard/profile/preference/add",
-        //element: <Protected roles={["user"]}>{lazyLoad(ProfilePreferenceAddPage)}</Protected>,
+        element: <Protected roles={["user"]}>{lazyLoad(AddPreferencePage)}</Protected>,
       },
 
       // Trajets à venir

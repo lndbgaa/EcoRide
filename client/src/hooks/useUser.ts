@@ -8,9 +8,9 @@ const useUser = () => {
     throw new Error("useUser doit être utilisé à l'intérieur d'un UserProvider");
   }
 
-  const { user, isLoading, toggleUserRole, error } = context;
+  const { user, toggleUserRole, updateUserInfo, updateUserAvatar, isLoading, error } = context;
 
-  return { user, isLoading, toggleUserRole, error };
+  return { user, toggleUserRole, updateUserInfo, updateUserAvatar, isLoading, error };
 };
 
 export default useUser;

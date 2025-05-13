@@ -1,20 +1,25 @@
 import { createContext, ReactNode, useEffect, useState } from "react";
 
+import useAuth from "@/hooks/useAuth";
 import UserService from "@/services/UserService";
-import { User } from "@/types/UserTypes";
+import { UpdateUserInfo, User } from "@/types/UserTypes";
 
 interface UserContextType {
   user: User | null;
   isLoading: boolean;
-  error: string | null;
+  error: boolean;
   toggleUserRole: (role: string) => Promise<void>;
+  updateUserInfo: (data: UpdateUserInfo) => Promise<void>;
+  updateUserAvatar: (file: File) => Promise<void>;
 }
 
 const defaultUserContext: UserContextType = {
   user: null,
   isLoading: true,
-  error: null,
+  error: false,
   toggleUserRole: async () => {},
+  updateUserInfo: async () => {},
+  updateUserAvatar: async () => {},
 };
 
 const UserContext = createContext<UserContextType>(defaultUserContext);
@@ -22,8 +27,10 @@ UserContext.displayName = "UserContext";
 
 const UserProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
-  const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(false);
+
+  const { logout } = useAuth();
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -34,34 +41,44 @@ const UserProvider = ({ children }: { children: ReactNode }) => {
       }
 
       try {
-        setIsLoading(true);
         const response = await UserService.getUserInfo();
         setUser(response);
-        setError(null);
-      } catch (err) {
-        console.error(err);
-        setError(
-          "Oups, quelque chose s'est mal passé lors de la récupération de vos informations. Veuillez réessayer plus tard."
-        );
+        setError(false);
+      } catch {
+        setError(true);
       } finally {
         setIsLoading(false);
       }
     };
 
     fetchUser();
-  }, []);
+  }, [logout]);
 
   const toggleUserRole = async (role: string) => {
     await UserService.toggleUserRole(role);
 
     if (role === "driver") {
-      setUser(user ? { ...user, isDriver: !user.isDriver } : null);
+      setUser((prevUser) => (prevUser ? { ...prevUser, isDriver: !prevUser.isDriver } : null));
     } else if (role === "passenger") {
-      setUser(user ? { ...user, isPassenger: !user.isPassenger } : null);
+      setUser((prevUser) => (prevUser ? { ...prevUser, isPassenger: !prevUser.isPassenger } : null));
     }
   };
 
-  return <UserContext.Provider value={{ user, isLoading, error, toggleUserRole }}>{children}</UserContext.Provider>;
+  const updateUserInfo = async (data: UpdateUserInfo) => {
+    await UserService.updateUserInfo(data);
+    setUser((prevUser) => (prevUser ? { ...prevUser, ...data } : null));
+  };
+
+  const updateUserAvatar = async (file: File) => {
+    const { url } = await UserService.updateAvatar(file);
+    setUser((prevUser) => (prevUser ? { ...prevUser, avatar: url } : null));
+  };
+
+  return (
+    <UserContext.Provider value={{ user, isLoading, error, toggleUserRole, updateUserInfo, updateUserAvatar }}>
+      {children}
+    </UserContext.Provider>
+  );
 };
 
 export { UserContext, UserProvider };

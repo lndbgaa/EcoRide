@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { toast } from "react-toastify";
 
 import DeleteIcon from "@/assets/images/cross.svg?react";
 import DefaultAvatar from "@/assets/images/default-avatar.jpg";
@@ -22,7 +23,7 @@ const ProfilePage = () => {
   const [isDriverDataLoading, setIsDriverDataLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
-  const { user, toggleUserRole, isLoading: isUserLoading, error: userError } = useUser();
+  const { user, toggleUserRole, isLoading: isUserLoading } = useUser();
   const { credits, firstName, memberSince, avatar, id: userId } = user ?? {};
 
   const navigate = useNavigate();
@@ -45,6 +46,7 @@ const ProfilePage = () => {
   const handleDeletePreference = async (id: string): Promise<void> => {
     await PreferenceService.deletePreference(id);
     setPreferences((prev) => prev.filter((p) => p.id !== id));
+    toast.success("Préférence supprimée avec succès");
   };
 
   useEffect(() => {
@@ -82,7 +84,7 @@ const ProfilePage = () => {
     return <Loader />;
   }
 
-  if (userError || error) {
+  if (error) {
     navigate("/error");
   }
 

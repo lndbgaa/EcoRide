@@ -15,3 +15,12 @@ export interface User {
   memberSince: string;
   lastLogin: string;
 }
+
+export interface UpdateUserInfo {
+  firstName?: string;
+  lastName?: string;
+  pseudo?: string;
+  phone?: string;
+  address?: string;
+  birthDate?: string;
+}

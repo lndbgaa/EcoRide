@@ -4,7 +4,7 @@ import dayjs from "dayjs";
  * Convertit une datetime en date uniquement au format DD/MM/YYYY
  */
 export function toDateOnly(datetime: Date | string): string {
-  return dayjs(datetime).tz("Europe/Paris").format("DD/MM/YYYY");
+  return dayjs(datetime).tz("Europe/Paris").format("YYYY-MM-DD");
 }
 
 /**

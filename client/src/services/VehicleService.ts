@@ -1,9 +1,9 @@
 import { axiosPrivate } from "../../api/axiosInstance";
 
-import type { CreateVehicleData, Vehicle } from "@/types/VehicleTypes";
+import type { CreateVehicle, Vehicle } from "@/types/VehicleTypes";
 
 class VehicleService {
-  static async addVehicle(data: CreateVehicleData): Promise<void> {
+  static async addVehicle(data: CreateVehicle): Promise<void> {
     const url = "/vehicles";
     await axiosPrivate.post(url, data, { headers: { "Content-Type": "application/json" } });
   }
@@ -15,6 +15,7 @@ class VehicleService {
     return data;
   }
 
+  // TODO: Gérer le cas ou le véhicule est lié à un trajet en cours
   static async deleteVehicle(vehicleId: string): Promise<void> {
     const url = `/vehicles/${vehicleId}`;
     await axiosPrivate.delete(url);

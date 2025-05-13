@@ -12,7 +12,7 @@ function App() {
     <AuthProvider>
       <UserProvider>
         <Router />
-        <ToastContainer position="top-center" theme="light" autoClose={3000} />
+        <ToastContainer position="top-center" theme="light" autoClose={2000} />
       </UserProvider>
     </AuthProvider>
   );

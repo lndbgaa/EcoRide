@@ -2,14 +2,62 @@
   color: var(--clr-accent) !important;
 }
 
+.Toastify__toast--success .Toastify__toast-icon svg {
+  fill: var(--clr-accent) !important;
+}
+
+.Toastify__toast--success .Toastify__progress-bar {
+  background: var(--clr-accent) !important;
+}
+
+.Toastify__toast--success .Toastify__progress-bar-theme--light {
+  background: var(--clr-accent) !important;
+}
+
 .Toastify__toast--error {
   color: var(--clr-error) !important;
+}
+
+.Toastify__toast--error .Toastify__toast-icon svg {
+  fill: var(--clr-error) !important;
+}
+
+.Toastify__toast--error .Toastify__progress-bar {
+  background: var(--clr-error) !important;
+}
+
+.Toastify__toast--error .Toastify__progress-bar-theme--light {
+  background: var(--clr-error) !important;
 }
 
 .Toastify__toast--info {
   color: var(--clr-info) !important;
 }
 
+.Toastify__toast--info .Toastify__toast-icon svg {
+  fill: var(--clr-info) !important;
+}
+
+.Toastify__toast--info .Toastify__progress-bar {
+  background: var(--clr-info) !important;
+}
+
+.Toastify__toast--info .Toastify__progress-bar-theme--light {
+  background: var(--clr-info) !important;
+}
+
 .Toastify__toast--warning {
   color: var(--clr-warning) !important;
+}
+
+.Toastify__toast--warning .Toastify__toast-icon svg {
+  fill: var(--clr-warning) !important;
+}
+
+.Toastify__toast--warning .Toastify__progress-bar {
+  background: var(--clr-warning) !important;
+}
+
+.Toastify__toast--warning .Toastify__progress-bar-theme--light {
+  background: var(--clr-warning) !important;
 }

@@ -95,7 +95,7 @@ class UserService {
       ...(data.firstName && { first_name: data.firstName }),
       ...(data.lastName && { last_name: data.lastName }),
       ...(data.birthDate && {
-        birth_date: dayjs(data.birthDate, "DD/MM/YYYY").toDate(),
+        birth_date: dayjs(data.birthDate, "YYYY-MM-DD").toDate(),
       }),
       ...(data.phone && { phone: data.phone }),
       ...(data.address && { address: data.address }),

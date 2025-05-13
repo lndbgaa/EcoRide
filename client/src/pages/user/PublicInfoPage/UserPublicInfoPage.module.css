@@ -1,0 +1,258 @@
+.pageContainer {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+}
+
+.profileContainer {
+  width: 100%;
+  max-width: 50rem;
+  margin-top: 10rem;
+  margin-bottom: 2rem;
+  padding: 0 2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 4rem;
+}
+
+.profileHeader {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+.mainInfoContainer {
+  display: flex;
+  align-items: center;
+  gap: 2rem;
+}
+
+.avatarWrapper {
+  position: relative;
+}
+
+.avatarImage {
+  width: 10rem;
+  height: 10rem;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 0.3rem solid var(--clr-text-secondary);
+  transition: transform 0.3s ease;
+}
+
+.nameContainer {
+  display: flex;
+  flex-direction: column;
+}
+
+.userName {
+  margin-bottom: 0.3rem;
+  font-size: var(--fs-xlarge);
+  font-weight: var(--fw-bold);
+  color: var(--clr-text-primary);
+}
+
+.userPseudo {
+  font-size: var(--fs-medium);
+  color: var(--clr-text-secondary);
+  font-weight: var(--fw-medium);
+}
+
+.detailsContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 0.8rem;
+  border-top: 1px solid var(--clr-soft-gray);
+  padding-top: 1.5rem;
+}
+
+.memberSince {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: var(--fs-small);
+  color: var(--clr-text-secondary);
+}
+
+.infoItem {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--clr-text-secondary);
+  font-size: var(--fs-medium);
+}
+
+.badge {
+  display: inline-block;
+  padding: 0.4rem 0.8rem;
+  border-radius: 2rem;
+  background-color: var(--clr-accent);
+  color: var(--clr-white);
+  font-size: var(--fs-xsmall);
+  font-weight: var(--fw-bold);
+  text-transform: uppercase;
+  letter-spacing: 0.05rem;
+}
+
+.sectionContainer {
+  border-top: 1px solid var(--clr-soft-gray);
+  padding-top: 2rem;
+}
+
+.sectionTitle {
+  margin-bottom: 2rem;
+  font-size: var(--fs-large);
+  font-weight: var(--fw-bold);
+  color: var(--clr-text-secondary);
+  position: relative;
+  display: inline-block;
+}
+
+.sectionTitle::after {
+  content: "";
+  position: absolute;
+  bottom: -0.8rem;
+  left: 0;
+  width: 100%;
+  height: 0.3rem;
+  background-color: var(--clr-text-secondary);
+  border-radius: 0.5rem;
+}
+
+.ratingContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+.ratingOverview {
+  display: flex;
+  align-items: center;
+  gap: 2rem;
+}
+
+.ratingScore {
+  font-size: 5rem;
+  font-weight: var(--fw-black);
+  color: var(--clr-text-primary);
+}
+
+.ratingDetails {
+  display: flex;
+  flex-direction: column;
+  gap: 0.8rem;
+}
+
+.starsContainer {
+  display: flex;
+  gap: 0.5rem;
+  font-size: var(--fs-large);
+}
+
+.starFilled {
+  color: var(--clr-accent);
+}
+
+.starEmpty {
+  color: var(--clr-medium-gray);
+}
+
+.ratingCount {
+  font-size: var(--fs-medium);
+  color: var(--clr-text-secondary);
+}
+
+.viewAllRatings {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.2rem 2rem;
+  width: fit-content;
+  border-radius: 0.5rem;
+  background-color: var(--clr-accent);
+  color: var(--clr-white);
+  font-weight: var(--fw-bold);
+  transition: all 0.3s ease;
+  gap: 1rem;
+}
+
+.viewAllRatings:hover {
+  background-color: var(--clr-accent-dark);
+}
+
+.viewAllRatings svg {
+  transition: transform 0.3s ease;
+}
+
+.viewAllRatings:hover svg {
+  transform: translateX(0.5rem);
+}
+
+.activitySection {
+  color: var(--clr-text-secondary);
+  font-size: var(--fs-medium);
+  line-height: 1.6;
+}
+
+/* Responsive styles */
+@media screen and (max-width: 768px) {
+  .sectionTitle {
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  .sectionTitle::after {
+    left: 0;
+    width: 100%;
+  }
+
+  .ratingOverview {
+    flex-direction: column;
+    gap: 1rem;
+    align-items: center;
+  }
+
+  .viewAllRatings {
+    width: 100%;
+  }
+}
+
+@media screen and (max-width: 480px) {
+  .profileContainer {
+    padding: 0 1.5rem;
+    gap: 3rem;
+  }
+
+  .mainInfoContainer {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 1rem;
+  }
+
+  .detailsContainer {
+    align-items: center;
+    text-align: center;
+  }
+
+  .avatarImage {
+    width: 7rem;
+    height: 7rem;
+  }
+
+  .userName {
+    font-size: var(--fs-large);
+  }
+
+  .userPseudo {
+    font-size: var(--fs-small);
+  }
+
+  .ratingScore {
+    font-size: 4rem;
+  }
+
+  .starsContainer {
+    font-size: var(--fs-medium);
+  }
+}

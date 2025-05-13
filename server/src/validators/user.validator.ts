@@ -28,20 +28,16 @@ export const updateInfoSchema = Joi.object({
       "string.empty": "Le pseudo doit être une chaîne de caractères non vide.",
       "string.min": "Le pseudo doit contenir au moins 3 caractères.",
       "string.max": "Le pseudo doit contenir maximum 20 caractères.",
-      "string.pattern.base":
-        "Le pseudo ne doit contenir que des lettres, des chiffres, des tirets et des underscores.",
+      "string.pattern.base": "Le pseudo ne doit contenir que des lettres, des chiffres, des tirets et des underscores.",
     }),
   phone: Joi.string()
     .trim()
     .pattern(/^(0|\+33|0033)[1-9]\d{8}$/)
     .optional()
     .messages({
-      "string.base":
-        "Le numéro de téléphone doit être une chaîne de caractères non vide.",
-      "string.empty":
-        "Le numéro de téléphone doit être une chaîne de caractères non vide.",
-      "string.pattern.base":
-        "Le numéro de téléphone doit être un numéro de téléphone valide. Exemple: 06XXXXXXXX",
+      "string.base": "Le numéro de téléphone doit être une chaîne de caractères non vide.",
+      "string.empty": "Le numéro de téléphone doit être une chaîne de caractères non vide.",
+      "string.pattern.base": "Le numéro de téléphone doit être un numéro de téléphone valide. Exemple: 06XXXXXXXX",
     }),
   address: Joi.string().trim().min(5).max(255).optional().messages({
     "string.base": "L'adresse doit être une chaîne de caractères.",
@@ -53,7 +49,7 @@ export const updateInfoSchema = Joi.object({
     .trim()
     .custom((value, helpers) => {
       const now = dayjs();
-      const parsed = dayjs(value, "DD/MM/YYYY", true);
+      const parsed = dayjs(value, "YYYY-MM-DD", true);
 
       if (!parsed.isValid() || !parsed.isBefore(now)) {
         return helpers.error("any.invalid");
@@ -87,8 +83,7 @@ export const updateRoleSchema = Joi.object({
   role: Joi.string().trim().valid("driver", "passenger").required().messages({
     "any.required": "Le rôle à mettre à jour est requis.",
     "string.base": "Le rôle à mettre à jour doit être une chaîne de caractères non vide.",
-    "string.empty":
-      "Le rôle à mettre à jour doit être une chaîne de caractères non vide.",
+    "string.empty": "Le rôle à mettre à jour doit être une chaîne de caractères non vide.",
     "any.only": "Le rôle à mettre à jour doit être soit 'driver' soit 'passenger'.",
   }),
 });

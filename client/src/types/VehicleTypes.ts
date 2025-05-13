@@ -9,7 +9,7 @@ export interface Vehicle {
   firstRegistration: string;
 }
 
-export interface CreateVehicleData {
+export interface CreateVehicle {
   brandId: number;
   model: string;
   colorId: number;

@@ -11,7 +11,7 @@ import { toast } from "react-toastify";
 
 import styles from "./AddVehiclePage.module.css";
 
-import type { CreateVehicleData } from "@/types/VehicleTypes";
+import type { CreateVehicle } from "@/types/VehicleTypes";
 
 interface Option {
   id: number;
@@ -39,7 +39,7 @@ const AddVehiclePage = () => {
 
   const maxDate = dayjs().subtract(1, "day").format("YYYY-MM-DD");
 
-  const validateFormData = (data: CreateVehicleData): boolean => {
+  const validateForm = (data: CreateVehicle): boolean => {
     setError({});
 
     if (data.brandId === 0) {
@@ -63,12 +63,12 @@ const AddVehiclePage = () => {
     }
 
     if (data.seats < 2 || data.seats > 7) {
-      setError({ seats: "Veuillez entrer un nombre de places entre 2 et 7" });
+      setError({ seats: "Nombre de place invalide (min. 2 max. 7 places)" });
       return false;
     }
 
     if (!/^[A-Z]{2}-\d{3}-[A-Z]{2}$/i.test(data.licensePlate)) {
-      setError({ licensePlate: "Veuillez entrer une plaque d'immatriculation valide" });
+      setError({ licensePlate: "Plaque d'immatriculation invalide (Format: AA-123-AA)" });
       return false;
     }
 
@@ -76,7 +76,7 @@ const AddVehiclePage = () => {
       setError({ firstRegistration: "Champ requis" });
       return false;
     } else if (!dayjs(data.firstRegistration, "DD/MM/YYYY", true).isValid()) {
-      setError({ firstRegistration: "Veuillez entrer une date valide" });
+      setError({ firstRegistration: "Date invalide" });
       return false;
     } else if (dayjs(data.firstRegistration, "DD/MM/YYYY", true).isAfter(dayjs().subtract(1, "day"))) {
       setError({ firstRegistration: "La date de première immatriculation doit être antérieure à la date du jour" });
@@ -92,7 +92,7 @@ const AddVehiclePage = () => {
     e.preventDefault();
     setIsSubmitting(true);
 
-    const cleanedData: CreateVehicleData = {
+    const cleanedData: CreateVehicle = {
       brandId,
       model: model.trim().toUpperCase(),
       colorId,
@@ -103,7 +103,7 @@ const AddVehiclePage = () => {
         firstRegistration && dayjs(firstRegistration).isValid() ? dayjs(firstRegistration).format("DD/MM/YYYY") : "",
     };
 
-    const isValid = validateFormData(cleanedData);
+    const isValid = validateForm(cleanedData);
 
     if (!isValid) {
       setIsSubmitting(false);
@@ -156,7 +156,7 @@ const AddVehiclePage = () => {
   return (
     <div className={styles.pageContainer}>
       <div className={styles.addVehicleContainer}>
-        <h1 className={styles.title}>Ajoutez un véhicule</h1>
+        <h1 className={styles.title}>Ajouter un véhicule</h1>
 
         {error.submitVehicle && <div className={styles.errorMessage}>{error.submitVehicle}</div>}
 

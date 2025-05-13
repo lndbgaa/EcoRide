@@ -4,11 +4,11 @@
   justify-content: center;
 }
 
-.addVehicleContainer {
+.editAvatarContainer {
   width: 100%;
-  max-width: 50rem;
+  max-width: 50rem; /* !!! */
   margin-top: 10rem; /* !!! */
-  margin-bottom: 2rem; /* !!! */
+  margin-bottom: 2rem;
   padding: 0 2rem;
   display: flex;
   flex-direction: column;
@@ -37,40 +37,51 @@
   flex-direction: column;
 }
 
-.label {
-  color: var(--clr-medium-gray);
-  font-size: var(--fs-small);
-  font-weight: var(--fw-medium);
+.fileInput {
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
+  overflow: hidden;
 }
 
-.input {
+.customFileInput {
   width: 100%;
-  padding: 1rem;
+  height: 5rem;
+  display: flex;
   border-radius: 0.5rem;
   border: 2px solid var(--clr-soft-gray);
+  overflow: hidden;
+}
+
+.fileNameContainer {
+  width: 75%;
+  display: flex;
+  align-items: center;
+  padding: 0 1rem;
   background-color: transparent;
-  color: var(--clr-text-primary);
-  font-weight: var(--fw-medium);
-  transition: border-color 0.3s ease;
 }
 
-.input.hasError {
-  border-color: var(--clr-error);
-}
-
-.input::placeholder {
+.fileName {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
   color: var(--clr-medium-gray);
-  font-size: var(--fs-small);
-  font-weight: var(--fw-regular);
 }
 
-.input:focus {
-  border-color: var(--clr-accent);
-  outline: none;
+.browseButton {
+  width: 25%;
+  padding: 0 1.5rem;
+  background-color: var(--clr-accent-soft);
+  color: var(--clr-white);
+  font-weight: var(--fw-medium);
+  border: none;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
 }
 
-.input:focus::placeholder {
-  color: var(--clr-accent-dark);
+.browseButton:hover {
+  background-color: var(--clr-accent);
 }
 
 .buttonsContainer {
@@ -81,7 +92,8 @@
   align-items: center;
 }
 
-.button {
+.editButton,
+.cancelButton {
   padding: 1.4rem 2rem;
   text-align: center;
   border-radius: 0.5rem;
@@ -102,39 +114,34 @@
   background-color: var(--clr-medium-gray);
 }
 
-.addButton {
+.editButton {
   background-color: var(--clr-accent);
   color: var(--clr-white);
   border: none;
 }
 
-.addButton:hover {
+.editButton:hover {
   background-color: var(--clr-accent-dark);
 }
 
-.addButton:disabled {
+.editButton:disabled {
   background-color: var(--clr-soft-gray);
   cursor: not-allowed;
 }
 
 .errorMessage {
-  text-align: center;
-  margin-bottom: 1rem;
   width: 100%;
+  margin-bottom: 1rem;
+  text-align: center;
   color: var(--clr-error);
   font-weight: var(--fw-bold);
   font-size: var(--fs-small);
 }
 
-.inputErrorMessage {
-  margin-top: 0;
-  text-align: left;
-}
-
 /* Media queries */
 @media screen and (max-width: 768px) {
-  .addVehicleContainer {
-    margin-top: 5rem; /* !!! */
+  .editAvatarContainer {
+    margin-top: 5rem;
   }
 
   .buttonsContainer {
@@ -142,7 +149,16 @@
     gap: 1rem;
   }
 
-  .button {
+  .fileNameContainer {
+    width: 60%;
+  }
+
+  .browseButton {
+    width: 40%;
+  }
+
+  .editButton,
+  .cancelButton {
     width: 100%;
   }
 }
