@@ -1,4 +1,5 @@
 import { Booking, Ride, User } from "@/models/mysql/index.js";
+import PreferenceService from "@/services/preference.service";
 import UserService from "@/services/user.service.js";
 import VehicleService from "@/services/vehicle.service.js";
 import AppError from "@/utils/AppError.js";
@@ -6,9 +7,23 @@ import catchAsync from "@/utils/catchAsync.js";
 
 import type { BookingPrivateDTO } from "@/models/mysql/Booking.model.js";
 import type { RidePrivatePreviewDTO } from "@/models/mysql/Ride.model.js";
-import PreferenceService from "@/services/preference.service";
 import type { MulterRequest } from "@/types/express.js";
 import type { Request, Response } from "express";
+
+/**
+ * Gère la récupération des informations de profil d'un utilisateur
+ */
+export const getUserInfo = catchAsync(async (req: Request, res: Response): Promise<Response> => {
+  const userId = req.params.id;
+
+  const user: User = await UserService.getInfo(userId);
+
+  return res.status(200).json({
+    success: true,
+    message: "Informations de profil récupérées avec succès.",
+    data: user.toPublicDTO(),
+  });
+});
 
 /**
  * Gère la récupération des informations de profil de l'utilisateur connecté

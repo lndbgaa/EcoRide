@@ -5,14 +5,14 @@ import { sequelize } from "@/config/mysql.config.js";
 import { ACCOUNT_ROLES_ID } from "@/constants/index.js";
 import Account from "@/models/mysql/Account.model.js";
 import AppError from "@/utils/AppError.js";
-import { getAge, toDateOnly } from "@/utils/date.utils.js";
+import { toDateOnly } from "@/utils/date.utils.js";
 
 export interface UserPublicDTO {
   id: string;
+  firstName: string;
   pseudo: string;
-  age: number | null;
   avatar: string | null;
-  averageRating: number | null;
+  averageRating: string | null;
   memberSince: string | null;
 }
 
@@ -43,7 +43,7 @@ class User extends Account {
   declare profile_picture: string | null;
   declare is_passenger: boolean;
   declare is_driver: boolean;
-  declare average_rating: number | null;
+  declare average_rating: string | null;
   declare credits: number;
 
   /**
@@ -107,7 +107,7 @@ class User extends Account {
     return this.profile_picture;
   }
 
-  public getAverageRating(): number | null {
+  public getAverageRating(): string | null {
     return this.average_rating;
   }
 
@@ -126,8 +126,8 @@ class User extends Account {
   public toPublicDTO(): UserPublicDTO {
     return {
       id: this.id,
+      firstName: this.first_name,
       pseudo: this.pseudo,
-      age: this.birth_date ? getAge(this.birth_date) : null,
       avatar: this.profile_picture ?? null,
       averageRating: this.average_rating ?? null,
       memberSince: this.created_at ? toDateOnly(this.created_at) : null,
@@ -144,7 +144,6 @@ class User extends Account {
     return {
       ...this.toPublicDTO(),
       email: this.email,
-      firstName: this.first_name,
       lastName: this.last_name,
       phone: this.phone ?? null,
       address: this.address ?? null,

@@ -11,3 +11,9 @@ export type Ride = {
   is_eco_friendly: boolean;
   status: "open" | "full" | "in_progress" | "completed" | "cancelled";
 };
+
+export type SearchRideRequestData = {
+  departureLocation: string;
+  arrivalLocation: string;
+  departureDate: string;
+};

@@ -25,10 +25,11 @@ import bookingsRoutes from "@/routes/booking.route.js";
 import catalogRoutes from "@/routes/catalog.routes.js";
 import employeesRoutes from "@/routes/employee.route.js";
 import incidentsRoutes from "@/routes/incident.route.js";
+import userPrivateRoutes from "@/routes/me.route.js";
 import preferencesRoutes from "@/routes/preference.route.js";
+import publicRoutes from "@/routes/public.route.js";
 import reviewsRoutes from "@/routes/review.route.js";
 import ridesRoutes from "@/routes/ride.route.js";
-import usersRoutes from "@/routes/user.route.js";
 import vehiclesRoutes from "@/routes/vehicle.route.js";
 import AppError from "@/utils/AppError.js";
 
@@ -49,7 +50,7 @@ app.get("/", (req, res) => {
 });
 
 app.use("/api/v1/auth", authRoutes);
-app.use("/api/v1/users", usersRoutes);
+app.use("/api/v1/users/me", userPrivateRoutes);
 app.use("/api/v1/admin", adminRoutes);
 app.use("/api/v1/employees", employeesRoutes);
 app.use("/api/v1/vehicles", vehiclesRoutes);
@@ -59,6 +60,8 @@ app.use("/api/v1/bookings", bookingsRoutes);
 app.use("/api/v1/reviews", reviewsRoutes);
 app.use("/api/v1/incidents", incidentsRoutes);
 app.use("/api/v1/catalog", catalogRoutes);
+
+app.use("/api/v1/", publicRoutes);
 
 app.use((req, res, next) => {
   next(

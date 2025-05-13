@@ -41,7 +41,7 @@ const UserProvider = ({ children }: { children: ReactNode }) => {
       }
 
       try {
-        const response = await UserService.getUserInfo();
+        const response = await UserService.getMyInfo();
         setUser(response);
         setError(false);
       } catch {
@@ -55,7 +55,7 @@ const UserProvider = ({ children }: { children: ReactNode }) => {
   }, [logout]);
 
   const toggleUserRole = async (role: string) => {
-    await UserService.toggleUserRole(role);
+    await UserService.toggleMyRole(role);
 
     if (role === "driver") {
       setUser((prevUser) => (prevUser ? { ...prevUser, isDriver: !prevUser.isDriver } : null));
@@ -65,12 +65,12 @@ const UserProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const updateUserInfo = async (data: UpdateUserInfo) => {
-    await UserService.updateUserInfo(data);
+    await UserService.updateMyInfo(data);
     setUser((prevUser) => (prevUser ? { ...prevUser, ...data } : null));
   };
 
   const updateUserAvatar = async (file: File) => {
-    const { url } = await UserService.updateAvatar(file);
+    const { url } = await UserService.updateMyAvatar(file);
     setUser((prevUser) => (prevUser ? { ...prevUser, avatar: url } : null));
   };
 

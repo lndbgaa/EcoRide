@@ -10,7 +10,7 @@ export interface User {
   phone: string | null;
   birthDate: string | null;
   avatar: string | null;
-  averageRating: number | null;
+  averageRating: string | null;
   credits: number;
   memberSince: string;
   lastLogin: string;

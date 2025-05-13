@@ -167,6 +167,8 @@ class RideService {
       status: "open", // Affiche uniquement les trajets ouverts
     };
 
+    console.log(conditions);
+
     // Si l'utilisateur est connecté, on ne retourne pas ses propres trajets
     if (userId) {
       conditions.driver_id = { [Op.ne]: userId };

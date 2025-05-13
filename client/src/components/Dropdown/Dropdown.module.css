@@ -42,7 +42,6 @@
 .selectedDisplay {
   color: var(--clr-text-primary);
   font-weight: var(--fw-medium);
-  font-size: var(--fs-small);
 }
 
 .openIcon,

@@ -29,23 +29,23 @@ router.use(requireAuth);
 router.use(requireRole([ACCOUNT_ROLES_LABEL.USER]));
 
 // Routes pour les informations de l'utilisateur connecté
-router.get("/me", getMyInfo);
-router.patch("/me", validate(updateInfoSchema), updateMyInfo);
-router.patch("/me/role", validate(updateRoleSchema), updateMyRole);
-router.patch("/me/avatar", multerUploads, updateMyAvatar);
-router.get("/me/vehicles", getMyVehicles);
-router.get("/me/preferences", getMyPreferences);
+router.get("/", getMyInfo);
+router.patch("/", validate(updateInfoSchema), updateMyInfo);
+router.patch("/role", validate(updateRoleSchema), updateMyRole);
+router.patch("/avatar", multerUploads, updateMyAvatar);
+router.get("/vehicles", getMyVehicles);
+router.get("/preferences", getMyPreferences);
 
 // Routes pour les événements de l'utilisateur connecté
-router.get("/me/events/next", getMyNextEvent);
-router.get("/me/events/upcoming", getMyUpcomingEvents);
+router.get("/events/next", getMyNextEvent);
+router.get("/events/upcoming", getMyUpcomingEvents);
 
 // Routes pour les historiques de l'utilisateur connecté
-router.get("/me/rides", getMyRides);
-router.get("/me/bookings", getMyBookings);
+router.get("/rides", getMyRides);
+router.get("/bookings", getMyBookings);
 
 // Routes pour les avis de l'utilisateur connecté
-router.get("/me/reviews/received", getMyReceivedReviews);
-router.get("/me/reviews/written", getMyWrittenReviews);
+router.get("/reviews/received", getMyReceivedReviews);
+router.get("/reviews/written", getMyWrittenReviews);
 
 export default router;

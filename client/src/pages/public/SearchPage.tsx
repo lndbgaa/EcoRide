@@ -1,9 +1,5 @@
 const SearchPage = () => {
-  return (
-    <div>
-      <h1>Où voulez-vous aller ?</h1>
-    </div>
-  );
+  return <div>SearchPage</div>;
 };
 
 export default SearchPage;

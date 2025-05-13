@@ -84,7 +84,7 @@ const NextEvent = () => {
 
   useEffect(() => {
     const fetchNextEvent = async () => {
-      const response = await UserService.getUserNextEvent();
+      const response = await UserService.getMyNextEvent();
 
       if (response) {
         setEventType(response.type);

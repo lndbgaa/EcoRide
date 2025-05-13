@@ -1,10 +1,11 @@
+import dayjs from "dayjs";
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 
+import RightArrow from "@/assets/images/arrow-icon.svg?react";
 import DeleteIcon from "@/assets/images/cross.svg?react";
 import DefaultAvatar from "@/assets/images/default-avatar.jpg";
-import RightArrow from "@/assets/images/right-arrow.svg?react";
 
 import Loader from "@/components/Loader/Loader";
 import useUser from "@/hooks/useUser";
@@ -64,8 +65,8 @@ const ProfilePage = () => {
     const fetchDriverData = async (): Promise<void> => {
       try {
         const [vehicles, preferences] = await Promise.all([
-          UserService.getUserVehicles(),
-          UserService.getUserPreferences(),
+          UserService.getMyVehicles(),
+          UserService.getMyPreferences(),
         ]);
 
         setVehicles(vehicles);
@@ -105,7 +106,7 @@ const ProfilePage = () => {
             <div className={styles.textContent}>
               <p className={styles.userName}>{firstName}</p>
               <p className={styles.memberSince}>
-                Membre depuis le <span>{memberSince}</span>
+                Membre depuis le <span>{dayjs(memberSince).format("DD/MM/YYYY")}</span>
               </p>
             </div>
           </div>

@@ -10,7 +10,7 @@ import EmployeeDashboardLayout from "@/layouts/EmployeeDashboardLayout";
 import EmployeeIncidentsLayout from "@/layouts/EmployeeIncidentsLayout";
 import EmployeeLayout from "@/layouts/EmployeeLayout";
 import HistoryLayout from "@/layouts/HistoryLayout";
-import MainLayout from "@/layouts/MainLayout";
+import MainLayout from "@/layouts/MainLayout/MainLayout";
 import RatingsLayout from "@/layouts/RatingsLayout";
 import UserDashboardLayout from "@/layouts/UserDashboard/UserDashboardLayout";
 
@@ -21,6 +21,7 @@ const HomePage = lazy(() => import("@/pages/public/HomePage"));
 const ContactPage = lazy(() => import("@/pages/public/ContactPage"));
 const CarpoolPage = lazy(() => import("@/pages/public/CarpoolPage"));
 const SearchPage = lazy(() => import("@/pages/public/SearchPage"));
+const ResultsPage = lazy(() => import("@/pages/public/ResultsPage"));
 const NotFoundPage = lazy(() => import("@/pages/error/NotFoundPage"));
 const UnauthorizedPage = lazy(() => import("@/pages/error/UnauthorizedPage"));
 const ErrorPage = lazy(() => import("@/pages/error/ErrorPage"));
@@ -81,6 +82,7 @@ const routes = [
       { path: "contact", element: lazyLoad(ContactPage) },
       { path: "carpool", element: lazyLoad(CarpoolPage) },
       { path: "search", element: lazyLoad(SearchPage) },
+      { path: "results", element: lazyLoad(ResultsPage) },
       { path: "user/:id/show", element: lazyLoad(UserPublicInfoPage) },
       { path: "ride/:id/show", element: lazyLoad(RidePublicInfoPage) },
       { path: "unauthorized", element: lazyLoad(UnauthorizedPage) },

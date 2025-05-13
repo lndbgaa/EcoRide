@@ -280,7 +280,7 @@ const AddVehiclePage = () => {
             )}
           </div>
 
-          {/*TODO améliorer l'apparence du champ*/}
+          {/*TODO améliorer l'apparence du champ date*/}
           {/*Première immatriculation */}
           <div className={classNames(styles.formGroup, styles.firstRegistration)}>
             <label htmlFor="firstRegistration" className={styles.label}>
@@ -306,10 +306,10 @@ const AddVehiclePage = () => {
           </div>
 
           <div className={styles.buttonsContainer}>
-            <Link to="/dashboard" className={classNames(styles.button, styles.cancelButton)}>
+            <Link to="/dashboard" className={styles.cancelButton}>
               Annuler
             </Link>
-            <button type="submit" className={classNames(styles.button, styles.addButton)} disabled={isSubmitting}>
+            <button type="submit" className={styles.addButton} disabled={isSubmitting}>
               {isSubmitting ? "Ajout en cours..." : "Ajouter"}
             </button>
           </div>

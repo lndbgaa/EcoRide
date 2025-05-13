@@ -1,13 +1,23 @@
-import { axiosPrivate } from "../../api/axiosInstance";
+import { axiosPrivate, axiosPublic } from "../../api/axiosInstance";
 
 import type { UpdateUserInfo, User } from "@/types/UserTypes";
 import type { Vehicle } from "@/types/VehicleTypes";
 
 class UserService {
   /**
+   * Récupère les informations d'un utilisateur
+   */
+  static async getUserInfo(userId: string): Promise<User> {
+    const url = `/users/${userId}`;
+    const response = await axiosPublic.get(url);
+    const { data } = response.data;
+    return data;
+  }
+
+  /**
    * Récupère les informations de l'utilisateur connecté
    */
-  static async getUserInfo(): Promise<User> {
+  static async getMyInfo(): Promise<User> {
     const url = "/users/me";
     const response = await axiosPrivate.get(url);
     const { data } = response.data;
@@ -17,7 +27,7 @@ class UserService {
   /**
    * Modifie les informations de l'utilisateur connecté
    */
-  static async updateUserInfo(data: UpdateUserInfo) {
+  static async updateMyInfo(data: UpdateUserInfo) {
     const url = "/users/me";
     await axiosPrivate.patch(url, data, { headers: { "Content-Type": "application/json" } });
   }
@@ -25,7 +35,7 @@ class UserService {
   /**
    * Modifie l'avatar de l'utilisateur connecté
    */
-  static async updateAvatar(file: File): Promise<{ url: string }> {
+  static async updateMyAvatar(file: File): Promise<{ url: string }> {
     const url = "/users/me/avatar";
     const formData = new FormData();
     formData.append("image", file);
@@ -38,7 +48,7 @@ class UserService {
   /**
    * Modifie le rôle de l'utilisateur connecté
    */
-  static async toggleUserRole(role: string) {
+  static async toggleMyRole(role: string) {
     const url = "/users/me/role";
     await axiosPrivate.patch(url, { role }, { headers: { "Content-Type": "application/json" } });
   }
@@ -46,7 +56,7 @@ class UserService {
   /**
    * Récupère les véhicules de l'utilisateur connecté
    */
-  static async getUserVehicles(): Promise<Vehicle[]> {
+  static async getMyVehicles(): Promise<Vehicle[]> {
     const url = "/users/me/vehicles";
     const response = await axiosPrivate.get(url);
     const { data } = response.data;
@@ -56,7 +66,7 @@ class UserService {
   /**
    * Récupère les préférences de l'utilisateur connecté
    */
-  static async getUserPreferences() {
+  static async getMyPreferences() {
     const url = "/users/me/preferences";
     const response = await axiosPrivate.get(url);
     const { data } = response.data;
@@ -66,7 +76,7 @@ class UserService {
   /**
    * Récupère le prochain événement de l'utilisateur connecté (réservation, trajet)
    */
-  static async getUserNextEvent() {
+  static async getMyNextEvent() {
     try {
       const url = "/users/me/events/next";
       const response = await axiosPrivate.get(url);

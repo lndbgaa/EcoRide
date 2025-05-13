@@ -7,8 +7,6 @@
 .loginContainer {
   width: 100%;
   max-width: 50rem;
-  margin-top: 10rem; /* !!! */
-  padding: 0 2rem;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -81,11 +79,11 @@
 
 .input:focus {
   outline: none;
-  border: 2px solid var(--clr-accent);
+  border: 2px solid var(--clr-accent-soft);
 }
 
 .input:focus::placeholder {
-  color: var(--clr-accent-dark);
+  color: var(--clr-accent-soft);
 }
 
 .forgotPassword {
@@ -167,17 +165,7 @@
   transform: scale(1.05);
 }
 
-@media screen and (max-width: 768px) {
-  .loginContainer {
-    margin-top: 5rem; /* !!! */
-  }
-}
-
 @media screen and (max-width: 480px) {
-  .loginContainer {
-    margin-top: 3rem;
-  }
-
   .title {
     font-size: var(--fs-large);
   }
