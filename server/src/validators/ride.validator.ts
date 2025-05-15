@@ -1,3 +1,4 @@
+import dayjs from "dayjs";
 import Joi from "joi";
 
 /**
@@ -10,20 +11,36 @@ export const createRideSchema = Joi.object({
     "string.empty": "Le lieu de départ doit être une chaîne de caractères non vide.",
     "string.max": "Le lieu de départ doit contenir au maximum 255 caractères.",
   }),
-  departureDatetime: Joi.date().required().messages({
-    "any.required": "La date et l'heure de départ sont requises.",
-    "date.base": "La date et l'heure de départ doivent être une date valide.",
+  departureDate: Joi.date().required().messages({
+    "any.required": "La date de départ est requise.",
+    "date.base": "La date de départ doit être une date valide.",
   }),
+  departureTime: Joi.string()
+    .pattern(/^([01]\d|2[0-3]):([0-5]\d)$/)
+    .required()
+    .messages({
+      "any.required": "L'heure de départ est requise.",
+      "string.pattern.base": "L'heure de départ doit être au format HH:mm (ex: 14:30).",
+      "string.empty": "L'heure de départ ne peut pas être vide.",
+    }),
   arrivalLocation: Joi.string().trim().max(255).required().messages({
     "any.required": "Le lieu d'arrivée est requis.",
     "string.base": "Le lieu d'arrivée doit être une chaîne de caractères non vide.",
     "string.empty": "Le lieu d'arrivée doit être une chaîne de caractères non vide.",
     "string.max": "Le lieu d'arrivée doit contenir au maximum 255 caractères.",
   }),
-  arrivalDatetime: Joi.date().required().messages({
-    "any.required": "La date et l'heure d'arrivée sont requises.",
-    "date.base": "La date et l'heure d'arrivée doivent être une date valide.",
+  arrivalDate: Joi.date().required().messages({
+    "any.required": "La date d'arrivée est requise.",
+    "date.base": "La date d'arrivée doit être une date valide.",
   }),
+  arrivalTime: Joi.string()
+    .pattern(/^([01]\d|2[0-3]):([0-5]\d)$/)
+    .required()
+    .messages({
+      "any.required": "L'heure d'arrivée est requise.",
+      "string.pattern.base": "L'heure d'arrivée doit être au format HH:mm (ex: 14:30).",
+      "string.empty": "L'heure d'arrivée ne peut pas être vide.",
+    }),
   vehicleId: Joi.string().uuid().required().messages({
     "any.required": "L'id du véhicule est requis.",
     "string.base": "L'id du véhicule doit être une chaîne de caractères.",
@@ -36,12 +53,25 @@ export const createRideSchema = Joi.object({
     "number.min": "Le prix doit être au minimum de 10 crédits (1€).",
     "number.max": "Le prix doit être au maximum de 500 crédits (50 €).",
   }),
-  offeredSeats: Joi.number().integer().strict().min(1).max(6).required().messages({
+  offeredSeats: Joi.number().integer().strict().min(1).max(4).required().messages({
     "any.required": "Le nombre de places proposées est requis.",
     "number.integer": "Le nombre de places proposées doit être un nombre entier.",
     "number.min": "Le nombre de places proposées doit être au minimum de 1.",
-    "number.max": "Le nombre de places proposées doit être au maximum de 6.",
+    "number.max": "Le nombre de places proposées doit être au maximum de 4.",
   }),
+}).custom((value, helpers) => {
+  const departure = dayjs(`${value.departureDate}T${value.departureTime}`);
+  const arrival = dayjs(`${value.arrivalDate}T${value.arrivalTime}`);
+
+  if (departure.isBefore(dayjs())) {
+    return helpers.error("any.custom", { message: "L'heure de départ ne peut pas être dans le passé." });
+  }
+
+  if (arrival.isBefore(departure)) {
+    return helpers.error("any.custom", { message: "L'heure d'arrivée doit être postérieure à l'heure de départ." });
+  }
+
+  return value;
 });
 
 /**
@@ -72,9 +102,7 @@ export const searchRidesSchema = Joi.object({
     "number.base": "Le prix maximum doit être un nombre entier.",
     "number.positive": "Le prix maximum doit être un nombre entier positif.",
   }),
-  minRating: Joi.number().integer().strict().min(1).max(5).optional().messages({
-    "number.integer": "La note minimale doit être un nombre entier.",
-    "number.base": "La note minimale doit être un nombre entier.",
+  minRating: Joi.number().min(1).max(5).optional().messages({
     "number.min": "La note minimale doit être un nombre entre 1 et 5.",
     "number.max": "La note minimale doit être un nombre entre 1 et 5.",
   }),

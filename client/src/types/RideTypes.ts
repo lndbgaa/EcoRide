@@ -1,19 +1,44 @@
+import type { User } from "@/types/UserTypes";
+import type { Vehicle } from "@/types/VehicleTypes";
+
+export type RideStatus = "open" | "full" | "in_progress" | "completed" | "cancelled";
+
 export type Ride = {
   id: string;
-  departure_date: string;
-  departure_location: string;
-  departure_time: string;
-  arrival_date: string;
-  arrival_location: string;
-  arrival_time: string;
+  departureDate: string;
+  departureLocation: string;
+  departureTime: string;
+  arrivalDate: string;
+  arrivalLocation: string;
+  arrivalTime: string;
   duration: number;
   price: number;
-  is_eco_friendly: boolean;
-  status: "open" | "full" | "in_progress" | "completed" | "cancelled";
+  availableSeats: number;
+  offeredSeats: number;
+  driver: User;
+  vehicle: Vehicle;
+  isEcoFriendly: boolean;
+  status: RideStatus;
 };
 
-export type SearchRideRequestData = {
+export type CreateRideData = {
+  arrivalLocation: string;
+  departureLocation: string;
+  departureDate: string;
+  departureTime: string;
+  arrivalDate: string;
+  arrivalTime: string;
+  vehicleId: string;
+  price: number;
+  offeredSeats: number;
+};
+
+export type SearchRide = {
   departureLocation: string;
   arrivalLocation: string;
   departureDate: string;
+  isEcoFriendly: boolean;
+  maxPrice: number;
+  maxDuration: number;
+  minRating: string | undefined;
 };

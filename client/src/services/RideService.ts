@@ -1,14 +1,24 @@
 import { axiosPrivate } from "api/axiosInstance";
 
-import type { SearchRideRequestData } from "@/types/RideTypes";
+import type { CreateRideData, SearchRideWithoutFilters } from "@/types/RideTypes";
 
 class RideService {
-  static async searchRide(data: SearchRideRequestData) {
+  static async searchRides(data: SearchRideWithoutFilters) {
     const response = await axiosPrivate.post(`/rides/search`, data, {
       headers: {
         "Content-Type": "application/json",
       },
     });
+    return response.data;
+  }
+
+  static async createRide(data: CreateRideData) {
+    const response = await axiosPrivate.post(`/rides`, data, {
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+
     return response.data;
   }
 

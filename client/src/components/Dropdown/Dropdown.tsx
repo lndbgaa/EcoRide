@@ -7,14 +7,14 @@ import arrowIcon from "@/assets/images/arrow-icon.svg";
 import crossIcon from "@/assets/images/cross-icon.svg";
 
 interface DropdownOption {
-  id: number;
+  id: string | number;
   label: string;
 }
 
 interface DropdownProps {
   options: DropdownOption[];
-  value: number;
-  onChange: (value: number) => void;
+  value: number | string;
+  onChange: (value: number | string) => void;
   label?: string;
   placeholder?: string;
   hasError?: boolean;
@@ -46,7 +46,8 @@ const Dropdown = ({
       const selectedId = e.target.dataset.id;
 
       if (selectedId) {
-        onChange(Number(selectedId));
+        const parsedId = typeof value === "number" ? Number(selectedId) : selectedId;
+        onChange(parsedId);
       }
     }
     setIsOpen(false);

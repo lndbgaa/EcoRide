@@ -15,10 +15,12 @@ import { toDateOnly, toTimeOnly } from "@/utils/date.utils.js";
 import type { FindOptions, WhereOptions } from "sequelize";
 
 interface CreateRideData {
-  departureDatetime: string;
   departureLocation: string;
-  arrivalDatetime: string;
   arrivalLocation: string;
+  departureDate: string;
+  departureTime: string;
+  arrivalDate: string;
+  arrivalTime: string;
   vehicleId: string;
   price: number;
   offeredSeats: number;
@@ -93,25 +95,30 @@ class RideService {
    */
   public static async createRide(userId: string, data: CreateRideData): Promise<Ride> {
     const user: User = await UserService.assertUserIsDriverOrThrow(userId);
-    const vehicle: Vehicle = await VehicleService.findOwnedVehicleOrThrow(user.getId(), data.vehicleId);
+    const vehicle: Vehicle = await VehicleService.findVehicleById(data.vehicleId);
 
     const availablePassengerSeats = vehicle.getSeats() - 1;
 
     if (availablePassengerSeats < data.offeredSeats) {
+      const message =
+        availablePassengerSeats === 1
+          ? `Le véhicule sélectionné ne peut accueillir qu'un seul passager`
+          : `Le véhicule sélectionné ne peut accueillir que ${availablePassengerSeats} passagers`;
+
       throw new AppError({
         statusCode: 400,
         statusText: "Bad Request",
-        message: `Vous proposez ${data.offeredSeats} places, mais le véhicule sélectionné ne peut accueillir que ${availablePassengerSeats} passagers.`,
+        message,
       });
     }
 
     const formatDate = (date: string): Date => dayjs.tz(date, "Europe/Paris").utc().toDate();
 
     const dataToCreate: Partial<Ride> = {
-      departure_datetime: formatDate(data.departureDatetime),
       departure_location: data.departureLocation,
-      arrival_datetime: formatDate(data.arrivalDatetime),
+      departure_datetime: formatDate(data.departureDate + " " + data.departureTime),
       arrival_location: data.arrivalLocation,
+      arrival_datetime: formatDate(data.arrivalDate + " " + data.arrivalTime),
       driver_id: user.getId(),
       vehicle_id: data.vehicleId,
       price: data.price,
@@ -167,12 +174,10 @@ class RideService {
       status: "open", // Affiche uniquement les trajets ouverts
     };
 
-    console.log(conditions);
-
     // Si l'utilisateur est connecté, on ne retourne pas ses propres trajets
-    if (userId) {
+    /*if (userId) {
       conditions.driver_id = { [Op.ne]: userId };
-    }
+    }*/
 
     if (data.isEcoFriendly === true) {
       conditions.is_eco_friendly = true;

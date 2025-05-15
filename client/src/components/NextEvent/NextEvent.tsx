@@ -87,6 +87,7 @@ const NextEvent = () => {
       const response = await UserService.getMyNextEvent();
 
       if (response) {
+        console.log(response);
         setEventType(response.type);
         setNextEvent(response.data);
       } else {
@@ -110,8 +111,8 @@ const NextEvent = () => {
       setCanStartRideNow(false);
     } else {
       // On ne peut démarrer le trajet à partir de 1h avant le départ
-      const { departure_date, departure_time } = ride;
-      const departure = dayjs(`${departure_date} ${departure_time}`, "DD/MM/YYYY HH:mm");
+      const { departureDate, departureTime } = ride;
+      const departure = dayjs(`${departureDate} ${departureTime}`, "DD/MM/YYYY HH:mm");
       const now = dayjs();
       const isNear = departure.isBefore(now.add(1, "hour"));
 
@@ -134,17 +135,17 @@ const NextEvent = () => {
   return (
     <div className={styles.nextEvent}>
       <p className={styles.nextEventText}>Votre prochain voyage</p>
-      <p className={styles.nextEventDate}>le {dataToDisplay.departure_date}</p>
+      <p className={styles.nextEventDate}>le {dayjs(dataToDisplay.departureDate).format("DD/MM/YYYY")}</p>
       <div className={styles.eventDetails}>
         <div className={styles.locationTime}>
           <div className={styles.from}>
-            <span className={styles.city}>{dataToDisplay.departure_location}</span>
-            <span className={styles.time}>{dataToDisplay.departure_time}</span>
+            <span className={styles.city}>{dataToDisplay.departureLocation}</span>
+            <span className={styles.time}>{dataToDisplay.departureTime}</span>
           </div>
 
           <div className={styles.to}>
-            <span className={styles.city}>{dataToDisplay.arrival_location}</span>
-            <span className={styles.time}>{dataToDisplay.arrival_time}</span>
+            <span className={styles.city}>{dataToDisplay.arrivalLocation}</span>
+            <span className={styles.time}>{dataToDisplay.arrivalTime}</span>
           </div>
         </div>
 

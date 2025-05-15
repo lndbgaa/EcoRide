@@ -167,7 +167,7 @@ const AddVehiclePage = () => {
               label="Marque"
               options={brandOptions}
               value={brandId}
-              onChange={setBrandId}
+              onChange={(value) => setBrandId(value as number)}
               placeholder="Sélectionnez une marque"
               hasError={!!error.brand}
             />
@@ -206,7 +206,7 @@ const AddVehiclePage = () => {
               label="Couleur"
               options={colorOptions}
               value={colorId}
-              onChange={setColorId}
+              onChange={(value) => setColorId(value as number)}
               placeholder="Sélectionnez une couleur"
               hasError={!!error.color}
             />
@@ -221,7 +221,7 @@ const AddVehiclePage = () => {
               label="Energie"
               options={energyOptions}
               value={energyId}
-              onChange={setEnergyId}
+              onChange={(value) => setEnergyId(value as number)}
               placeholder="Sélectionnez une énergie"
               hasError={!!error.energy}
             />

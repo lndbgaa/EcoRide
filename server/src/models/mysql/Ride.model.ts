@@ -14,18 +14,18 @@ import type { SaveOptions } from "sequelize";
 export interface BaseDTO {
   id: string;
   departure_date: string;
-  departure_location: string;
-  departure_time: string;
-  arrival_date: string;
-  arrival_location: string;
-  arrival_time: string;
+  departureLocation: string;
+  departureTime: string;
+  arrivalDate: string;
+  arrivalLocation: string;
+  arrivalTime: string;
   duration: number;
-  is_eco_friendly: boolean;
+  isEcoFriendly: boolean;
   price: number;
 }
 
 export interface RidePublicPreviewDTO extends BaseDTO {
-  available_seats: number;
+  availableSeats: number;
   driver: UserPublicDTO | null;
 }
 
@@ -39,8 +39,8 @@ export interface RideDetailedPublicDTO extends RidePublicPreviewDTO {
 
 export interface RideDetailedPrivateDTO extends BaseDTO {
   vehicle: VehiclePublicDTO | null;
-  offered_seats: number;
-  available_seats: number;
+  offeredSeats: number;
+  availableSeats: number;
 }
 
 /**
@@ -278,21 +278,21 @@ class Ride extends Model {
     return {
       id: this.id,
       departure_date: toDateOnly(this.departure_datetime),
-      departure_location: this.departure_location,
-      departure_time: toTimeOnly(this.departure_datetime),
-      arrival_date: toDateOnly(this.arrival_datetime),
-      arrival_location: this.arrival_location,
-      arrival_time: toTimeOnly(this.arrival_datetime),
+      departureLocation: this.departure_location,
+      departureTime: toTimeOnly(this.departure_datetime),
+      arrivalDate: toDateOnly(this.arrival_datetime),
+      arrivalLocation: this.arrival_location,
+      arrivalTime: toTimeOnly(this.arrival_datetime),
       duration: this.duration,
       price: this.price,
-      is_eco_friendly: this.is_eco_friendly,
+      isEcoFriendly: this.is_eco_friendly,
     };
   }
 
   public toPublicPreviewDTO(): RidePublicPreviewDTO {
     return {
       ...this.getBaseDTO(),
-      available_seats: this.available_seats,
+      availableSeats: this.available_seats,
       driver: this.driver?.toPublicDTO() ?? null,
     };
   }
@@ -315,8 +315,8 @@ class Ride extends Model {
     return {
       ...this.toPrivatePreviewDTO(),
       vehicle: this.vehicle?.toPrivateDTO() ?? null,
-      available_seats: this.available_seats,
-      offered_seats: this.offered_seats,
+      availableSeats: this.available_seats,
+      offeredSeats: this.offered_seats,
     };
   }
 }

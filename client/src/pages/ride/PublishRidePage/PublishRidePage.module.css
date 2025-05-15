@@ -1,0 +1,249 @@
+.pageContainer {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+}
+
+.createRideContainer {
+  width: 100%;
+  max-width: 50rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.title {
+  margin-bottom: 2rem;
+  font-size: var(--fs-xxlarge);
+  font-weight: var(--fw-bold);
+  color: var(--clr-text-secondary);
+  letter-spacing: 0.02rem;
+}
+
+.noVehicleContainer {
+  text-align: center;
+  color: var(--clr-text-primary);
+}
+
+.noVehicleContainer p {
+  margin-bottom: 1rem;
+}
+
+.addVehicleButton {
+  display: inline-block;
+  margin-top: 1rem;
+  padding: 1rem 2rem;
+  color: var(--clr-white);
+  font-weight: var(--fw-bold);
+  background-color: var(--clr-accent);
+  border-radius: 0.5rem;
+  transition: background-color 0.3s ease;
+}
+
+.addVehicleButton:hover {
+  background-color: var(--clr-accent-dark);
+}
+
+.infoContainer {
+  margin-bottom: 2.4rem;
+  padding: 1.2rem 1.6rem;
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  background-color: rgb(77, 186, 111, 0.1);
+  border-radius: 0.8rem;
+  border-left: 4px solid var(--clr-accent-dark);
+}
+
+.infoText {
+  color: var(--clr-text-primary);
+  font-size: var(--fs-small);
+}
+
+.infoIcon {
+  width: 2.6rem;
+  height: 2.6rem;
+}
+
+.infoText span {
+  font-weight: var(--fw-bold);
+}
+
+.form {
+  width: 100%;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  grid-gap: 1.5rem;
+}
+
+.formGroup {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.label {
+  color: var(--clr-medium-gray);
+  font-size: var(--fs-small);
+  font-weight: var(--fw-medium);
+}
+
+.inputField {
+  width: 100%;
+  padding: 1rem;
+  border-radius: 0.5rem;
+  border: 2px solid var(--clr-soft-gray);
+  background-color: transparent;
+  color: var(--clr-text-primary);
+  font-weight: var(--fw-medium);
+  transition: border-color 0.3s ease;
+}
+
+.inputField.hasError {
+  border-color: var(--clr-error);
+}
+
+.inputField::placeholder {
+  color: var(--clr-medium-gray);
+  font-weight: var(--fw-regular);
+}
+
+.inputField:focus {
+  border-color: var(--clr-accent-soft);
+  outline: none;
+}
+
+.inputField:focus::placeholder {
+  color: var(--clr-accent-soft);
+}
+
+.departureLocation,
+.arrivalLocation,
+.departureDate,
+.vehicle,
+.price,
+.offeredSeats {
+  grid-column: 1 / -1;
+}
+
+.newVehicleContainer {
+  margin-top: 0.5rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.newVehicleContainer p {
+  color: var(--clr-medium-gray);
+  font-size: var(--fs-small);
+  font-weight: var(--fw-medium);
+}
+
+.newVehicleButton {
+  color: var(--clr-accent);
+
+  font-weight: var(--fw-bold);
+  transition: color 0.3s ease;
+}
+
+.newVehicleButton:hover {
+  text-decoration: underline;
+  color: var(--clr-accent-dark);
+}
+
+.buttonsContainer {
+  margin-top: 2rem;
+  width: 100%;
+  grid-column: 1 / -1;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.cancelButton,
+.createButton {
+  padding: 1.4rem 2rem;
+  text-align: center;
+  border-radius: 0.5rem;
+  font-weight: var(--fw-bold);
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.cancelButton {
+  display: inline-block;
+  line-height: normal;
+  background-color: var(--clr-soft-gray);
+  color: var(--clr-text-primary);
+}
+
+.cancelButton:hover {
+  color: var(--clr-white);
+  background-color: var(--clr-medium-gray);
+}
+
+.createButton {
+  background-color: var(--clr-accent);
+  color: var(--clr-white);
+  border: none;
+}
+
+.createButton:hover {
+  background-color: var(--clr-accent-dark);
+}
+
+.createButton:disabled {
+  background-color: var(--clr-soft-gray);
+  cursor: not-allowed;
+}
+
+.errorMessage {
+  text-align: center;
+  margin-bottom: 1rem;
+  width: 100%;
+  color: var(--clr-error);
+  font-weight: var(--fw-bold);
+  font-size: var(--fs-small);
+}
+
+.inputErrorMessage {
+  margin-bottom: 0rem;
+  text-align: left;
+}
+
+@media screen and (max-width: 768px) {
+  .infoContainer {
+    gap: 1rem;
+  }
+
+  .form {
+    grid-template-columns: 1fr;
+  }
+
+  .buttonsContainer {
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .cancelButton,
+  .createButton {
+    width: 100%;
+  }
+}
+
+@media screen and (max-width: 480px) {
+  .infoIcon {
+    min-width: 2rem;
+    width: 2rem;
+    height: 2rem;
+  }
+
+  .title {
+    font-size: var(--fs-xlarge);
+  }
+
+  .newVehicleContainer {
+    margin-bottom: 1rem;
+  }
+}

@@ -1,22 +1,16 @@
 .main {
-  height: 100vh;
-  max-width: 50rem;
   margin: 0 auto;
-  margin-top: 10rem !important;
-  padding-top: 2rem !important;
-  padding-bottom: 6rem !important;
-  padding-left: 2rem !important;
-  padding-right: 2rem !important;
-}
-
-@media (max-width: 768px) {
-  .main {
-    margin-top: 5rem !important;
-  }
+  padding: 4rem 2rem;
 }
 
 @media (max-width: 480px) {
   .main {
-    margin-top: 2.5rem !important;
+    padding: 2rem 2rem;
+  }
+}
+
+@media (max-width: 320px) {
+  .main {
+    padding: 2rem 1rem;
   }
 }

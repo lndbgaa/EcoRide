@@ -5,11 +5,8 @@
 }
 
 .profileContainer {
-  width: 100%;
   max-width: 50rem;
-  margin-top: 10rem;
-  margin-bottom: 2rem;
-  padding: 0 2rem;
+  width: 100%;
   display: flex;
   flex-direction: column;
   gap: 4rem;
