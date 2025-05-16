@@ -4,6 +4,7 @@ import catchAsync from "@/utils/catchAsync.js";
 import parsePagination from "@/utils/parsePagination.js";
 
 import type { Request, Response } from "express";
+
 /**
  * Gère la création d'un nouveau trajet.
  */
@@ -16,7 +17,7 @@ export const createRide = catchAsync(async (req: Request, res: Response): Promis
   res.status(201).json({
     success: true,
     message: "Trajet créé avec succès.",
-    data: ride.toPrivatePreviewDTO(),
+    data: ride.toDTO(),
   });
 });
 
@@ -32,7 +33,7 @@ export const searchForRides = catchAsync(async (req: Request, res: Response): Pr
 
   const message = count === 0 ? "Aucun trajet trouvé." : count === 1 ? "1 trajet trouvé." : `${count} trajets trouvés.`;
 
-  const dto = rides.map((ride: Ride) => ride.toPublicPreviewDTO());
+  const dto = rides.map((ride: Ride) => ride.toDTO());
 
   res.status(200).json({
     success: true,
@@ -56,15 +57,13 @@ export const getRideDetails = catchAsync(async (req: Request, res: Response): Pr
 
   const { ride, passengers, preferences } = await RideService.getRideDetails(rideId);
 
-  const isDriver = ride.getDriverId() === userId;
-
   res.status(200).json({
     success: true,
     message: "Trajet récupéré avec succès.",
     data: {
-      isDriver,
-      ride: isDriver ? ride.toDetailedPrivateDTO() : ride.toDetailedPublicDTO(),
-      preferences: isDriver ? [] : preferences,
+      isDriver: ride.getDriverId() === userId,
+      ride: ride.toDTO(),
+      preferences,
       passengers: passengers.map((p) => p.toPublicDTO()),
     },
   });
@@ -116,7 +115,7 @@ export const getMyRides = catchAsync(async (req: Request, res: Response): Promis
 
   const { count, rides } = await RideService.getUserRides(userId, limit, offset);
 
-  const dto = rides.map((ride: Ride) => ride.toPrivatePreviewDTO());
+  const dto = rides.map((ride: Ride) => ride.toDTO());
 
   res.status(200).json({
     success: true,

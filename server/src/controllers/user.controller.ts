@@ -6,7 +6,7 @@ import AppError from "@/utils/AppError.js";
 import catchAsync from "@/utils/catchAsync.js";
 
 import type { BookingPrivateDTO } from "@/models/mysql/Booking.model.js";
-import type { RidePrivatePreviewDTO } from "@/models/mysql/Ride.model.js";
+import type { RideDTO } from "@/models/mysql/Ride.model.js";
 import type { MulterRequest } from "@/types/express.js";
 import type { Request, Response } from "express";
 
@@ -142,12 +142,12 @@ export const getMyNextEvent = catchAsync(async (req: Request, res: Response): Pr
     });
   }
 
-  let dto: BookingPrivateDTO | RidePrivatePreviewDTO | null = null;
+  let dto: BookingPrivateDTO | RideDTO | null = null;
 
   if (nextEvent instanceof Booking) {
     dto = nextEvent.toPrivateDTO();
   } else if (nextEvent instanceof Ride) {
-    dto = nextEvent.toPrivatePreviewDTO();
+    dto = nextEvent.toDTO();
   }
 
   return res.status(200).json({
@@ -170,7 +170,7 @@ export const getMyUpcomingEvents = catchAsync(async (req: Request, res: Response
 
   const dto = upcomingEvents.map((event) => {
     const { data, type } = event;
-    return type === "booking" ? data.toPrivateDTO() : data.toPrivatePreviewDTO();
+    return type === "booking" ? data.toPrivateDTO() : data.toDTO();
   });
 
   return res.status(200).json({

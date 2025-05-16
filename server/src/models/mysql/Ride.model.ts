@@ -11,9 +11,9 @@ import type { VehiclePublicDTO } from "@/models/mysql/Vehicle.model.js";
 import type { RideStatus } from "@/types/index.js";
 import type { SaveOptions } from "sequelize";
 
-export interface BaseDTO {
+export interface RideDTO {
   id: string;
-  departure_date: string;
+  departureDate: string;
   departureLocation: string;
   departureTime: string;
   arrivalDate: string;
@@ -22,25 +22,11 @@ export interface BaseDTO {
   duration: number;
   isEcoFriendly: boolean;
   price: number;
-}
-
-export interface RidePublicPreviewDTO extends BaseDTO {
   availableSeats: number;
-  driver: UserPublicDTO | null;
-}
-
-export interface RidePrivatePreviewDTO extends BaseDTO {
-  status: RideStatus;
-}
-
-export interface RideDetailedPublicDTO extends RidePublicPreviewDTO {
-  vehicle: VehiclePublicDTO | null;
-}
-
-export interface RideDetailedPrivateDTO extends BaseDTO {
-  vehicle: VehiclePublicDTO | null;
   offeredSeats: number;
-  availableSeats: number;
+  driver: UserPublicDTO | null;
+  vehicle: VehiclePublicDTO | null;
+  status: RideStatus;
 }
 
 /**
@@ -274,10 +260,10 @@ class Ride extends Model {
     return this.status === "cancelled";
   }
 
-  private getBaseDTO(): BaseDTO {
+  public toDTO(): RideDTO {
     return {
       id: this.id,
-      departure_date: toDateOnly(this.departure_datetime),
+      departureDate: toDateOnly(this.departure_datetime),
       departureLocation: this.departure_location,
       departureTime: toTimeOnly(this.departure_datetime),
       arrivalDate: toDateOnly(this.arrival_datetime),
@@ -286,37 +272,11 @@ class Ride extends Model {
       duration: this.duration,
       price: this.price,
       isEcoFriendly: this.is_eco_friendly,
-    };
-  }
-
-  public toPublicPreviewDTO(): RidePublicPreviewDTO {
-    return {
-      ...this.getBaseDTO(),
-      availableSeats: this.available_seats,
-      driver: this.driver?.toPublicDTO() ?? null,
-    };
-  }
-
-  public toPrivatePreviewDTO(): RidePrivatePreviewDTO {
-    return {
-      ...this.getBaseDTO(),
-      status: this.status,
-    };
-  }
-
-  public toDetailedPublicDTO(): RideDetailedPublicDTO {
-    return {
-      ...this.toPublicPreviewDTO(),
-      vehicle: this.vehicle?.toPublicDTO() ?? null,
-    };
-  }
-
-  public toDetailedPrivateDTO(): RideDetailedPrivateDTO {
-    return {
-      ...this.toPrivatePreviewDTO(),
-      vehicle: this.vehicle?.toPrivateDTO() ?? null,
       availableSeats: this.available_seats,
       offeredSeats: this.offered_seats,
+      driver: this.driver?.toPublicDTO() ?? null,
+      vehicle: this.vehicle?.toPublicDTO() ?? null,
+      status: this.status,
     };
   }
 }

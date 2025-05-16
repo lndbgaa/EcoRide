@@ -87,7 +87,6 @@ const NextEvent = () => {
       const response = await UserService.getMyNextEvent();
 
       if (response) {
-        console.log(response);
         setEventType(response.type);
         setNextEvent(response.data);
       } else {
@@ -110,7 +109,7 @@ const NextEvent = () => {
       setCanEndRideNow(true);
       setCanStartRideNow(false);
     } else {
-      // On ne peut démarrer le trajet à partir de 1h avant le départ
+      // On ne peut démarrer le trajet que si le départ est dans 1h ou moins
       const { departureDate, departureTime } = ride;
       const departure = dayjs(`${departureDate} ${departureTime}`, "DD/MM/YYYY HH:mm");
       const now = dayjs();
@@ -154,7 +153,7 @@ const NextEvent = () => {
 
       {eventType === "ride" ? (
         <div className={styles.buttons}>
-          <Link to={`/ride/show/${nextEvent.id}`} className={styles.seeButton}>
+          <Link to={`/ride/${nextEvent.id}/show`} className={styles.seeButton}>
             Voir
           </Link>
 
@@ -174,7 +173,7 @@ const NextEvent = () => {
         </div>
       ) : (
         <div className={styles.buttons}>
-          <Link to={`/ride/show/${nextEvent.id}`} className={styles.seeButton}>
+          <Link to={`/ride/${nextEvent.id}/show`} className={styles.seeButton}>
             Voir
           </Link>
 

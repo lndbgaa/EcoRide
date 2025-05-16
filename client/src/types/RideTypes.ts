@@ -21,6 +21,12 @@ export type Ride = {
   status: RideStatus;
 };
 
+export type RideDetails = {
+  ride: Ride;
+  preferences: string[];
+  passengers: User[];
+};
+
 export type CreateRideData = {
   arrivalLocation: string;
   departureLocation: string;

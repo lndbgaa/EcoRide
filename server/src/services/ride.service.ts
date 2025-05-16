@@ -265,7 +265,7 @@ class RideService {
         return [preference.getValue() ? "J'accepte les animaux." : "Je n'accepte pas les animaux."];
       }
 
-      if (preference.getLabel() === "Fumeur") {
+      if (preference.getLabel() === "Fumeurs") {
         return [preference.getValue() ? "J'accepte les fumeurs." : "Je n'accepte pas les fumeurs."];
       }
 

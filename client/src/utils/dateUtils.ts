@@ -1,5 +1,14 @@
+import dayjs from "dayjs";
+
 export function formatDuration(minutes: number): string {
   const h = Math.floor(minutes / 60);
   const m = minutes % 60;
   return `${h}h${String(m).padStart(2, "0")}`;
+}
+
+export function formatFullDateFr(date: string): string {
+  return dayjs(date)
+    .locale("fr")
+    .format("dddd DD MMMM YYYY")
+    .replace(/^./, (char) => char.toUpperCase());
 }

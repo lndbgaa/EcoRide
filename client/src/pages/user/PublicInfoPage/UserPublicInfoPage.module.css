@@ -29,7 +29,7 @@
   height: 10rem;
   border-radius: 50%;
   object-fit: cover;
-  border: 0.3rem solid var(--clr-text-secondary);
+  border: 3px solid var(--clr-text-secondary);
 }
 
 .nameContainer {
