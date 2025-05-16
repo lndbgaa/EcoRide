@@ -1,4 +1,5 @@
 import dayjs from "dayjs";
+import "dayjs/locale/fr";
 
 export function formatDuration(minutes: number): string {
   const h = Math.floor(minutes / 60);
@@ -11,4 +12,8 @@ export function formatFullDateFr(date: string): string {
     .locale("fr")
     .format("dddd DD MMMM YYYY")
     .replace(/^./, (char) => char.toUpperCase());
+}
+
+export function formatDateFr(date: string): string {
+  return dayjs(date).format("DD/MM/YYYY");
 }

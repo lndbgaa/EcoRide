@@ -23,6 +23,17 @@
   text-decoration: underline;
 }
 
+.nextEvent {
+  margin-bottom: 3rem;
+}
+
+.nextEventText {
+  margin-bottom: 0.5rem;
+  text-align: center;
+  color: var(--clr-text-primary);
+  font-weight: var(--fw-bold);
+}
+
 .navigation {
   position: relative;
   display: flex;
@@ -34,7 +45,6 @@
   position: relative;
   padding: 1rem 2rem;
   color: var(--clr-text-secondary);
-
   transition: color 0.3s ease;
 }
 

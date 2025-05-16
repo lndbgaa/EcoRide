@@ -1,0 +1,235 @@
+.trip {
+  margin: 0 auto;
+  width: 100%;
+  max-width: 50rem;
+  border-radius: 1rem;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.05);
+}
+
+.tripHeader {
+  width: 100%;
+  padding: 0.5rem 1rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: rgb(77, 186, 111, 0.1);
+  border-top-left-radius: 1rem;
+  border-top-right-radius: 1rem;
+}
+
+.badge {
+  padding: 0.2rem 0.6rem;
+  font-size: var(--fs-xsmall);
+  color: var(--clr-accent-dark);
+  font-weight: var(--fw-bold);
+  letter-spacing: 0.02em;
+  border-radius: 0.5rem;
+  background-color: rgba(77, 186, 111, 0.2);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.createdAt {
+  text-align: center;
+  color: var(--clr-text-secondary);
+  font-size: var(--fs-small);
+}
+
+.tripDetails {
+  position: relative;
+  width: 100%;
+  padding: 1.5rem 4rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background-color: var(--clr-white);
+}
+
+.overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(128, 128, 128, 0.75);
+  backdrop-filter: blur(2px);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  transition: all 0.3s ease;
+}
+
+.overlay p {
+  color: var(--clr-white);
+  font-size: var(--fs-medium);
+  font-weight: var(--fw-bold);
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+}
+
+.date {
+  margin-bottom: 1.5rem;
+  width: 30%;
+  text-align: center;
+  color: var(--clr-text-primary);
+  font-size: var(--fs-small);
+  border-radius: 1rem;
+  background-color: rgba(77, 186, 111, 0.2);
+}
+
+.moreInfo {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.locationTime {
+  width: calc(50% + 2rem);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.location,
+.time {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.location span {
+  position: relative;
+  color: var(--clr-text-primary);
+}
+
+.location span::before {
+  position: absolute;
+  content: "";
+  display: inline-block;
+  width: 1rem;
+  height: 1rem;
+  left: -2rem;
+  top: 50%;
+  border-radius: 50%;
+  transform: translateY(-50%);
+}
+
+.location span:first-child::before {
+  border: 2px solid var(--clr-text-secondary);
+}
+
+.location span:last-child::before {
+  background-color: var(--clr-text-primary);
+}
+
+.time span {
+  font-weight: var(--fw-bold);
+  color: var(--clr-text-primary);
+}
+
+.duration {
+  color: var(--clr-text-secondary);
+}
+
+.buttonsContainer {
+  width: 100%;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+}
+
+.startButton,
+.cancelButton,
+.endButton,
+.evaluateButton {
+  padding: 1rem;
+  border: none;
+  border-bottom-right-radius: 1rem;
+  color: var(--clr-text-primary);
+  background-color: var(--clr-soft-gray);
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.evaluateButton {
+  display: inline-block;
+  text-align: center;
+  line-height: normal;
+}
+
+.startButton:hover,
+.cancelButton:hover,
+.endButton:hover,
+.evaluateButton:hover {
+  background-color: var(--clr-accent-dark);
+  color: var(--clr-white);
+}
+
+.seeButton {
+  display: inline-block;
+  padding: 1rem;
+  line-height: normal;
+  text-align: center;
+  border: none;
+  border-bottom-left-radius: 1rem;
+  color: var(--clr-white);
+  background-color: var(--clr-accent);
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.seeButton:only-child {
+  grid-column: 1 / -1;
+  border-bottom-right-radius: 1rem;
+}
+
+.seeButton:hover {
+  background-color: var(--clr-accent-dark);
+}
+
+.errorMessage {
+  margin-top: 1rem;
+  text-align: center;
+  color: var(--clr-error);
+  font-weight: var(--fw-bold);
+  font-size: var(--fs-small);
+}
+
+@media screen and (max-width: 480px) {
+  .tripDetails {
+    padding: 1rem;
+  }
+
+  .date {
+    width: 100%;
+    margin-bottom: 0.5rem;
+  }
+
+  .moreInfo {
+    flex-direction: column;
+  }
+
+  .locationTime {
+    width: 100%;
+    display: flex;
+    justify-content: space-around;
+    margin-bottom: 0.5rem;
+  }
+
+  .buttons {
+    grid-template-columns: 1fr;
+  }
+
+  .seeButton {
+    border-bottom-left-radius: 0;
+  }
+
+  .seeButton:only-child {
+    border-bottom-left-radius: 1rem;
+  }
+
+  .startButton,
+  .cancelButton,
+  .endButton,
+  .evaluateButton {
+    border-bottom-left-radius: 1rem;
+  }
+}

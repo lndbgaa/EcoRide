@@ -60,7 +60,6 @@
 }
 
 .timeInfo {
-  font-size: var(--fs-small);
   color: var(--clr-text-secondary);
 }
 
@@ -77,7 +76,6 @@
 }
 
 .vehicleColor {
-  font-size: var(--fs-small);
   color: var(--clr-text-secondary);
 }
 

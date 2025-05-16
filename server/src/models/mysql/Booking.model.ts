@@ -7,7 +7,7 @@ import { Ride, User } from "./index.js";
 
 import type { BookingStatus } from "@/types/index.js";
 import type { SaveOptions } from "sequelize";
-import type { RidePublicPreviewDTO } from "./Ride.model.js";
+import type { RideDTO } from "./Ride.model.js";
 import type { UserPublicDTO } from "./User.model.js";
 
 export interface BookingPublicDTO {
@@ -18,7 +18,7 @@ export interface BookingPublicDTO {
 
 export interface BookingPrivateDTO {
   id: string;
-  ride: RidePublicPreviewDTO | null;
+  ride: RideDTO | null;
   seatsBooked: number;
   status: BookingStatus;
   createdAt: string;
@@ -91,7 +91,7 @@ class Booking extends Model {
   public toPrivateDTO(): BookingPrivateDTO {
     return {
       id: this.id,
-      ride: this.ride?.toPublicPreviewDTO() ?? null,
+      ride: this.ride?.toDTO() ?? null,
       seatsBooked: this.seats_booked,
       status: this.status,
       createdAt: toDateOnly(this.created_at),
@@ -187,9 +187,7 @@ Booking.init(
       },
     },
     status: {
-      type: DataTypes.ENUM(
-        ...(["confirmed", "awaiting_feedback", "completed", "cancelled"] as BookingStatus[])
-      ),
+      type: DataTypes.ENUM(...(["confirmed", "awaiting_feedback", "completed", "cancelled"] as BookingStatus[])),
       defaultValue: "confirmed",
     },
   },

@@ -1,0 +1,54 @@
+.pageContainer {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  justify-content: center;
+}
+
+.tripsContainer {
+  max-width: 60rem;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.title {
+  margin-bottom: 2rem;
+  font-size: var(--fs-xlarge);
+  font-weight: var(--fw-bold);
+  color: var(--clr-text-secondary);
+  letter-spacing: 0.02rem;
+}
+
+.noTripsMessage,
+.errorContainer p {
+  margin-top: 2rem;
+  text-align: center;
+  color: var(--clr-text-primary);
+  font-size: var(--fs-medium);
+}
+
+.errorContainer {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+}
+
+.retryButton {
+  padding: 1rem 1.5rem;
+  color: var(--clr-white);
+  font-weight: var(--fw-medium);
+  font-size: var(--fs-medium);
+  background-color: var(--clr-accent);
+  border-radius: 0.5rem;
+  border: none;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.retryButton:hover {
+  background-color: var(--clr-accent-dark);
+}

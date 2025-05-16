@@ -1,14 +1,17 @@
 import { NavLink, Outlet } from "react-router-dom";
+import styles from "./HistoryLayout.module.css";
 
 const HistoryLayout = () => {
   return (
-    <div>
-      <div className="flex gap-4 mb-4">
+    <div className={styles.historyLayout}>
+      <div className={styles.navigation}>
         <NavLink to="rides">Trajets</NavLink>
         <NavLink to="bookings">Réservations</NavLink>
       </div>
 
-      <Outlet />
+      <div className={styles.content}>
+        <Outlet />
+      </div>
     </div>
   );
 };

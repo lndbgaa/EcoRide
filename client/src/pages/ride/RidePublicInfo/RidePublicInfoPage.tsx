@@ -79,12 +79,14 @@ const RidePublicInfoPage = () => {
 
     const departure = dayjs(`${ride.departureDate} ${ride.departureTime}`, "YYYY-MM-DD HH:mm", true);
 
-    const noSeats = ride.availableSeats <= 0;
+    const isFinished = ride.status === "completed" || departure.isBefore(dayjs());
+    const isCancelled = ride.status === "cancelled";
+    const isFull = ride.status === "full";
+    const hasDeparted = ride.status === "in_progress";
     const insufficientCredits = user.credits < ride.price;
     const isDriver = ride.driver.id === user.id;
-    const isInPast = departure.isBefore(dayjs());
 
-    if (noSeats || insufficientCredits || isDriver || isInPast) {
+    if (insufficientCredits || isDriver || isFinished || isCancelled || hasDeparted || isFull) {
       return false;
     }
 
@@ -96,12 +98,15 @@ const RidePublicInfoPage = () => {
 
     const { ride } = rideDetails;
 
+    const now = dayjs();
     const departure = dayjs(`${ride.departureDate} ${ride.departureTime}`, "YYYY-MM-DD HH:mm", true);
 
+    if (ride.status === "cancelled") return "Ce covoiturage n'est plus disponible";
+    if (ride.status === "in_progress") return "Ce covoiturage a déjà commencé";
+    if (ride.status === "completed" || departure.isBefore(now)) return "Ce covoiturage est terminé";
     if (ride.driver.id === user.id) return "Vous êtes le conducteur de ce covoiturage";
-    if (departure.isBefore(dayjs())) return "Ce covoiturage a déjà eu lieu";
-    if (ride.availableSeats <= 0) return "Il n'y a plus de places disponibles";
-    if (user.credits < ride.price) return "Vos fonds sont insuffisants";
+    if (ride.status === "full") return "Ce covoiturage est complet";
+    if (user.credits < ride.price) return "Solde insuffisant pour réserver ce covoiturage";
 
     return null;
   };

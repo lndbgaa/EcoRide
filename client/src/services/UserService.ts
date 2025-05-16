@@ -1,5 +1,7 @@
 import { axiosPrivate, axiosPublic } from "../../api/axiosInstance";
 
+import type { Booking } from "@/types/BookingTypes";
+import type { Ride } from "@/types/RideTypes";
 import type { UpdateUserInfo, User } from "@/types/UserTypes";
 import type { Vehicle } from "@/types/VehicleTypes";
 
@@ -86,6 +88,36 @@ class UserService {
       console.error(error);
       return null;
     }
+  }
+
+  /**
+   * Récupère tous les évènements à venir de l'utilisateur connecté (réservation, trajet)
+   */
+  static async getMyUpcomingEvents() {
+    const url = "/users/me/events/upcomin";
+    const response = await axiosPrivate.get(url);
+    const { data } = response.data;
+    return data ?? null;
+  }
+
+  /**
+   * Récupère l'historique des trajets de l'utilisateur connecté
+   */
+  static async getMyRidesHistory(): Promise<Ride[]> {
+    const url = "/users/me/rides";
+    const response = await axiosPrivate.get(url);
+    const { data } = response.data;
+    return data;
+  }
+
+  /**
+   * Récupère l'historique des réservations de l'utilisateur connecté
+   */
+  static async getMyBookingsHistory(): Promise<Booking[]> {
+    const url = "/users/me/bookings";
+    const response = await axiosPrivate.get(url);
+    const { data } = response.data;
+    return data;
   }
 }
 

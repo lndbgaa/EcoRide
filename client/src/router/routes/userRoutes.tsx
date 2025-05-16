@@ -4,7 +4,7 @@ import { Navigate } from "react-router-dom";
 import Protected from "@/router/Protected";
 import lazyLoad from "@/router/lazyLoad";
 
-import HistoryLayout from "@/layouts/HistoryLayout";
+import HistoryLayout from "@/layouts/HistoryLayout/HistoryLayout";
 import MainLayout from "@/layouts/MainLayout/MainLayout";
 import RatingsLayout from "@/layouts/RatingsLayout";
 import UserDashboardLayout from "@/layouts/UserDashboardLayout/UserDashboardLayout";

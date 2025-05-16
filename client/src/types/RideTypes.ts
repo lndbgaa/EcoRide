@@ -19,6 +19,7 @@ export type Ride = {
   vehicle: Vehicle;
   isEcoFriendly: boolean;
   status: RideStatus;
+  createdAt: string;
 };
 
 export type RideDetails = {

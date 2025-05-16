@@ -27,6 +27,7 @@ export interface RideDTO {
   driver: UserPublicDTO | null;
   vehicle: VehiclePublicDTO | null;
   status: RideStatus;
+  createdAt: string;
 }
 
 /**
@@ -277,6 +278,7 @@ class Ride extends Model {
       driver: this.driver?.toPublicDTO() ?? null,
       vehicle: this.vehicle?.toPublicDTO() ?? null,
       status: this.status,
+      createdAt: toDateOnly(this.created_at),
     };
   }
 }

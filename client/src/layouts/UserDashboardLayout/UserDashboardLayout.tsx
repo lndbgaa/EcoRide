@@ -1,18 +1,26 @@
 import { useEffect, useRef, useState } from "react";
 import { Link, NavLink, Outlet, useLocation } from "react-router-dom";
 
-import NextEvent from "@/components/NextEvent/NextEvent";
+import Loader from "@/components/Loader/Loader";
+import Trip from "@/components/TripCard/TripCard";
 import useUser from "@/hooks/useUser";
+import UserService from "@/services/UserService";
 
 import styles from "./UserDashboardLayout.module.css";
 
-const UserDashboardLayout = () => {
-  const { user } = useUser();
-  const { isDriver } = user ?? {};
-  const [sliderStyle, setSliderStyle] = useState({});
+import type { Booking } from "@/types/BookingTypes";
+import type { Ride } from "@/types/RideTypes";
 
+const UserDashboardLayout = () => {
   const location = useLocation();
   const navRef = useRef<HTMLDivElement>(null);
+  const { user } = useUser();
+  const { isDriver } = user ?? {};
+
+  const [sliderStyle, setSliderStyle] = useState({});
+  const [nextEvent, setNextEvent] = useState<Ride | Booking | null>(null);
+  const [eventType, setEventType] = useState<"ride" | "booking" | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     if (navRef.current) {
@@ -24,7 +32,28 @@ const UserDashboardLayout = () => {
         });
       }
     }
-  }, [location.pathname]); // à chaque fois que l'url change, on met à jour le style du slider
+  }, [location.pathname]);
+
+  useEffect(() => {
+    const fetchNextEvent = async () => {
+      const response = await UserService.getMyNextEvent();
+
+      if (response) {
+        console.log(response);
+        setEventType(response.type);
+        setNextEvent(response.data);
+      } else {
+        setNextEvent(null);
+        setEventType(null);
+      }
+
+      setIsLoading(false);
+    };
+
+    fetchNextEvent();
+  }, []);
+
+  if (isLoading) return <Loader />;
 
   return (
     <div className={styles.dashboardHeader}>
@@ -34,7 +63,12 @@ const UserDashboardLayout = () => {
         </Link>
       )}
 
-      <NextEvent />
+      {nextEvent && eventType && (
+        <div className={styles.nextEvent}>
+          <p className={styles.nextEventText}>Votre prochain voyage</p>
+          <Trip data={nextEvent} eventType={eventType} />
+        </div>
+      )}
 
       <div className={styles.navigation} ref={navRef}>
         <NavLink to="profile">Profil</NavLink>

@@ -170,7 +170,12 @@ export const getMyUpcomingEvents = catchAsync(async (req: Request, res: Response
 
   const dto = upcomingEvents.map((event) => {
     const { data, type } = event;
-    return type === "booking" ? data.toPrivateDTO() : data.toDTO();
+    const dto = type === "booking" ? data.toPrivateDTO() : data.toDTO();
+
+    return {
+      ...dto,
+      type,
+    };
   });
 
   return res.status(200).json({
