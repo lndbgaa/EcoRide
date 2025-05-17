@@ -22,6 +22,8 @@ const UserPublicInfoPage = () => {
 
   useEffect(() => {
     const fetchUser = async (): Promise<void> => {
+      const start = Date.now();
+
       if (!id || !validator.isUUID(id)) {
         navigate("/error");
         return;
@@ -33,14 +35,18 @@ const UserPublicInfoPage = () => {
       } catch {
         navigate("/error");
       } finally {
-        setIsLoading(false);
+        const elapsed = Date.now() - start;
+        const remaining = Math.max(0, 300 - elapsed);
+        setTimeout(() => {
+          setIsLoading(false);
+        }, remaining);
       }
     };
 
     fetchUser();
   }, [id, navigate]);
 
-  if (isLoading) return <Loader />;
+  if (isLoading) return <Loader width="7rem" height="7rem" />;
 
   if (!user) return null;
 

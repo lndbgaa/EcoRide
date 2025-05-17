@@ -115,7 +115,7 @@ const RidePublicInfoPage = () => {
 
   if (!rideDetails) return null;
 
-  const { ride, preferences, passengers } = rideDetails;
+  const { ride, preferences, bookings } = rideDetails;
   const {
     departureLocation,
     arrivalLocation,
@@ -252,19 +252,19 @@ const RidePublicInfoPage = () => {
         <div className={styles.passengersList}>
           <p className={styles.passengersListTitle}>Passagers</p>
           <div className={styles.passengersListContainer}>
-            {passengers && passengers.length > 0 ? (
-              passengers.map((passenger, index: number) => (
-                <Link key={index} to={`/user/${passenger.id}/show`} className={styles.passengerItem}>
+            {bookings && bookings.length > 0 ? (
+              bookings.map((booking, index: number) => (
+                <Link key={index} to={`/user/${booking.passenger.id}/show`} className={styles.passengerItem}>
                   <div className={styles.passengerMainInfo}>
                     <div className={styles.passengerAvatar}>
-                      {passenger.avatar ? (
-                        <img src={passenger.avatar} alt="Avatar" className={styles.passengerAvatarImage} />
+                      {booking.passenger.avatar ? (
+                        <img src={booking.passenger.avatar} alt="Avatar" className={styles.passengerAvatarImage} />
                       ) : (
                         <img src={DefaultAvatar} alt="Avatar" className={styles.passengerAvatarImage} />
                       )}
                     </div>
 
-                    <p className={styles.passengerPseudo}>@{passenger.pseudo}</p>
+                    <p className={styles.passengerPseudo}>@{booking.passenger.pseudo}</p>
                   </div>
 
                   <RightArrow className={styles.arrowIcon} />

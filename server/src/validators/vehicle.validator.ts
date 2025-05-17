@@ -46,10 +46,12 @@ export const addVehicleSchema = Joi.object({
     .trim()
     .custom((value, helpers) => {
       const today = dayjs();
-      const parsed = dayjs(value, "DD/MM/YYYY", true);
+      const parsed = dayjs(value, "YYYY-MM-DD", true);
+
       if (!parsed.isValid() || !parsed.isBefore(today)) {
         return helpers.error("any.invalid");
       }
+
       return value;
     })
     .required()

@@ -55,7 +55,7 @@ export const getRideDetails = catchAsync(async (req: Request, res: Response): Pr
   const userId = req.user?.id;
   const rideId = req.params.id;
 
-  const { ride, passengers, preferences } = await RideService.getRideDetails(rideId);
+  const { ride, bookings, preferences } = await RideService.getRideDetails(rideId);
 
   res.status(200).json({
     success: true,
@@ -64,7 +64,7 @@ export const getRideDetails = catchAsync(async (req: Request, res: Response): Pr
       isDriver: ride.getDriverId() === userId,
       ride: ride.toDTO(),
       preferences,
-      passengers: passengers.map((p) => p.toPublicDTO()),
+      bookings: bookings.map((booking) => booking.toPublicDTO()),
     },
   });
 });

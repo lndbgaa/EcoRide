@@ -13,7 +13,6 @@
       "@/components/*": ["src/components/*"],
       "@/config/*": ["src/config/*"],
       "@/contexts/*": ["src/contexts/*"],
-      "@/features/*": ["src/features/*"],
       "@/hooks/*": ["src/hooks/*"],
       "@/pages/*": ["src/pages/*"],
       "@/layouts/*": ["src/layouts/*"],

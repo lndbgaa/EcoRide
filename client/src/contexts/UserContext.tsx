@@ -8,6 +8,7 @@ interface UserContextType {
   user: User | null;
   isLoading: boolean;
   error: boolean;
+  clearUser: () => void;
   toggleUserRole: (role: string) => Promise<void>;
   updateUserInfo: (data: UpdateUserInfo) => Promise<void>;
   updateUserAvatar: (file: File) => Promise<void>;
@@ -17,6 +18,7 @@ const defaultUserContext: UserContextType = {
   user: null,
   isLoading: true,
   error: false,
+  clearUser: () => {},
   toggleUserRole: async () => {},
   updateUserInfo: async () => {},
   updateUserAvatar: async () => {},
@@ -54,6 +56,10 @@ const UserProvider = ({ children }: { children: ReactNode }) => {
     fetchUser();
   }, [logout]);
 
+  const clearUser = () => {
+    setUser(null);
+  };
+
   const toggleUserRole = async (role: string) => {
     await UserService.toggleMyRole(role);
 
@@ -75,7 +81,9 @@ const UserProvider = ({ children }: { children: ReactNode }) => {
   };
 
   return (
-    <UserContext.Provider value={{ user, isLoading, error, toggleUserRole, updateUserInfo, updateUserAvatar }}>
+    <UserContext.Provider
+      value={{ user, isLoading, error, toggleUserRole, updateUserInfo, updateUserAvatar, clearUser }}
+    >
       {children}
     </UserContext.Provider>
   );

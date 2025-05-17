@@ -37,7 +37,6 @@ const RidesHistoryPage = () => {
 
   return (
     <div className={styles.pageContainer}>
-      <h1 className={styles.title}>Mes trajets</h1>
       {error ? (
         <div className={styles.errorContainer}>
           <p>{error}</p>

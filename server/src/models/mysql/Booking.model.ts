@@ -14,6 +14,7 @@ export interface BookingPublicDTO {
   id: string;
   passenger: UserPublicDTO | null;
   seatsBooked: number;
+  status: BookingStatus;
 }
 
 export interface BookingPrivateDTO {
@@ -85,6 +86,7 @@ class Booking extends Model {
       id: this.id,
       passenger: this.passenger?.toPublicDTO() ?? null,
       seatsBooked: this.seats_booked,
+      status: this.status,
     };
   }
 

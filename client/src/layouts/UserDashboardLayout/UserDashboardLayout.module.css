@@ -1,7 +1,8 @@
-.dashboardHeader {
+.dashboardContainer {
+  padding: 2rem;
   width: 100%;
-  max-width: 60rem;
   margin: 0 auto;
+  max-width: 55rem;
   display: flex;
   flex-direction: column;
 }

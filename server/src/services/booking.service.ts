@@ -249,10 +249,15 @@ class BookingService {
   public static async getRideBookings(rideId: string, options?: FindOptions): Promise<Booking[]> {
     const ride: Ride = await RideService.findRideOrThrow(rideId);
 
+    const mergedWhere = {
+      ride_id: ride.getId(),
+      ...(options?.where || {}),
+    };
+
     const bookings: Booking[] = await Booking.findAll({
-      where: { ride_id: ride.id },
-      include: [{ association: "passenger" }],
       ...options,
+      where: mergedWhere,
+      include: options?.include ?? [{ association: "passenger" }],
     });
 
     return bookings;

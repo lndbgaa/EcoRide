@@ -1,12 +1,12 @@
 .pageContainer {
+  padding: 2rem;
   width: 100%;
-  height: 100%;
   display: flex;
   justify-content: center;
 }
 
 .vehicleContainer {
-  max-width: 60rem;
+  max-width: 50rem;
   width: 100%;
   display: flex;
   flex-direction: column;

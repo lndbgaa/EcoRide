@@ -94,7 +94,7 @@ class UserService {
    * Récupère tous les évènements à venir de l'utilisateur connecté (réservation, trajet)
    */
   static async getMyUpcomingEvents() {
-    const url = "/users/me/events/upcomin";
+    const url = "/users/me/events/upcoming";
     const response = await axiosPrivate.get(url);
     const { data } = response.data;
     return data ?? null;
@@ -115,6 +115,26 @@ class UserService {
    */
   static async getMyBookingsHistory(): Promise<Booking[]> {
     const url = "/users/me/bookings";
+    const response = await axiosPrivate.get(url);
+    const { data } = response.data;
+    return data;
+  }
+
+  /**
+   * Récupère l'historique des avis reçus par l'utilisateur connecté
+   */
+  static async getMyReceivedReviews() {
+    const url = "/users/me/reviews/received";
+    const response = await axiosPrivate.get(url);
+    const { data } = response.data;
+    return data;
+  }
+
+  /**
+   * Récupère l'historique des avis écrits par l'utilisateur connecté
+   */
+  static async getMyWrittenReviews() {
+    const url = "/users/me/reviews/written";
     const response = await axiosPrivate.get(url);
     const { data } = response.data;
     return data;

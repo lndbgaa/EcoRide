@@ -18,6 +18,22 @@ class BookingService {
     );
     return response.data;
   }
+
+  static async validateBooking(bookingId: string) {
+    const response = await axiosPrivate.patch(
+      `/bookings/${bookingId}/validate-success`,
+      {},
+      { headers: { "Content-Type": "application/json" } }
+    );
+    return response.data;
+  }
+
+  static async validateBookingWithIncident(bookingId: string, data: { description: string }) {
+    const response = await axiosPrivate.patch(`/bookings/${bookingId}/validate-incident`, data, {
+      headers: { "Content-Type": "application/json" },
+    });
+    return response.data;
+  }
 }
 
 export default BookingService;

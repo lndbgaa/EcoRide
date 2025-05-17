@@ -1,5 +1,6 @@
 import type { User } from "@/types/UserTypes";
 import type { Vehicle } from "@/types/VehicleTypes";
+import type { Booking } from "./BookingTypes";
 
 export type RideStatus = "open" | "full" | "in_progress" | "completed" | "cancelled";
 
@@ -25,7 +26,7 @@ export type Ride = {
 export type RideDetails = {
   ride: Ride;
   preferences: string[];
-  passengers: User[];
+  bookings: Booking[];
 };
 
 export type CreateRideData = {
@@ -48,4 +49,10 @@ export type SearchRide = {
   maxPrice: number;
   maxDuration: number;
   minRating: string | undefined;
+};
+
+export type SearchRideWithoutFilters = {
+  departureLocation: string;
+  arrivalLocation: string;
+  departureDate: string;
 };

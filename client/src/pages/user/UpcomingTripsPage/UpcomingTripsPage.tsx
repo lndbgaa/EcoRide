@@ -20,6 +20,7 @@ const UpcomingTripsPage = () => {
   const fetchUpcomingTrips = async () => {
     setIsLoading(true);
     setError(null);
+    const start = Date.now();
 
     try {
       const trips = await UserService.getMyUpcomingEvents();
@@ -27,7 +28,11 @@ const UpcomingTripsPage = () => {
     } catch {
       setError("Une erreur est survenue lors du chargement de vos trajets.");
     } finally {
-      setIsLoading(false);
+      const elapsed = Date.now() - start;
+      const remaining = Math.max(0, 300 - elapsed);
+      setTimeout(() => {
+        setIsLoading(false);
+      }, remaining);
     }
   };
 

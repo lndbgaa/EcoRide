@@ -42,8 +42,6 @@ const BookingsHistoryPage = () => {
 
   return (
     <div className={styles.pageContainer}>
-      <h1 className={styles.title}>Mes réservations</h1>
-
       {error ? (
         <div className={styles.errorContainer}>
           <p>{error}</p>

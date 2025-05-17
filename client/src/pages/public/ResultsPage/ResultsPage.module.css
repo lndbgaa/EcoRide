@@ -1,5 +1,5 @@
-/* Base Layout */
 .pageContainer {
+  padding: 2rem;
   max-width: 100rem;
   margin: 0 auto;
   display: flex;
@@ -476,7 +476,6 @@
 @media screen and (max-width: 1200px) {
   .pageContainer {
     max-width: 100%;
-    padding: 0 1.5rem;
     gap: 2rem;
   }
 }
@@ -491,7 +490,6 @@
 @media screen and (max-width: 768px) {
   .pageContainer {
     flex-direction: column;
-    padding: 0 1rem;
     gap: 4rem;
   }
 
@@ -502,6 +500,12 @@
 
   .toggleFiltersButton {
     display: block;
+  }
+
+  .searchSummary {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
   }
 
   .resultsContainer {
@@ -515,10 +519,6 @@
 }
 
 @media screen and (max-width: 576px) {
-  .pageContainer {
-    padding: 0 0.5rem;
-  }
-
   .divider {
     margin: 1rem 0;
   }
@@ -578,6 +578,18 @@
 
   .closeFiltersButton:active {
     background-color: var(--clr-soft-gray);
+  }
+
+  .noResults p {
+    padding: 0 1rem;
+  }
+
+  .noResults p:first-child {
+    font-size: var(--fs-medium);
+  }
+
+  .noResults p:last-child {
+    font-size: var(--fs-base);
   }
 
   .rideInfoContainer {

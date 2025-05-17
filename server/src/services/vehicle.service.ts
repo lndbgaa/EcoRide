@@ -103,16 +103,12 @@ class VehicleService {
       });
     }
 
-    const parsedDate = dayjs(data.firstRegistration, "DD/MM/YYYY", true);
-
-    if (!parsedDate.isValid()) {
+    if (!dayjs(data.firstRegistration, "YYYY-MM-DD", true).isValid()) {
       throw new AppError({
         statusCode: 400,
         message: "La date de première mise en circulation est invalide.",
       });
     }
-
-    const formattedDate = parsedDate.format("YYYY-MM-DD");
 
     const dataToCreate: Partial<Vehicle> = {
       brand_id: data.brandId,
@@ -122,7 +118,7 @@ class VehicleService {
       seats: data.seats,
       license_plate: data.licensePlate,
       owner_id: userId,
-      first_registration: new Date(formattedDate),
+      first_registration: new Date(data.firstRegistration),
     };
 
     return await sequelize.transaction(async (transaction) => {

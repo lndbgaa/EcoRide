@@ -73,12 +73,12 @@ const AddVehiclePage = () => {
     }
 
     if (data.firstRegistration === "") {
-      setError({ firstRegistration: "Champ requis" });
+      setError({ firstRegistration: "Veuillez sélectionner une date" });
       return false;
-    } else if (!dayjs(data.firstRegistration, "DD/MM/YYYY", true).isValid()) {
+    } else if (!dayjs(data.firstRegistration, "YYYY-MM-DD", true).isValid()) {
       setError({ firstRegistration: "Date invalide" });
       return false;
-    } else if (dayjs(data.firstRegistration, "DD/MM/YYYY", true).isAfter(dayjs().subtract(1, "day"))) {
+    } else if (dayjs(data.firstRegistration, "YYYY-MM-DD", true).isAfter(dayjs().subtract(1, "day"))) {
       setError({ firstRegistration: "La date de première immatriculation doit être antérieure à la date du jour" });
       return false;
     }
@@ -99,8 +99,7 @@ const AddVehiclePage = () => {
       energyId,
       seats,
       licensePlate: licensePlate.trim().toUpperCase(),
-      firstRegistration:
-        firstRegistration && dayjs(firstRegistration).isValid() ? dayjs(firstRegistration).format("DD/MM/YYYY") : "",
+      firstRegistration,
     };
 
     const isValid = validateForm(cleanedData);
@@ -149,9 +148,7 @@ const AddVehiclePage = () => {
     fetchVehicleOptions();
   }, [navigate]);
 
-  if (isLoading) {
-    return <Loader />;
-  }
+  if (isLoading) return <Loader width="7rem" height="7rem" />;
 
   return (
     <div className={styles.pageContainer}>

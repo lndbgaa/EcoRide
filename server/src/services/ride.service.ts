@@ -1,5 +1,5 @@
 import dayjs from "dayjs";
-import { Op } from "sequelize";
+import { Op, Sequelize } from "sequelize";
 
 import { sequelize } from "@/config/mysql.config.js";
 import { VEHICLE_ASSOCIATIONS } from "@/constants/index.js";
@@ -38,7 +38,7 @@ interface SearchRidesData {
 
 interface RideDetails {
   ride: Ride;
-  passengers: User[];
+  bookings: Booking[];
   preferences: string[];
 }
 
@@ -216,24 +216,6 @@ class RideService {
   }
 
   /**
-   * Récupère les passagers d'un trajet.
-   * @param rideId - L'identifiant du trajet.
-   * @returns Les passagers du trajet.
-   */
-  public static async getRidePassengers(rideId: string): Promise<User[]> {
-    const ride: Ride = await this.findRideOrThrow(rideId);
-    const bookings: Booking[] = await BookingService.getRideBookings(ride.getId(), {
-      where: { status: "confirmed" },
-    });
-
-    const passengers: User[] = bookings
-      .map((booking) => booking.getPassenger())
-      .filter((passenger): passenger is User => passenger !== null);
-
-    return passengers;
-  }
-
-  /**
    * Récupère les détails d'un trajet.
    * @param rideId - L'identifiant du trajet.
    * @returns Les détails du trajet.
@@ -252,7 +234,10 @@ class RideService {
       });
     }
 
-    const passengers: User[] = await this.getRidePassengers(ride.getId());
+    const bookings: Booking[] = await BookingService.getRideBookings(ride.getId(), {
+      where: { status: { [Op.in]: ["confirmed", "awaiting_feedback", "completed"] } },
+      include: [{ association: "passenger" }],
+    });
 
     const preferences: Preference[] = await PreferenceService.getPreferences(ride.getDriverId());
 
@@ -272,7 +257,7 @@ class RideService {
       return [];
     });
 
-    return { ride, passengers, preferences: finalPreferences };
+    return { ride, bookings, preferences: finalPreferences };
   }
 
   /**
@@ -337,21 +322,21 @@ class RideService {
 
       const bookings: Booking[] = await BookingService.getRideBookings(ride.getId(), {
         where: { status: "confirmed" },
+        include: [{ association: "passenger" }],
       });
 
       if (bookings.length > 0) {
-        const passengers: User[] = await this.getRidePassengers(ride.getId());
-
         await Promise.allSettled(bookings.map((booking) => booking.markAsAwaitingFeedback({ transaction })));
 
         await EmailService.sendBulkEmail(
-          passengers.map((passenger) => ({
-            email: passenger.getEmail(),
+          bookings.map((booking) => ({
+            email: booking.getPassenger()?.getEmail() ?? "Inconnu",
             data: {
-              passenger: passenger.getFirstName(),
+              passenger: booking.getPassenger()?.getFirstName() ?? "Inconnu",
               departureLocation: ride.departure_location,
               arrivalLocation: ride.arrival_location,
               driver: ride.driver?.getFirstName() ?? "Inconnu",
+              rideId: ride.getId(),
             },
           })),
           "Valide ton trajet EcoRide",
@@ -384,18 +369,19 @@ class RideService {
 
       await ride.markAsCancelled({ transaction });
 
-      const bookings: Booking[] = await BookingService.getRideBookings(ride.id);
+      const bookings: Booking[] = await BookingService.getRideBookings(ride.id, {
+        where: { status: "confirmed" },
+        include: [{ association: "passenger" }],
+      });
 
       if (bookings.length > 0) {
-        const passengers = await this.getRidePassengers(ride.id);
-
         await Promise.allSettled(bookings.map((booking) => booking.markAsCancelled({ transaction })));
 
         await Promise.allSettled(
-          passengers.map(async (passenger) => {
-            const booking = bookings.find((booking) => booking.getPassengerId() === passenger.getId());
+          bookings.map(async (booking) => {
+            const passenger = booking.getPassenger();
 
-            if (booking) {
+            if (passenger) {
               passenger.addCredits(booking.getSeatsBooked() * ride.getPrice(), {
                 transaction,
               });
@@ -404,10 +390,10 @@ class RideService {
         );
 
         await EmailService.sendBulkEmail(
-          passengers.map((passenger) => ({
-            email: passenger.getEmail(),
+          bookings.map((booking) => ({
+            email: booking.getPassenger()?.getEmail() ?? "Inconnu",
             data: {
-              passenger: passenger.getFirstName(),
+              passenger: booking.getPassenger()?.getFirstName() ?? "Inconnu",
               departureLocation: ride.departure_location,
               arrivalLocation: ride.arrival_location,
               departureDate: toDateOnly(ride.departure_datetime),
@@ -436,7 +422,10 @@ class RideService {
       where: { driver_id: userId },
       limit,
       offset,
-      order: [["departure_datetime", "ASC"]],
+      order: [
+        [Sequelize.literal(`CASE WHEN status = 'open' THEN 0 ELSE 1 END`), "ASC"],
+        ["departure_datetime", "ASC"],
+      ],
     });
 
     return { count, rides };

@@ -1,14 +1,13 @@
 import { Outlet } from "react-router-dom";
 
-import styles from "./MainLayout.module.css";
+import UserNavbar from "@/components/UserNavbar/UserNavbar";
 
 const MainLayout = () => {
   return (
     <div>
-      <div style={{ height: "6rem" }}></div>
-      <main className={styles.main}>
-        <Outlet />
-      </main>
+      <UserNavbar />
+
+      <Outlet />
     </div>
   );
 };
