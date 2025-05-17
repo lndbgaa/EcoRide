@@ -16,6 +16,7 @@
     "jwt-decode": "^4.0.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
+    "react-responsive": "^10.0.1",
     "react-router-dom": "^7.5.3",
     "react-toastify": "^11.0.5",
     "validator": "^13.15.0"
@@ -25,6 +26,7 @@
     "@types/jwt-decode": "^2.2.1",
     "@types/react": "^19.0.10",
     "@types/react-dom": "^19.0.4",
+    "@types/react-responsive": "^8.0.8",
     "@types/react-toastify": "^4.0.2",
     "@types/validator": "^13.15.0",
     "@vitejs/plugin-react": "^4.3.4",

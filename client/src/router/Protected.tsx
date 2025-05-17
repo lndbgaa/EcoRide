@@ -19,7 +19,7 @@ const Protected = ({ children, roles, redirectTo = "/login" }: ProtectedRoutePro
   const location = useLocation();
 
   if (isLoading) {
-    return <Loader />;
+    return <Loader width="7rem" height="7rem" />;
   }
 
   if (!isAuthenticated) {

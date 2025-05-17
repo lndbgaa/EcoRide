@@ -6,6 +6,7 @@ import { toast } from "react-toastify";
 import RightArrow from "@/assets/images/arrow-icon.svg?react";
 import DeleteIcon from "@/assets/images/cross-icon.svg?react";
 import DefaultAvatar from "@/assets/images/default-avatar.jpg";
+import InfoIcon from "@/assets/images/info-icon.svg?react";
 
 import Loader from "@/components/Loader/Loader";
 import useUser from "@/hooks/useUser";
@@ -29,10 +30,22 @@ const ProfilePage = () => {
   const { user, toggleUserRole, isLoading: isUserLoading } = useUser();
   const { credits, firstName, memberSince, avatar, id: userId } = user ?? {};
 
-  const handleRoleChange = async (role: string) => {
-    await toggleUserRole(role);
-    if (role === "driver") setIsDriver(!isDriver);
-    else if (role === "passenger") setIsPassenger(!isPassenger);
+  const handleRoleChange = async (role: "driver" | "passenger") => {
+    if (role === "driver") {
+      if (isDriver && !isPassenger) {
+        return;
+      }
+
+      await toggleUserRole(role);
+      setIsDriver(!isDriver);
+    } else if (role === "passenger") {
+      if (isPassenger && !isDriver) {
+        return;
+      }
+
+      await toggleUserRole(role);
+      setIsPassenger(!isPassenger);
+    }
   };
 
   const handlePreferenceChange = async (id: string) => {
@@ -54,10 +67,14 @@ const ProfilePage = () => {
   }, [user]);
 
   useEffect(() => {
-    if (!isDriver) return;
+    if (!isDriver) {
+      setIsDriverDataLoading(false);
+      return;
+    }
 
     const fetchDriverData = async () => {
       setIsDriverDataLoading(true);
+
       try {
         const vehicles = await UserService.getMyVehicles();
         setVehicles(vehicles);
@@ -67,7 +84,6 @@ const ProfilePage = () => {
           vehicles: "Oups ! Une erreur est survenue lors de la récupération de vos véhicules.",
         }));
       }
-
       try {
         const preferences = await UserService.getMyPreferences();
         setPreferences(preferences);
@@ -118,10 +134,24 @@ const ProfilePage = () => {
         </div>
 
         <div className={styles.roleSelection}>
+          <div className={styles.infoContainer}>
+            <InfoIcon className={styles.infoIcon} />
+            <p className={styles.infoText}>
+              Définissez votre rôle afin d’accéder aux services correspondants. Il est possible d’être à la fois
+              chauffeur et passager.
+            </p>
+          </div>
+
           <p>Je suis : </p>
           <div className={styles.roleChoices}>
             <label htmlFor="driver" className={styles.roleChoice}>
-              <input type="checkbox" id="driver" checked={isDriver} onChange={() => handleRoleChange("driver")} />
+              <input
+                type="checkbox"
+                id="driver"
+                checked={isDriver}
+                disabled={!isPassenger}
+                onChange={() => handleRoleChange("driver")}
+              />
               <div className={styles.checkboxMark}></div>
               <span>Chauffeur</span>
             </label>
@@ -130,6 +160,7 @@ const ProfilePage = () => {
                 type="checkbox"
                 id="passenger"
                 checked={isPassenger}
+                disabled={!isDriver}
                 onChange={() => handleRoleChange("passenger")}
               />
               <div className={styles.checkboxMark}></div>

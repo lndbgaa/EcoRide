@@ -14,6 +14,13 @@ export function formatFullDateFr(date: string): string {
     .replace(/^./, (char) => char.toUpperCase());
 }
 
+export function formatMediumDateFr(date: string): string {
+  return dayjs(date)
+    .locale("fr")
+    .format("MMMM YYYY")
+    .replace(/^./, (char) => char.toUpperCase());
+}
+
 export function formatDateFr(date: string): string {
   return dayjs(date).format("DD/MM/YYYY");
 }

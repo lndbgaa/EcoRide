@@ -15,10 +15,10 @@
 
 .title {
   margin-bottom: 2rem;
-  font-size: var(--fs-xxlarge);
+  font-size: var(--fs-xlarge);
   font-weight: var(--fw-bold);
   color: var(--clr-text-secondary);
-  line-height: 1.4;
+  letter-spacing: 0.02rem;
 }
 
 .contactForm {
@@ -153,7 +153,7 @@
 
 @media screen and (max-width: 480px) {
   .title {
-    font-size: var(--fs-xlarge);
+    font-size: var(--fs-large);
   }
 
   .contactInfoTitle {

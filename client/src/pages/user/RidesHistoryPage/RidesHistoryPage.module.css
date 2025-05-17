@@ -4,14 +4,6 @@
   gap: 1rem;
 }
 
-.title {
-  text-align: center;
-  margin-bottom: 1rem;
-  font-size: var(--fs-large);
-  font-weight: var(--fw-bold);
-  color: var(--clr-text-primary);
-}
-
 .rideList {
   display: flex;
   flex-direction: column;

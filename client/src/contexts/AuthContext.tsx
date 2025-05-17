@@ -119,11 +119,10 @@ const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const logout = async () => {
     setIsLoading(true);
+
     try {
       await AuthService.logout();
       resetAuthState();
-    } catch (error) {
-      console.error("Erreur de déconnexion:", error);
     } finally {
       setIsLoading(false);
     }

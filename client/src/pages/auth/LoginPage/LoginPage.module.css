@@ -1,4 +1,5 @@
 .loginPage {
+  padding: 0 2rem 2rem;
   width: 100%;
   display: flex;
   justify-content: center;
@@ -12,20 +13,20 @@
   align-items: center;
 }
 
-.signin {
-  width: 100%;
-  margin-bottom: 2rem;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-}
-
 .title {
   margin-bottom: 2rem;
   font-size: var(--fs-xlarge);
   font-weight: var(--fw-bold);
   color: var(--clr-text-secondary);
   letter-spacing: 0.02rem;
+}
+
+.signin {
+  width: 100%;
+  margin-bottom: 2rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 
 .errorMessage {

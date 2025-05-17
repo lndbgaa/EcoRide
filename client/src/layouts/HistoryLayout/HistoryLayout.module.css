@@ -8,8 +8,8 @@
   position: relative;
   margin-bottom: 2.5rem;
   display: flex;
-  justify-content: flex-start;
-  gap: 1.5em;
+  justify-content: center;
+  gap: 1.5rem;
 }
 
 .navigation a {

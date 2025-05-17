@@ -24,3 +24,11 @@ export interface UpdateUserInfo {
   address?: string;
   birthDate?: string;
 }
+
+export interface UserPublicDTO {
+  id: string;
+  firstName: string;
+  pseudo: string;
+  avatar: string | null;
+  averageRating: string | null;
+}

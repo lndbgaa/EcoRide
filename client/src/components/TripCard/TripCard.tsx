@@ -189,7 +189,7 @@ const Trip = ({ data, eventType }: TripProps) => {
           </Link>
 
           {isBookingAwaitingFeedback ? (
-            <Link to={`/ride/${ride.id}/show`} className={styles.evaluateButton}>
+            <Link to={`/ride/${ride.id}/evaluate`} className={styles.evaluateButton}>
               Évaluer
             </Link>
           ) : (

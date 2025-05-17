@@ -6,7 +6,7 @@ import lazyLoad from "@/router/lazyLoad";
 
 import HistoryLayout from "@/layouts/HistoryLayout/HistoryLayout";
 import MainLayout from "@/layouts/MainLayout/MainLayout";
-import RatingsLayout from "@/layouts/RatingsLayout";
+import RatingsLayout from "@/layouts/RatingsLayout/RatingsLayout";
 import UserDashboardLayout from "@/layouts/UserDashboardLayout/UserDashboardLayout";
 
 const ProfilePage = lazy(() => import("@/pages/user/ProfilePage/ProfilePage"));
@@ -24,11 +24,10 @@ const RidesHistoryPage = lazy(() => import("@/pages/user/RidesHistoryPage/RidesH
 const UpcomingTripsPage = lazy(() => import("@/pages/user/UpcomingTripsPage/UpcomingTripsPage"));
 
 const PublishRidePage = lazy(() => import("@/pages/ride/PublishRidePage/PublishRidePage"));
-const BookRidePage = lazy(() => import("@/pages/ride/BookRidePage"));
+const EvaluateRidePage = lazy(() => import("@/pages/ride/EvaluateRidePage/EvaluateRidePage"));
 
-const FeedbackPage = lazy(() => import("@/pages/feedback/FeedbackPage"));
-const WriteReviewPage = lazy(() => import("@/pages/feedback/WriteReviewPage"));
-const ReportIncidentPage = lazy(() => import("@/pages/feedback/ReportIncidentPage"));
+const ReviewRidePage = lazy(() => import("@/pages/ride/ReviewRidePage/ReviewRidePage"));
+const ReportRidePage = lazy(() => import("@/pages/ride/ReportRidePage/ReportRidePage"));
 
 const userRoutes = {
   path: "/",
@@ -108,17 +107,9 @@ const userRoutes = {
       children: [
         { index: true, element: <Navigate to="publish" /> },
         { path: "publish", element: lazyLoad(PublishRidePage) },
-        { path: "book/:id", element: lazyLoad(BookRidePage) },
-      ],
-    },
-
-    // Laisser un feedback (avis & incidents)
-    {
-      path: "feedback",
-      children: [
-        { index: true, element: lazyLoad(FeedbackPage) },
-        { path: "review", element: lazyLoad(WriteReviewPage) },
-        { path: "incident", element: lazyLoad(ReportIncidentPage) },
+        { path: ":id/evaluate", element: lazyLoad(EvaluateRidePage) },
+        { path: ":id/review", element: lazyLoad(ReviewRidePage) },
+        { path: ":id/report", element: lazyLoad(ReportRidePage) },
       ],
     },
   ],

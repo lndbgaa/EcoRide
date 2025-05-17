@@ -1,0 +1,148 @@
+.pageContainer {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.evaluateContainer {
+  max-width: 50rem;
+  width: 100%;
+  padding: 3rem;
+  display: flex;
+  flex-direction: column;
+  gap: 4rem;
+  border-radius: 1rem;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+}
+
+.rideSummary {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.locationText {
+  font-size: var(--fs-xlarge);
+  font-weight: var(--fw-bold);
+  color: var(--clr-text-primary);
+  letter-spacing: 0.02rem;
+  line-height: 1.2;
+}
+
+.departureDate {
+  margin-bottom: 2rem;
+  color: var(--clr-text-secondary);
+  font-size: var(--fs-medium);
+  font-weight: var(--fw-medium);
+}
+
+.timeInfo {
+  color: var(--clr-text-secondary);
+  font-size: var(--fs-medium);
+  font-weight: var(--fw-medium);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.timeInfo::before,
+.timeInfo::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background-color: var(--clr-soft-gray);
+}
+
+.evaluationQuestion {
+  margin-bottom: 3rem;
+  text-align: center;
+  font-size: var(--fs-large);
+  font-weight: var(--fw-bold);
+  color: var(--clr-text-primary);
+}
+
+.buttonsContainer {
+  display: flex;
+  justify-content: center;
+  gap: 2rem;
+}
+
+.evaluateButton {
+  padding: 1rem 2rem;
+  display: inline-block;
+  text-align: center;
+  line-height: normal;
+  font-weight: var(--fw-bold);
+  border: none;
+  border-radius: 1rem;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.evaluateButton:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.positiveButton {
+  background-color: var(--clr-accent);
+  color: var(--clr-white);
+}
+
+.positiveButton:hover {
+  background-color: var(--clr-accent-dark);
+}
+
+.negativeButton {
+  background-color: var(--clr-info);
+  color: var(--clr-white);
+}
+
+.negativeButton:hover {
+  background-color: var(--clr-info-dark);
+}
+
+@media screen and (max-width: 768px) {
+  .pageContainer {
+    padding: 1rem;
+  }
+
+  .evaluateContainer {
+    padding: 2rem;
+    gap: 3rem;
+  }
+
+  .locationText {
+    font-size: var(--fs-xlarge);
+  }
+
+  .evaluationQuestion {
+    font-size: var(--fs-large);
+    margin-bottom: 2rem;
+  }
+
+  .buttonsContainer {
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .evaluateButton {
+    width: 100%;
+  }
+}
+
+@media screen and (max-width: 480px) {
+  .evaluateContainer {
+    padding: 1.5rem;
+  }
+
+  .locationText {
+    font-size: var(--fs-large);
+  }
+
+  .evaluationQuestion {
+    font-size: var(--fs-medium);
+  }
+}
