@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+
+import CheckIllustration from "@/assets/images/check-illustration.svg?react";
+import TreeIllustration from "@/assets/images/tree-illustration.svg?react";
 
 import Loader from "@/components/Loader/Loader";
 import TripCard from "@/components/TripCard/TripCard";
@@ -11,19 +13,19 @@ import type { Booking } from "@/types/BookingTypes";
 
 const BookingsHistoryPage = () => {
   const [isLoading, setIsLoading] = useState<boolean>(true);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<boolean>(false);
 
   const [bookings, setBookings] = useState<Booking[]>([]);
 
   const fetchBookings = async () => {
     setIsLoading(true);
-    setError(null);
+    setError(false);
 
     try {
       const bookings = await UserService.getMyBookingsHistory();
       setBookings(bookings);
     } catch {
-      setError("Une erreur est survenue lors de la récupération de vos réservations.");
+      setError(true);
     } finally {
       setIsLoading(false);
     }
@@ -44,7 +46,8 @@ const BookingsHistoryPage = () => {
     <div className={styles.pageContainer}>
       {error ? (
         <div className={styles.errorContainer}>
-          <p>{error}</p>
+          <TreeIllustration className={styles.illustration} />
+          <p>Une erreur est survenue lors de la récupération de vos réservations.</p>
           <button onClick={fetchBookings} className={styles.retryButton}>
             Réessayer
           </button>
@@ -53,8 +56,8 @@ const BookingsHistoryPage = () => {
         <>
           {bookings.length === 0 ? (
             <div className={styles.noBookingsContainer}>
+              <CheckIllustration className={styles.illustration} />
               <p>Vous n'avez pas encore réservé de trajet.</p>
-              <Link to="/search">Rechercher un trajet</Link>
             </div>
           ) : (
             <div className={styles.bookingList}>

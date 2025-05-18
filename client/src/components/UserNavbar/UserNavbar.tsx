@@ -1,25 +1,33 @@
-import useAuth from "@/hooks/useAuth";
-import useUser from "@/hooks/useUser";
+import classNames from "classnames";
 import { useEffect, useRef, useState } from "react";
 import { useMediaQuery } from "react-responsive";
 import { Link, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 
-import Arrow from "@/assets/images/arrow-icon.svg?react";
+import ArrowIcon from "@/assets/images/arrow-icon.svg?react";
 import BigLogo from "@/assets/images/big-logo.svg?react";
 import DefaultAvatar from "@/assets/images/default-avatar.jpg";
 import SearchIcon from "@/assets/images/search-icon.svg?react";
 import SmallLogo from "@/assets/images/small-logo.svg?react";
 
+import useAuth from "@/hooks/useAuth";
+import useUser from "@/hooks/useUser";
+
 import styles from "./UserNavbar.module.css";
 
 const UserNavbar = () => {
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+
   const navigate = useNavigate();
   const { isAuthenticated, logout } = useAuth();
   const { user, clearUser } = useUser();
   const navbarRef = useRef<HTMLDivElement>(null);
 
-  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const closeDropdown = () => setIsDropdownOpen(false);
+
+  const toggleDropdown = () => setIsDropdownOpen(!isDropdownOpen);
+
+  const goHome = () => navigate("/");
 
   const handleLogout = async () => {
     try {
@@ -59,17 +67,50 @@ const UserNavbar = () => {
 
   const isMobile = useMediaQuery({ query: "(max-width: 768px)" });
 
+  const AuthenticatedLinks = () => (
+    <>
+      <Link to="/trips" className={styles.dropdownItem} onClick={closeDropdown}>
+        Trajets
+      </Link>
+      <Link to="/dashboard" className={styles.dropdownItem} onClick={closeDropdown}>
+        Profil
+      </Link>
+      <Link to="/contact" className={styles.dropdownItem} onClick={closeDropdown}>
+        Nous contacter
+      </Link>
+      <button onClick={handleLogout} className={styles.dropdownItem}>
+        Déconnexion
+      </button>
+    </>
+  );
+
+  const UnauthenticatedLinks = () => (
+    <>
+      <Link to="/register" className={styles.dropdownItem} onClick={closeDropdown}>
+        Inscription
+      </Link>
+      <Link to="/login" className={styles.dropdownItem} onClick={closeDropdown}>
+        Connexion
+      </Link>
+      <Link to="/contact" className={styles.dropdownItem} onClick={closeDropdown}>
+        Nous contacter
+      </Link>
+    </>
+  );
+
   return (
-    <nav ref={navbarRef} className={styles.navbar}>
+    <nav ref={navbarRef} className={styles.mainContainer}>
       <div className={styles.navbarContainer}>
         <div className={styles.leftSection}>
           {!isMobile ? (
-            <BigLogo onClick={() => navigate("/")} className={styles.bigLogo} />
+            <BigLogo onClick={goHome} className={styles.bigLogo} />
           ) : (
-            <SmallLogo onClick={() => navigate("/")} className={styles.smallLogo} />
+            <SmallLogo onClick={goHome} className={styles.smallLogo} />
           )}
 
-          {isMobile && <SearchIcon className={styles.searchIcon} onClick={() => navigate("/search")} />}
+          {isMobile && (
+            <SearchIcon className={styles.searchIcon} onClick={() => navigate("/search")} aria-label="Rechercher" />
+          )}
 
           {!isMobile && (
             <Link to="/carpool" className={styles.navLink}>
@@ -85,42 +126,23 @@ const UserNavbar = () => {
             </Link>
           )}
           <div className={styles.avatarContainer}>
-            <div className={styles.avatarWrapper} onClick={() => setIsDropdownOpen(!isDropdownOpen)}>
+            <div
+              className={styles.avatarWrapper}
+              onClick={toggleDropdown}
+              role="button"
+              tabIndex={0}
+              onKeyDown={(e) => e.key === "Enter" && toggleDropdown()}
+              aria-haspopup="true"
+              aria-expanded={isDropdownOpen}
+            >
               <img src={user?.avatar ?? DefaultAvatar} alt="Avatar" className={styles.avatar} />
-              <Arrow className={`${styles.arrow} ${isDropdownOpen ? styles.arrowUp : styles.arrowDown}`} />
+              <ArrowIcon className={classNames(styles.arrowIcon, isDropdownOpen ? styles.up : styles.down)} />
             </div>
             {isDropdownOpen && (
               <div className={styles.dropdownMenu}>
-                {isAuthenticated ? (
-                  <>
-                    <Link to="/trips" className={styles.dropdownItem} onClick={() => setIsDropdownOpen(false)}>
-                      Mes trajets
-                    </Link>
-                    <Link to="/dashboard" className={styles.dropdownItem} onClick={() => setIsDropdownOpen(false)}>
-                      Profil
-                    </Link>
-                    <Link to="/contact" className={styles.dropdownItem} onClick={() => setIsDropdownOpen(false)}>
-                      Nous contacter
-                    </Link>
-                    <button onClick={handleLogout} className={styles.dropdownItem}>
-                      Déconnexion
-                    </button>
-                  </>
-                ) : (
-                  <>
-                    <Link to="/register" className={styles.dropdownItem} onClick={() => setIsDropdownOpen(false)}>
-                      Inscription
-                    </Link>
-                    <Link to="/login" className={styles.dropdownItem} onClick={() => setIsDropdownOpen(false)}>
-                      Connexion
-                    </Link>
-                    <Link to="/contact" className={styles.dropdownItem} onClick={() => setIsDropdownOpen(false)}>
-                      Nous contacter
-                    </Link>
-                  </>
-                )}
+                {isAuthenticated ? <AuthenticatedLinks /> : <UnauthenticatedLinks />}
                 <div className={styles.divider}></div>
-                <Link to="/carpool" className={styles.dropdownItem} onClick={() => setIsDropdownOpen(false)}>
+                <Link to="/carpool" className={styles.dropdownItem} onClick={closeDropdown}>
                   Covoiturages
                 </Link>
               </div>

@@ -1,4 +1,7 @@
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
+
+import TimeIllustration from "@/assets/images/time-illustration.svg?react";
 
 import Loader from "@/components/Loader/Loader";
 import Trip from "@/components/TripCard/TripCard";
@@ -13,26 +16,23 @@ type UpcomingTrip = (Ride | Booking) & { type: "ride" | "booking" };
 
 const UpcomingTripsPage = () => {
   const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<boolean>(false);
 
   const [trips, setTrips] = useState<UpcomingTrip[]>([]);
 
+  const navigate = useNavigate();
+
   const fetchUpcomingTrips = async () => {
     setIsLoading(true);
-    setError(null);
-    const start = Date.now();
+    setError(false);
 
     try {
       const trips = await UserService.getMyUpcomingEvents();
       setTrips(trips);
     } catch {
-      setError("Une erreur est survenue lors du chargement de vos trajets.");
+      setError(true);
     } finally {
-      const elapsed = Date.now() - start;
-      const remaining = Math.max(0, 300 - elapsed);
-      setTimeout(() => {
-        setIsLoading(false);
-      }, remaining);
+      setIsLoading(false);
     }
   };
 
@@ -47,26 +47,18 @@ const UpcomingTripsPage = () => {
       </div>
     );
 
+  if (error) return navigate("/error");
+
   return (
     <div className={styles.pageContainer}>
       <div className={styles.tripsContainer}>
-        <h1 className={styles.title}>Mes trajets à venir</h1>
-
-        {error ? (
-          <div className={styles.errorContainer}>
-            <p>{error}</p>
-            <button onClick={fetchUpcomingTrips} className={styles.retryButton}>
-              Réessayer
-            </button>
+        {trips.length === 0 ? (
+          <div className={styles.noTripsContainer}>
+            <TimeIllustration className={styles.illustration} />
+            <p>Vos prochains trajets apparaîtront ici.</p>
           </div>
         ) : (
-          <>
-            {trips.length === 0 ? (
-              <p className={styles.noTripsMessage}>Vos prochains trajets apparaîtront ici.</p>
-            ) : (
-              trips.map((trip) => <Trip key={trip.id} data={trip} eventType={trip.type} />)
-            )}
-          </>
+          trips.map((trip) => <Trip key={trip.id} data={trip} eventType={trip.type} />)
         )}
       </div>
     </div>

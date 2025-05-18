@@ -12,51 +12,61 @@
 
 .noBookingsContainer,
 .errorContainer {
-  padding: 3rem 2rem;
+  margin-top: 4rem;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 1.5rem;
-  border-radius: 0.5rem;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  gap: 4rem;
 }
 
 .noBookingsContainer p,
 .errorContainer p {
   text-align: center;
-  font-size: var(--fs-medium);
-  color: var(--clr-text-secondary);
+  font-size: var(--fs-xlarge);
+  font-weight: var(--fw-bold);
+  color: var(--clr-text-primary);
 }
 
-.noBookingsContainer a,
 .retryButton {
   padding: 1rem 1.5rem;
   color: var(--clr-white);
   font-weight: var(--fw-medium);
   background-color: var(--clr-accent);
   border-radius: 0.5rem;
+  border: none;
   cursor: pointer;
   transition: background-color 0.3s ease;
 }
 
-.noBookingsContainer a {
-  display: inline-block;
-  line-height: normal;
-}
-
-.retryButton {
-  border: none;
-}
-
-.noBookingsContainer a:hover,
 .retryButton:hover {
   background-color: var(--clr-accent-dark);
+}
+
+.illustration {
+  width: 100%;
+  max-width: 35rem;
+  height: auto;
+}
+
+@media screen and (max-width: 768px) {
+  .illustration {
+    max-width: 30rem;
+  }
+
+  .noBookingsContainer p,
+  .errorContainer p {
+    font-size: var(--fs-large);
+  }
 }
 
 @media (max-width: 480px) {
   .noBookingsContainer p,
   .errorContainer p {
-    font-size: var(--fs-base);
+    font-size: var(--fs-medium);
+  }
+
+  .illustration {
+    max-width: 25rem;
   }
 }

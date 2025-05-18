@@ -95,6 +95,10 @@
 }
 
 @media screen and (max-width: 768px) {
+  .title {
+    font-size: var(--fs-xlarge);
+  }
+
   .searchForm {
     gap: 2rem;
   }

@@ -1,66 +1,40 @@
 .pageContainer {
-  padding: 0 2rem 2rem;
   width: 100%;
   display: flex;
   justify-content: center;
 }
 
-.reviewsContainer {
-  width: 100%;
-  max-width: 55rem;
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-}
-
-.title {
-  margin-bottom: 2rem;
-  text-align: center;
-  font-size: var(--fs-large);
-  font-weight: var(--fw-bold);
-  color: var(--clr-text-primary);
-}
-
-.ratingOverview {
-  margin-bottom: 4rem;
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-}
-
-.averageRating {
-  line-height: normal;
-  font-size: 6rem;
-  font-weight: var(--fw-black);
-  color: var(--clr-text-primary);
-}
-
-.ratingCount {
-  line-height: normal;
-  font-size: var(--fs-xlarge);
-  font-weight: var(--fw-bold);
-  color: var(--clr-text-secondary);
-}
-
-.noReviews {
+.noReviewsContainer,
+.errorContainer {
   margin-top: 4rem;
   display: flex;
   flex-direction: column;
   align-items: center;
+  justify-content: center;
   gap: 4rem;
 }
 
-.ratingsIllustration {
-  width: 100%;
-  max-width: 35rem;
-  height: auto;
-}
-
-.noReviews p {
+.noReviewsContainer p,
+.errorContainer p {
   text-align: center;
   font-size: var(--fs-xlarge);
   font-weight: var(--fw-bold);
   color: var(--clr-text-primary);
+}
+
+.retryButton {
+  padding: 1rem 1.5rem;
+  color: var(--clr-white);
+  font-weight: var(--fw-medium);
+  background-color: var(--clr-accent);
+  border-radius: 0.5rem;
+  border: none;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.retryButton:hover {
+  background-color: var(--clr-accent-dark);
 }
 
 .reviewsList {
@@ -159,11 +133,13 @@
   color: var(--clr-text-secondary);
 }
 
-@media screen and (max-width: 768px) {
-  .pageContainer {
-    padding: 1rem;
-  }
+.illustration {
+  width: 100%;
+  max-width: 35rem;
+  height: auto;
+}
 
+@media screen and (max-width: 768px) {
   .averageRating {
     font-size: 5rem;
   }
@@ -172,11 +148,12 @@
     font-size: var(--fs-large);
   }
 
-  .ratingsIllustration {
+  .illustration {
     max-width: 30rem;
   }
 
-  .noReviews p {
+  .noReviewsContainer p,
+  .errorContainer p {
     font-size: var(--fs-large);
   }
 }
@@ -186,11 +163,12 @@
     font-size: 4rem;
   }
 
-  .ratingsIllustration {
+  .illustration {
     max-width: 25rem;
   }
 
-  .noReviews p {
+  .noReviewsContainer p,
+  .errorContainer p {
     font-size: var(--fs-medium);
   }
 }

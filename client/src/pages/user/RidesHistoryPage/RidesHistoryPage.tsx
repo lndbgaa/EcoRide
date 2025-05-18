@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+
+import CarIllustration from "@/assets/images/car-illustration.svg?react";
+import TreeIllustration from "@/assets/images/tree-illustration.svg?react";
 
 import Loader from "@/components/Loader/Loader";
 import TripCard from "@/components/TripCard/TripCard";
@@ -11,19 +13,19 @@ import type { Ride } from "@/types/RideTypes";
 
 const RidesHistoryPage = () => {
   const [isLoading, setIsLoading] = useState<boolean>(true);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<boolean>(false);
 
   const [rides, setRides] = useState<Ride[]>([]);
 
-  const fetchRides = async () => {
+  const fetchRides = async (): Promise<void> => {
     setIsLoading(true);
-    setError(null);
+    setError(false);
 
     try {
       const rides = await UserService.getMyRidesHistory();
       setRides(rides);
     } catch {
-      setError("Une erreur est survenue lors de la récupération de vos trajets");
+      setError(true);
     } finally {
       setIsLoading(false);
     }
@@ -33,13 +35,19 @@ const RidesHistoryPage = () => {
     fetchRides();
   }, []);
 
-  if (isLoading) return <Loader />;
+  if (isLoading)
+    return (
+      <div className={styles.pageContainer}>
+        <Loader />
+      </div>
+    );
 
   return (
     <div className={styles.pageContainer}>
       {error ? (
         <div className={styles.errorContainer}>
-          <p>{error}</p>
+          <TreeIllustration className={styles.illustration} />
+          <p>Une erreur est survenue lors de la récupération de vos trajets.</p>
           <button onClick={fetchRides} className={styles.retryButton}>
             Réessayer
           </button>
@@ -48,8 +56,8 @@ const RidesHistoryPage = () => {
         <>
           {rides.length === 0 ? (
             <div className={styles.noRidesContainer}>
-              <p>Vous n'avez pas encore publié de trajet</p>
-              <Link to="/ride/publish">Publier un trajet</Link>
+              <CarIllustration className={styles.illustration} />
+              <p>Vous n'avez pas encore publié de trajet.</p>
             </div>
           ) : (
             <div className={styles.rideList}>

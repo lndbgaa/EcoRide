@@ -1,4 +1,5 @@
 .pageContainer {
+  padding: 0 2rem 2rem;
   width: 100%;
   height: 100%;
   display: flex;
@@ -13,28 +14,25 @@
   align-items: center;
 }
 
-.title {
-  margin-bottom: 2rem;
-  font-size: var(--fs-xlarge);
-  font-weight: var(--fw-bold);
-  color: var(--clr-text-secondary);
-  letter-spacing: 0.02rem;
-}
-
-.noTripsMessage,
-.errorContainer p {
-  margin-top: 2rem;
-  text-align: center;
-  color: var(--clr-text-primary);
-  font-size: var(--fs-medium);
-}
-
-.errorContainer {
-  width: 100%;
+.noTripsContainer {
+  margin-top: 4rem;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 1rem;
+  gap: 4rem;
+}
+
+.noTripsContainer p {
+  text-align: center;
+  font-size: var(--fs-xlarge);
+  font-weight: var(--fw-bold);
+  color: var(--clr-text-primary);
+}
+
+.illustration {
+  width: 100%;
+  max-width: 35rem;
+  height: auto;
 }
 
 .retryButton {
@@ -51,4 +49,20 @@
 
 .retryButton:hover {
   background-color: var(--clr-accent-dark);
+}
+
+@media screen and (max-width: 768px) {
+  .noTripsContainer p {
+    font-size: var(--fs-large);
+  }
+}
+
+@media screen and (max-width: 480px) {
+  .illustration {
+    max-width: 25rem;
+  }
+
+  .noTripsContainer p {
+    font-size: var(--fs-medium);
+  }
 }
