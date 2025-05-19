@@ -1,13 +1,16 @@
 import { NavLink, Outlet } from "react-router-dom";
 
+import styles from "./EmployeeIncidentsLayout.module.css";
+
 const EmployeeIncidentsLayouts = () => {
   return (
-    <div>
-      <div className="flex gap-4 mb-4">
+    <div className={styles.incidentsLayout}>
+      <div className={styles.navigation}>
         <NavLink to="new">Nouveau</NavLink>
         <NavLink to="assigned">Assignés</NavLink>
         <NavLink to="resolved">Résolus</NavLink>
       </div>
+
       <Outlet />
     </div>
   );

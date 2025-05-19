@@ -1,92 +1,62 @@
-import { createContext, ReactNode, useEffect, useState } from "react";
-
-import useAuth from "@/hooks/useAuth";
 import UserService from "@/services/UserService";
 import { UpdateUserInfo, User } from "@/types/UserTypes";
+import { createContext, ReactNode, useContext } from "react";
+import { AccountContext } from "./AccountContext";
+
+import type { Account } from "@/types/AccountTypes";
 
 interface UserContextType {
-  user: User | null;
-  isLoading: boolean;
-  error: boolean;
-  clearUser: () => void;
-  toggleUserRole: (role: string) => Promise<void>;
-  updateUserInfo: (data: UpdateUserInfo) => Promise<void>;
-  updateUserAvatar: (file: File) => Promise<void>;
+  toggleRole: (role: string) => Promise<void>;
+  updateInfo: (data: UpdateUserInfo) => Promise<void>;
+  updateAvatar: (file: File) => Promise<void>;
 }
 
-const defaultUserContext: UserContextType = {
-  user: null,
-  isLoading: true,
-  error: false,
-  clearUser: () => {},
-  toggleUserRole: async () => {},
-  updateUserInfo: async () => {},
-  updateUserAvatar: async () => {},
-};
+const UserContext = createContext<UserContextType>({
+  toggleRole: async () => {},
+  updateInfo: async () => {},
+  updateAvatar: async () => {},
+});
 
-const UserContext = createContext<UserContextType>(defaultUserContext);
-UserContext.displayName = "UserContext";
+function isUser(account: Account): account is User {
+  return account && typeof account === "object" && "isDriver" in account && "isPassenger" in account;
+}
 
 const UserProvider = ({ children }: { children: ReactNode }) => {
-  const [user, setUser] = useState<User | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState(false);
+  const { setAccount } = useContext(AccountContext);
 
-  const { logout } = useAuth();
+  const updateInfo = async (data: UpdateUserInfo) => {
+    await UserService.updateMyInfo(data);
 
-  useEffect(() => {
-    const fetchUser = async () => {
-      const storedToken = localStorage.getItem("accessToken");
-      if (!storedToken) {
-        setIsLoading(false);
-        return;
-      }
+    setAccount((prev) => {
+      if (!prev || !isUser(prev)) return prev;
 
-      try {
-        const response = await UserService.getMyInfo();
-        setUser(response);
-        setError(false);
-      } catch {
-        setError(true);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchUser();
-  }, [logout]);
-
-  const clearUser = () => {
-    setUser(null);
+      return { ...prev, ...data };
+    });
   };
 
-  const toggleUserRole = async (role: string) => {
+  const updateAvatar = async (file: File) => {
+    const { url } = await UserService.updateMyAvatar(file);
+
+    setAccount((prev) => {
+      if (!prev || !isUser(prev)) return prev;
+
+      return { ...prev, avatar: url };
+    });
+  };
+
+  const toggleRole = async (role: string) => {
     await UserService.toggleMyRole(role);
 
-    if (role === "driver") {
-      setUser((prevUser) => (prevUser ? { ...prevUser, isDriver: !prevUser.isDriver } : null));
-    } else if (role === "passenger") {
-      setUser((prevUser) => (prevUser ? { ...prevUser, isPassenger: !prevUser.isPassenger } : null));
-    }
+    setAccount((prev) => {
+      if (!prev || !isUser(prev)) return prev;
+
+      if (role === "driver") return { ...prev, isDriver: !prev.isDriver };
+      if (role === "passenger") return { ...prev, isPassenger: !prev.isPassenger };
+      return prev;
+    });
   };
 
-  const updateUserInfo = async (data: UpdateUserInfo) => {
-    await UserService.updateMyInfo(data);
-    setUser((prevUser) => (prevUser ? { ...prevUser, ...data } : null));
-  };
-
-  const updateUserAvatar = async (file: File) => {
-    const { url } = await UserService.updateMyAvatar(file);
-    setUser((prevUser) => (prevUser ? { ...prevUser, avatar: url } : null));
-  };
-
-  return (
-    <UserContext.Provider
-      value={{ user, isLoading, error, toggleUserRole, updateUserInfo, updateUserAvatar, clearUser }}
-    >
-      {children}
-    </UserContext.Provider>
-  );
+  return <UserContext.Provider value={{ toggleRole, updateInfo, updateAvatar }}>{children}</UserContext.Provider>;
 };
 
 export { UserContext, UserProvider };

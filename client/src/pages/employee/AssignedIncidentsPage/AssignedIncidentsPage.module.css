@@ -1,0 +1,70 @@
+.pageContainer {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+}
+
+.incidentsList {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.5rem;
+}
+
+.noIncidentsContainer,
+.errorContainer {
+  margin-top: 4rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4rem;
+}
+
+.noIncidentsContainer p,
+.errorContainer p {
+  text-align: center;
+  font-size: var(--fs-xlarge);
+  font-weight: var(--fw-bold);
+  color: var(--clr-text-primary);
+}
+
+.illustration {
+  width: 100%;
+  max-width: 35rem;
+  height: auto;
+}
+
+.retryButton {
+  padding: 1rem 1.5rem;
+  color: var(--clr-white);
+  font-weight: var(--fw-medium);
+
+  background-color: var(--clr-accent);
+  border-radius: 0.5rem;
+  border: none;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.retryButton:hover {
+  background-color: var(--clr-accent-dark);
+}
+
+@media screen and (max-width: 768px) {
+  .noIncidentsContainer p,
+  .errorContainer p {
+    font-size: var(--fs-large);
+  }
+}
+
+@media screen and (max-width: 480px) {
+  .illustration {
+    max-width: 25rem;
+  }
+
+  .noIncidentsContainer p,
+  .errorContainer p {
+    font-size: var(--fs-medium);
+  }
+}

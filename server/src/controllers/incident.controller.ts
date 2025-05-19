@@ -11,20 +11,15 @@ import type { Request, Response } from "express";
 export const getPendingIncidents = catchAsync(async (req: Request, res: Response) => {
   const { page, limit, offset } = parsePagination(req);
 
-  const { count, incidents } = await IncidentService.getIncidentsByStatus(
-    "pending",
-    limit,
-    offset
-  );
+  const { count, incidents } = await IncidentService.getIncidentsByStatus("pending", limit, offset);
 
   const getDTO = (incident: IncidentDocument) => incident.toPreviewDTO();
+  const incidentsDTO = incidents.map(getDTO);
 
   res.status(200).json({
     success: true,
     message: "Liste des incidents en attente de validation récupérée avec succès.",
-    data: {
-      incidents: incidents.map(getDTO),
-    },
+    data: incidentsDTO,
     pagination: {
       page,
       limit,
@@ -47,7 +42,7 @@ export const getIncidentDetails = catchAsync(async (req: Request, res: Response)
   res.status(200).json({
     success: true,
     message: "Détails de l'incident récupérés avec succès.",
-    data: { incident: dto },
+    data: dto,
   });
 });
 

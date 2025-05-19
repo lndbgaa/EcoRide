@@ -1,5 +1,6 @@
-import { UserContext } from "@/contexts/UserContext";
 import { useContext } from "react";
+
+import { UserContext } from "@/contexts/UserContext";
 
 const useUser = () => {
   const context = useContext(UserContext);
@@ -8,9 +9,9 @@ const useUser = () => {
     throw new Error("useUser doit être utilisé à l'intérieur d'un UserProvider");
   }
 
-  const { user, toggleUserRole, updateUserInfo, updateUserAvatar, isLoading, error, clearUser } = context;
+  const { toggleRole, updateInfo, updateAvatar } = context;
 
-  return { user, toggleUserRole, updateUserInfo, updateUserAvatar, isLoading, error, clearUser };
+  return { toggleRole, updateInfo, updateAvatar };
 };
 
 export default useUser;

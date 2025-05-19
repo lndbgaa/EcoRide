@@ -7,7 +7,7 @@ import EmailIcon from "@/assets/images/email-icon.svg?react";
 import LocationIcon from "@/assets/images/location-icon.svg?react";
 import PhoneIcon from "@/assets/images/phone-icon.svg?react";
 
-import useUser from "@/hooks/useUser";
+import useUser from "@/hooks/useAccount";
 
 import styles from "./ContactPage.module.css";
 

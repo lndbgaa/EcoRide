@@ -5,7 +5,7 @@ import { REVIEW_STATUSES } from "@/constants/index.js";
 import { Employee, Ride, User } from "@/models/mysql";
 import { toDateOnly, toTimeOnly } from "@/utils/date.utils.js";
 
-import type { RidePublicPreviewDTO } from "@/models/mysql/Ride.model.js";
+import type { RideDTO } from "@/models/mysql/Ride.model.js";
 import type { UserPublicDTO } from "@/models/mysql/User.model.js";
 import type { ReviewStatus } from "@/types/index.js";
 
@@ -37,7 +37,7 @@ export interface ReviewEmployeeDTO {
   comment: string;
   author: UserPublicDTO | null;
   target: UserPublicDTO | null;
-  ride: RidePublicPreviewDTO | null;
+  ride: RideDTO | null;
   createdAt: {
     date: string;
     time: string;
@@ -140,7 +140,7 @@ class Review extends Model {
       comment: this.comment,
       author: this.author?.toPublicDTO() ?? null,
       target: this.target?.toPublicDTO() ?? null,
-      ride: this.ride?.toPublicPreviewDTO() ?? null,
+      ride: this.ride?.toDTO() ?? null,
       createdAt: {
         date: toDateOnly(this.created_at),
         time: toTimeOnly(this.created_at),

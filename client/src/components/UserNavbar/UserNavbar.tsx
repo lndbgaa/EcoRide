@@ -10,17 +10,22 @@ import DefaultAvatar from "@/assets/images/default-avatar.jpg";
 import SearchIcon from "@/assets/images/search-icon.svg?react";
 import SmallLogo from "@/assets/images/small-logo.svg?react";
 
+import useAccount from "@/hooks/useAccount";
 import useAuth from "@/hooks/useAuth";
-import useUser from "@/hooks/useUser";
 
 import styles from "./UserNavbar.module.css";
+
+import type { User } from "@/types/UserTypes";
 
 const UserNavbar = () => {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
-  const navigate = useNavigate();
   const { isAuthenticated, logout } = useAuth();
-  const { user, clearUser } = useUser();
+  const { account, clearAccount } = useAccount();
+
+  const user = account as User;
+
+  const navigate = useNavigate();
   const navbarRef = useRef<HTMLDivElement>(null);
 
   const closeDropdown = () => setIsDropdownOpen(false);
@@ -32,7 +37,7 @@ const UserNavbar = () => {
   const handleLogout = async () => {
     try {
       await logout();
-      clearUser();
+      clearAccount();
       setIsDropdownOpen(false);
       navigate("/");
     } catch {
@@ -91,9 +96,6 @@ const UserNavbar = () => {
       </Link>
       <Link to="/login" className={styles.dropdownItem} onClick={closeDropdown}>
         Connexion
-      </Link>
-      <Link to="/contact" className={styles.dropdownItem} onClick={closeDropdown}>
-        Nous contacter
       </Link>
     </>
   );

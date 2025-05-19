@@ -1,6 +1,6 @@
 import { AxiosError } from "axios";
 import classNames from "classnames";
-import { FormEvent, useEffect, useState } from "react";
+import { FormEvent, useCallback, useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import validator from "validator";
@@ -19,11 +19,19 @@ const LoginPage = () => {
   const { login, isAuthenticated } = useAuth();
   const navigate = useNavigate();
 
+  const { userRole } = useAuth();
+
+  const redirect = useCallback(() => {
+    return userRole === "employee"
+      ? navigate("/employee/dashboard")
+      : userRole === "admin"
+      ? navigate("/admin/dashboard")
+      : navigate("/search");
+  }, [userRole, navigate]);
+
   useEffect(() => {
-    if (isAuthenticated) {
-      navigate("/search");
-    }
-  }, [isAuthenticated, navigate]);
+    if (isAuthenticated) redirect();
+  }, [isAuthenticated, redirect]);
 
   const validateFormData = (): boolean => {
     setError({});
@@ -59,7 +67,7 @@ const LoginPage = () => {
 
     try {
       await login({ email, password });
-      navigate("/search");
+      redirect();
     } catch (error) {
       if (error instanceof AxiosError) {
         const message = error.response?.data?.message;

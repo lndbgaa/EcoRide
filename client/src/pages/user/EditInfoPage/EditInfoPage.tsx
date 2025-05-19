@@ -5,7 +5,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 
 import Loader from "@/components/Loader/Loader";
-import useUser from "@/hooks/useUser";
+import useUser from "@/hooks/useAccount";
 
 import styles from "./EditInfoPage.module.css";
 

@@ -1,0 +1,54 @@
+.dashboardContainer {
+  padding: 0 2rem 2rem;
+  width: 100%;
+  margin: 0 auto;
+  max-width: 70rem;
+  display: flex;
+  flex-direction: column;
+}
+
+.navigation {
+  position: relative;
+  margin: 2rem auto 4rem;
+  display: flex;
+  gap: 7rem;
+}
+
+.navigation a {
+  position: relative;
+  padding: 1rem 2rem;
+  font-size: var(--fs-xlarge);
+  font-weight: var(--fw-medium);
+  text-transform: uppercase;
+  color: var(--clr-text-secondary);
+  transition: color 0.3s ease;
+}
+
+.navigation a[class*="active"] {
+  color: var(--clr-text-primary);
+}
+
+.slider {
+  position: absolute;
+  bottom: -1px;
+  height: 2px;
+  border-radius: 1rem;
+  background-color: var(--clr-text-primary);
+  transition: all 0.3s ease;
+}
+
+@media screen and (max-width: 768px) {
+  .navigation {
+    gap: 2rem;
+  }
+
+  .navigation a {
+    font-size: var(--fs-large);
+  }
+}
+
+@media screen and (max-width: 480px) {
+  .navigation a {
+    font-size: var(--fs-medium);
+  }
+}

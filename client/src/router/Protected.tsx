@@ -5,7 +5,7 @@ import useAuth from "@/hooks/useAuth";
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
-  roles?: string[];
+  roles: string[];
   redirectTo?: string;
 }
 
@@ -15,8 +15,9 @@ interface ProtectedRouteProps {
  * Si roles n'est pas fourni, vérifie seulement l'authentification.
  */
 const Protected = ({ children, roles, redirectTo = "/login" }: ProtectedRouteProps) => {
-  const { isAuthenticated, isLoading, userRole } = useAuth();
   const location = useLocation();
+
+  const { isAuthenticated, role, isLoading } = useAuth();
 
   if (isLoading) {
     return <Loader width="7rem" height="7rem" />;
@@ -26,7 +27,7 @@ const Protected = ({ children, roles, redirectTo = "/login" }: ProtectedRoutePro
     return <Navigate to={redirectTo} state={{ from: location }} replace />;
   }
 
-  if (roles && roles.length > 0 && !roles.includes(userRole)) {
+  if (roles && roles.length > 0 && !roles.includes(role)) {
     return <Navigate to="/unauthorized" state={{ from: location }} replace />;
   }
 

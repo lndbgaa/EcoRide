@@ -1,11 +1,13 @@
 import { Outlet } from "react-router-dom";
 
+import EmployeeNavbar from "@/components/EmployeeNavbar/EmployeeNavbar";
+
 const EmployeeLayout = () => {
   return (
     <div>
-      <main>
-        <Outlet />
-      </main>
+      <EmployeeNavbar />
+
+      <Outlet />
     </div>
   );
 };

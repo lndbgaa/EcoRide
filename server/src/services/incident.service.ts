@@ -15,11 +15,7 @@ class IncidentService {
    * @param userId - L'identifiant de l'utilisateur qui signale l'incident
    * @param data - Les données de l'incident
    */
-  public static async createIncident(
-    userId: string,
-    booking: Booking,
-    description: string
-  ): Promise<void> {
+  public static async createIncident(userId: string, booking: Booking, description: string): Promise<void> {
     const user = await UserService.findUserOrThrow(userId);
     const ride = await RideService.findRideOrThrow(booking.getRideId(), {
       include: { association: "driver" },
@@ -66,9 +62,7 @@ class IncidentService {
         email: ride.driver?.getEmail() ?? "",
         pseudo: ride.driver?.getPseudo() ?? "",
       },
-      rewardAmount:
-        booking.getSeatsBooked() * ride.getPrice() -
-        PLATFORM_CREDITS_PER_SEAT * booking.getSeatsBooked(),
+      rewardAmount: booking.getSeatsBooked() * ride.getPrice() - PLATFORM_CREDITS_PER_SEAT * booking.getSeatsBooked(),
     });
   }
 
@@ -84,10 +78,7 @@ class IncidentService {
     limit: number,
     offset: number
   ): Promise<{ count: number; incidents: IncidentDocument[] }> {
-    const incidents = await Incident.find({ status })
-      .skip(offset)
-      .limit(limit)
-      .sort({ createdAt: -1 });
+    const incidents = await Incident.find({ status }).skip(offset).limit(limit).sort({ createdAt: -1 });
 
     const count = await Incident.countDocuments({ status });
 
@@ -110,14 +101,6 @@ class IncidentService {
       });
     }
 
-    if (incident.isResolved()) {
-      throw new AppError({
-        statusCode: 403,
-        statusText: "Forbidden",
-        message: "Cet incident est résolu et ne peut plus être consulté.",
-      });
-    }
-
     return incident;
   }
 
@@ -126,10 +109,7 @@ class IncidentService {
    * @param incidentId - L'identifiant de l'incident
    * @param employeeId - L'identifiant de l'employé
    */
-  public static async assignIncident(
-    incidentId: string,
-    employeeId: string
-  ): Promise<void> {
+  public static async assignIncident(incidentId: string, employeeId: string): Promise<void> {
     const incident = await Incident.findById(incidentId);
 
     if (!incident) {
@@ -177,11 +157,7 @@ class IncidentService {
    * @param employeeId - L'identifiant de l'employé qui résout l'incident
    * @param note - La note de résolution
    */
-  public static async resolveIncident(
-    incidentId: string,
-    employeeId: string,
-    note: string
-  ): Promise<void> {
+  public static async resolveIncident(incidentId: string, employeeId: string, note: string): Promise<void> {
     const incident = await Incident.findById(incidentId);
 
     if (!incident) {
@@ -242,10 +218,7 @@ class IncidentService {
 
     if (status) findOptions.status = status;
 
-    const incidents = await Incident.find(findOptions)
-      .skip(offset)
-      .limit(limit)
-      .sort({ createdAt: -1 });
+    const incidents = await Incident.find(findOptions).skip(offset).limit(limit).sort({ createdAt: -1 });
 
     const count = await Incident.countDocuments(findOptions);
 

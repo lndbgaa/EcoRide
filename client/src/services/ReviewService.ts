@@ -24,6 +24,32 @@ class ReviewService {
     const response = await axiosPrivate.get(url);
     return response.data;
   }
+
+  static async getPendingReviews() {
+    const url = "/reviews/pending";
+    const response = await axiosPrivate.get(url);
+    return response.data;
+  }
+
+  static async approveReview(reviewId: string) {
+    const url = `/reviews/${reviewId}/approve`;
+    const response = await axiosPrivate.patch(url, {
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+    return response.data;
+  }
+
+  static async rejectReview(reviewId: string) {
+    const url = `/reviews/${reviewId}/reject`;
+    const response = await axiosPrivate.patch(url, {
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+    return response.data;
+  }
 }
 
 export default ReviewService;

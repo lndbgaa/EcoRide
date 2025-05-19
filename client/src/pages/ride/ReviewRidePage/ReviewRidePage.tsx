@@ -6,7 +6,7 @@ import { toast } from "react-toastify";
 import validator from "validator";
 
 import Loader from "@/components/Loader/Loader";
-import useUser from "@/hooks/useUser";
+import useUser from "@/hooks/useAccount";
 import RideService from "@/services/RideService";
 import { formatFullDateFr } from "@/utils/dateUtils";
 

@@ -3,14 +3,14 @@ import lazyLoad from "@/router/lazyLoad";
 import { lazy } from "react";
 import { Navigate } from "react-router-dom";
 
-import EmployeeDashboardLayout from "@/layouts/EmployeeDashboardLayout";
-import EmployeeIncidentsLayout from "@/layouts/EmployeeIncidentsLayout";
-import EmployeeLayout from "@/layouts/EmployeeLayout";
+import EmployeeDashboardLayout from "@/layouts/EmployeeDashboardLayout/EmployeeDashboardLayout";
+import EmployeeIncidentsLayout from "@/layouts/EmployeeIncidentsLayout/EmployeeIncidentsLayout";
+import EmployeeLayout from "@/layouts/EmployeeLayout/EmployeeLayout";
 
-const ManageReviewsPage = lazy(() => import("@/pages/employee/ManageReviewsPage"));
-const NewIncidentsPage = lazy(() => import("@/pages/employee/NewIncidentsPage"));
-const AssignedIncidentsPage = lazy(() => import("@/pages/employee/AssignedIncidentsPage"));
-const ResolvedIncidentsPage = lazy(() => import("@/pages/employee/ResolvedIncidentsPage"));
+const ManageReviewsPage = lazy(() => import("@/pages/employee/ManageReviewPage/ManageReviewsPage"));
+const NewIncidentsPage = lazy(() => import("@/pages/employee/NewIncidentsPage/NewIncidentsPage"));
+const AssignedIncidentsPage = lazy(() => import("@/pages/employee/AssignedIncidentsPage/AssignedIncidentsPage"));
+const ResolvedIncidentsPage = lazy(() => import("@/pages/employee/ResolvedIncidentsPage/ResolvedIncidentsPage"));
 
 const employeeRoutes = {
   path: "/employee",

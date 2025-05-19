@@ -12,7 +12,7 @@ import StarIcon from "@/assets/images/star-icon.svg?react";
 
 import ConfirmationModal from "@/components/ConfirmationModal/ConfirmationModal";
 import Loader from "@/components/Loader/Loader";
-import useUser from "@/hooks/useUser";
+import useUser from "@/hooks/useAccount";
 import BookingService from "@/services/BookingService";
 import RideService from "@/services/RideService";
 import { formatDuration, formatFullDateFr } from "@/utils/dateUtils";

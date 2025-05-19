@@ -1,0 +1,127 @@
+.modalOverlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: rgba(0, 0, 0, 0.5);
+  z-index: 2000;
+}
+
+.modalContent {
+  position: relative;
+  width: 100%;
+  max-width: 50rem;
+  padding: 2rem;
+  display: flex;
+  flex-direction: column;
+  background-color: var(--clr-white);
+  border-radius: 1rem;
+  margin: 2rem;
+}
+
+.modalTitle {
+  margin-bottom: 2rem;
+  text-align: center;
+  font-size: var(--fs-large);
+  font-weight: var(--fw-bold);
+  color: var(--clr-text-secondary);
+}
+
+.resolutionForm {
+  display: flex;
+  flex-direction: column;
+}
+
+.resolutionInput {
+  width: 100%;
+  min-height: 15rem;
+  padding: 1rem;
+  border: 2px solid var(--clr-soft-gray);
+  border-radius: 0.5rem;
+  resize: none;
+}
+
+.resolutionInput::placeholder {
+  color: var(--clr-medium-gray);
+  font-weight: var(--fw-regular);
+}
+
+.resolutionInput:focus {
+  border-color: var(--clr-accent-soft);
+  outline: none;
+}
+
+.resolutionInput:focus::placeholder {
+  color: var(--clr-accent-soft);
+}
+
+.hasError {
+  border-color: var(--clr-error);
+}
+
+.inputErrorMessage {
+  width: 100%;
+  color: var(--clr-error);
+  font-weight: var(--fw-bold);
+  font-size: var(--fs-small);
+}
+
+.buttonContainer {
+  margin-top: 2rem;
+  display: flex;
+  gap: 1rem;
+  justify-content: flex-end;
+}
+
+.cancelButton {
+  padding: 1rem 2rem;
+  font-size: var(--fs-medium);
+  color: var(--clr-text-primary);
+  background-color: var(--clr-soft-gray);
+  border: none;
+  border-radius: 0.5rem;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.cancelButton:hover {
+  background-color: var(--clr-medium-gray);
+  color: var(--clr-white);
+}
+
+.confirmButton {
+  padding: 1rem 2rem;
+  font-size: var(--fs-medium);
+  color: var(--clr-white);
+  background-color: var(--clr-accent);
+  border: none;
+  border-radius: 0.5rem;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.confirmButton:hover {
+  background-color: var(--clr-accent-dark);
+}
+
+.confirmButton:disabled {
+  background-color: var(--clr-soft-gray);
+  cursor: not-allowed;
+}
+
+@media screen and (max-width: 768px) {
+  .modalContent {
+    padding: 1.5rem;
+  }
+
+  .modalTitle {
+    font-size: var(--fs-medium);
+    margin-bottom: 1rem;
+  }
+}

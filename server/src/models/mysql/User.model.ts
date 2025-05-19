@@ -8,6 +8,7 @@ import AppError from "@/utils/AppError.js";
 import { toDateOnly } from "@/utils/date.utils.js";
 
 export interface UserPublicDTO {
+  role: string;
   id: string;
   firstName: string;
   pseudo: string;
@@ -125,6 +126,7 @@ class User extends Account {
 
   public toPublicDTO(): UserPublicDTO {
     return {
+      role: this.role?.label ?? "user",
       id: this.id,
       firstName: this.first_name,
       pseudo: this.pseudo,

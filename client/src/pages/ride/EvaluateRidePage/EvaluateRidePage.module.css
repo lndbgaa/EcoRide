@@ -27,7 +27,7 @@
   font-weight: var(--fw-bold);
   color: var(--clr-text-primary);
   letter-spacing: 0.02rem;
-  line-height: 1.2;
+  line-height: normal;
 }
 
 .departureDate {

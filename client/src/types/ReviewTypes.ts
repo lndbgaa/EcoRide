@@ -1,3 +1,4 @@
+import type { Ride } from "./RideTypes";
 import type { User } from "./UserTypes";
 
 export interface Review {
@@ -22,4 +23,10 @@ export interface ReceivedReview extends Review {
 
 export interface WrittenReview extends Review {
   target: User | null;
+}
+
+export interface ReviewToModerate extends Review {
+  author: User | null;
+  target: User | null;
+  ride: Ride | null;
 }

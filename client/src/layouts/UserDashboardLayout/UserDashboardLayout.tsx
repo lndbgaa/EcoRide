@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { Link, NavLink, Outlet, useLocation } from "react-router-dom";
 
 import Trip from "@/components/TripCard/TripCard";
-import useUser from "@/hooks/useUser";
+import useUser from "@/hooks/useAccount";
 import UserService from "@/services/UserService";
 
 import styles from "./UserDashboardLayout.module.css";

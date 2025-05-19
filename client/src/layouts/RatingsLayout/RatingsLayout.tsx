@@ -10,9 +10,7 @@ const RatingsLayout = () => {
         <NavLink to="given">Laissés</NavLink>
       </div>
 
-      <div className={styles.content}>
-        <Outlet />
-      </div>
+      <Outlet />
     </div>
   );
 };

@@ -1,0 +1,44 @@
+.incidentsLayout {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.navigation {
+  margin-bottom: 3rem;
+  display: flex;
+  justify-content: center;
+  gap: 2rem;
+}
+
+.navigation a {
+  padding: 0.4rem 1.8rem;
+  color: var(--clr-text-secondary);
+  font-weight: var(--fw-medium);
+  background-color: var(--clr-soft-gray);
+  border-radius: 0.5rem;
+  transition: 0.3s ease;
+}
+
+.navigation a:hover {
+  background-color: var(--clr-medium-gray);
+  color: var(--clr-white);
+}
+
+.navigation a[class*="active"] {
+  color: var(--clr-white);
+  background-color: var(--clr-accent-dark);
+}
+
+@media (max-width: 480px) {
+  .navigation {
+    gap: 1rem;
+  }
+
+  .navigation a {
+    width: auto;
+    max-width: none;
+    text-align: center;
+    padding: 0.5rem 1.5rem;
+  }
+}

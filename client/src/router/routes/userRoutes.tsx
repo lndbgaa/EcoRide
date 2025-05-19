@@ -67,32 +67,32 @@ const userRoutes = {
 
     // Modification de l'avatar
     {
-      path: "/dashboard/profile/picture/edit",
-      element: <Protected roles={["user"]}>{lazyLoad(EditAvatarPage)}</Protected>,
+      path: "dashboard/profile/picture/edit",
+      element: lazyLoad(EditAvatarPage),
     },
 
     // Modification des informations de l'utilisateur
     {
-      path: "/dashboard/profile/info/edit",
-      element: <Protected roles={["user"]}>{lazyLoad(EditInfoPage)}</Protected>,
+      path: "dashboard/profile/info/edit",
+      element: lazyLoad(EditInfoPage),
     },
 
     // Affichage du véhicule
     {
-      path: "/dashboard/profile/vehicle/:id/show",
-      element: <Protected roles={["user"]}>{lazyLoad(ShowVehiclePage)}</Protected>,
+      path: "dashboard/profile/vehicle/:id/show",
+      element: lazyLoad(ShowVehiclePage),
     },
 
     // Ajout d'un véhicule
     {
-      path: "/dashboard/profile/vehicle/add",
-      element: <Protected roles={["user"]}>{lazyLoad(AddVehiclePage)}</Protected>,
+      path: "dashboard/profile/vehicle/add",
+      element: lazyLoad(AddVehiclePage),
     },
 
     // Ajout d'une préférence
     {
-      path: "/dashboard/profile/preference/add",
-      element: <Protected roles={["user"]}>{lazyLoad(AddPreferencePage)}</Protected>,
+      path: "dashboard/profile/preference/add",
+      element: lazyLoad(AddPreferencePage),
     },
 
     // Trajets à venir

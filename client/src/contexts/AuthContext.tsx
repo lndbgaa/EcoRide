@@ -7,8 +7,7 @@ import type { CustomJwtPayload, LoginData, RegisterData } from "@/types/AuthType
 
 interface AuthContextType {
   isAuthenticated: boolean;
-  userRole: string;
-  userId: string | null;
+  role: string;
   isLoading: boolean;
   register: (data: RegisterData) => Promise<void>;
   login: (data: LoginData) => Promise<void>;
@@ -17,8 +16,7 @@ interface AuthContextType {
 
 const defaultAuthContext: AuthContextType = {
   isAuthenticated: false,
-  userRole: "guest",
-  userId: null,
+  role: "guest",
   isLoading: true,
   register: async () => {},
   login: async () => {},
@@ -29,15 +27,14 @@ const AuthContext = createContext<AuthContextType>(defaultAuthContext);
 AuthContext.displayName = "AuthContext";
 
 const AuthProvider = ({ children }: { children: ReactNode }) => {
-  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
-  const [userId, setUserId] = useState<string | null>(null);
-  const [userRole, setUserRole] = useState<string>("guest");
   const [isLoading, setIsLoading] = useState<boolean>(true);
+
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
+  const [role, setRole] = useState<string>("guest");
 
   const resetAuthState = () => {
     setIsAuthenticated(false);
-    setUserRole("guest");
-    setUserId(null);
+    setRole("guest");
     localStorage.removeItem("accessToken");
   };
 
@@ -48,7 +45,7 @@ const AuthProvider = ({ children }: { children: ReactNode }) => {
       if (storedToken) {
         try {
           const decoded = jwtDecode<CustomJwtPayload>(storedToken);
-          const { id, role, exp } = decoded;
+          const { role, exp } = decoded;
 
           const isTokenExpired = exp && exp < Date.now() / 1000;
 
@@ -58,21 +55,17 @@ const AuthProvider = ({ children }: { children: ReactNode }) => {
               localStorage.setItem("accessToken", newAccessToken);
 
               const refreshedDecoded = jwtDecode<CustomJwtPayload>(newAccessToken);
-              const { id, role } = refreshedDecoded;
+              const { role } = refreshedDecoded;
               setIsAuthenticated(true);
-              setUserRole(role);
-              setUserId(id);
-            } catch (refreshError) {
-              console.error("Échec du rafraîchissement du token :", refreshError);
+              setRole(role);
+            } catch {
               resetAuthState();
             }
           } else {
             setIsAuthenticated(true);
-            setUserRole(role);
-            setUserId(id);
+            setRole(role);
           }
-        } catch (decodeError) {
-          console.error("Erreur lors du décodage du token :", decodeError);
+        } catch {
           resetAuthState();
         }
       }
@@ -88,10 +81,9 @@ const AuthProvider = ({ children }: { children: ReactNode }) => {
       const { accessToken } = await AuthService.register(data);
       localStorage.setItem("accessToken", accessToken);
       const decoded = jwtDecode<CustomJwtPayload>(accessToken);
-      const { id, role } = decoded;
+      const { role } = decoded;
       setIsAuthenticated(true);
-      setUserRole(role);
-      setUserId(id);
+      setRole(role);
     } catch (error) {
       resetAuthState();
       throw error;
@@ -107,8 +99,7 @@ const AuthProvider = ({ children }: { children: ReactNode }) => {
       localStorage.setItem("accessToken", accessToken);
       const decoded = jwtDecode<CustomJwtPayload>(accessToken);
       setIsAuthenticated(true);
-      setUserRole(decoded.role);
-      setUserId(decoded.id);
+      setRole(decoded.role);
     } catch (error) {
       resetAuthState();
       throw error;
@@ -132,8 +123,7 @@ const AuthProvider = ({ children }: { children: ReactNode }) => {
     <AuthContext.Provider
       value={{
         isAuthenticated,
-        userRole,
-        userId,
+        role,
         isLoading,
         login,
         register,

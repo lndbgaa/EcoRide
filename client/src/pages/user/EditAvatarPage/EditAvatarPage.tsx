@@ -2,7 +2,7 @@ import { FormEvent, useRef, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 
-import useUser from "@/hooks/useUser";
+import useUser from "@/hooks/useAccount";
 
 import styles from "./EditAvatarPage.module.css";
 

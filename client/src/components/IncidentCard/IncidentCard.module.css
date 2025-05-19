@@ -1,0 +1,59 @@
+.incidentCard {
+  width: 100%;
+  padding: 1rem 1.5rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.5rem;
+  border-radius: 1rem;
+  background-color: var(--clr-white);
+  border: 1px solid var(--clr-soft-gray);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+}
+
+.incidentDate {
+  align-self: flex-end;
+  color: var(--clr-text-secondary);
+  font-size: var(--fs-small);
+}
+
+.description {
+  max-width: 80%;
+  font-weight: var(--fw-bold);
+  color: var(--clr-info);
+}
+
+.divider {
+  margin: 0 auto;
+  width: 80%;
+  height: 1px;
+  background-color: var(--clr-soft-gray);
+}
+
+.viewButton {
+  align-self: flex-end;
+  display: block;
+  padding: 0.6rem 1.5rem;
+  line-height: normal;
+  color: var(--clr-white);
+  border-radius: 0.5rem;
+  background-color: var(--clr-accent);
+  border: none;
+  cursor: pointer;
+  box-shadow: 0 2px 4px rgba(76, 175, 80, 0.08);
+  transition: background 0.2s;
+}
+
+.viewButton:hover {
+  background-color: #388e3c;
+}
+
+@media screen and (max-width: 480px) {
+  .incidentDate {
+    align-self: center;
+  }
+
+  .description {
+    text-align: center;
+  }
+}

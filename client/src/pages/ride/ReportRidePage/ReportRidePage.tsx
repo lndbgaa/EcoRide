@@ -6,7 +6,7 @@ import { toast } from "react-toastify";
 import validator from "validator";
 
 import Loader from "@/components/Loader/Loader";
-import useUser from "@/hooks/useUser";
+import useUser from "@/hooks/useAccount";
 import BookingService from "@/services/BookingService";
 import RideService from "@/services/RideService";
 import { formatFullDateFr } from "@/utils/dateUtils";
@@ -105,7 +105,7 @@ const ReportRidePage = () => {
       toast.success(
         "Votre signalement a été soumis avec succès. Notre équipe va l'examiner dans les plus brefs délais."
       );
-      navigate("/dashboard/history/bookings");
+      navigate(`/ride/${id}/review`);
     } catch (error) {
       if (error instanceof AxiosError) {
         toast.error(error.response?.data.message ?? "Une erreur est survenue lors du signalement de l'incident");

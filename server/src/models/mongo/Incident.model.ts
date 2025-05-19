@@ -29,7 +29,7 @@ export interface IncidentDocument extends Document {
   passenger: UserEmbedded;
   driver: UserEmbedded;
   rewardAmount: number;
-  status?: IncidentStatus;
+  status: IncidentStatus;
   assignedTo?: string;
   closure?: {
     at: Date;
@@ -62,6 +62,7 @@ export interface IncidentDetailedDTO extends IncidentPreviewDTO {
   ride: RideEmbedded & { departureTime: string; arrivalTime: string };
   passenger: UserEmbedded;
   driver: UserEmbedded;
+  status: IncidentStatus;
 }
 
 // Sous-schema pour les informations des utilisateurs impliqués
@@ -190,18 +191,12 @@ incidentSchema.methods.isResolved = function (this: IncidentDocument): boolean {
   return this.status === "resolved";
 };
 
-incidentSchema.methods.markAsAssigned = function (
-  this: IncidentDocument,
-  employeeId: string
-): void {
+incidentSchema.methods.markAsAssigned = function (this: IncidentDocument, employeeId: string): void {
   this.status = "assigned";
   this.assignedTo = employeeId;
 };
 
-incidentSchema.methods.markAsResolved = function (
-  this: IncidentDocument,
-  note: string
-): void {
+incidentSchema.methods.markAsResolved = function (this: IncidentDocument, note: string): void {
   this.status = "resolved";
   this.closure = {
     at: new Date(),
@@ -209,9 +204,7 @@ incidentSchema.methods.markAsResolved = function (
   };
 };
 
-incidentSchema.methods.getAssignedTo = function (
-  this: IncidentDocument
-): string | undefined {
+incidentSchema.methods.getAssignedTo = function (this: IncidentDocument): string | undefined {
   return this.assignedTo;
 };
 
@@ -231,9 +224,7 @@ incidentSchema.methods.getRewardAmount = function (this: IncidentDocument): numb
   return this.rewardAmount;
 };
 
-incidentSchema.methods.toPreviewDTO = function (
-  this: IncidentDocument
-): IncidentPreviewDTO {
+incidentSchema.methods.toPreviewDTO = function (this: IncidentDocument): IncidentPreviewDTO {
   return {
     id: this._id,
     description: this.description,
@@ -241,9 +232,7 @@ incidentSchema.methods.toPreviewDTO = function (
   };
 };
 
-incidentSchema.methods.toDetailedDTO = function (
-  this: IncidentDocument
-): IncidentDetailedDTO {
+incidentSchema.methods.toDetailedDTO = function (this: IncidentDocument): IncidentDetailedDTO {
   return {
     id: this._id,
     description: this.description,
@@ -259,6 +248,7 @@ incidentSchema.methods.toDetailedDTO = function (
     },
     passenger: this.passenger,
     driver: this.driver,
+    status: this.status,
     createdAt: toDateOnly(this.createdAt),
   };
 };

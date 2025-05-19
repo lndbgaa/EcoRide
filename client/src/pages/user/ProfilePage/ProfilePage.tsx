@@ -9,13 +9,15 @@ import DefaultAvatar from "@/assets/images/default-avatar.jpg";
 import InfoIcon from "@/assets/images/info-icon.svg?react";
 
 import Loader from "@/components/Loader/Loader";
-import useUser from "@/hooks/useUser";
 import PreferenceService from "@/services/PreferenceService";
 import UserService from "@/services/UserService";
 
 import styles from "./ProfilePage.module.css";
 
+import useAccount from "@/hooks/useAccount";
+import useUser from "@/hooks/useUser";
 import type { Preference } from "@/types/PreferenceTypes";
+import type { User } from "@/types/UserTypes";
 import type { Vehicle } from "@/types/VehicleTypes";
 
 const ProfilePage = () => {
@@ -27,8 +29,11 @@ const ProfilePage = () => {
   const [vehicles, setVehicles] = useState<Vehicle[]>([]);
   const [preferences, setPreferences] = useState<Preference[]>([]);
 
-  const { user, toggleUserRole, isLoading: isUserLoading } = useUser();
-  const { credits, firstName, memberSince, avatar, id: userId } = user ?? {};
+  const { account, isLoading: isUserLoading } = useAccount();
+  const { toggleRole } = useUser();
+
+  const user = account as User;
+  const { credits, firstName, memberSince, avatar, id: userId } = user;
 
   const handleRoleChange = async (role: "driver" | "passenger") => {
     if (role === "driver") {
@@ -36,14 +41,14 @@ const ProfilePage = () => {
         return;
       }
 
-      await toggleUserRole(role);
+      await toggleRole(role);
       setIsDriver(!isDriver);
     } else if (role === "passenger") {
       if (isPassenger && !isDriver) {
         return;
       }
 
-      await toggleUserRole(role);
+      await toggleRole(role);
       setIsPassenger(!isPassenger);
     }
   };
