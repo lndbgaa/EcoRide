@@ -7,9 +7,9 @@ import UserService from "@/services/UserService";
 
 import styles from "./UserDashboardLayout.module.css";
 
-import type { Booking } from "@/types/BookingTypes";
+import type { User, UserNextTrip } from "@/types/UserTypes";
 import type { Ride } from "@/types/RideTypes";
-import type { User } from "@/types/UserTypes";
+import type { Booking } from "@/types/BookingTypes";
 
 const UserDashboardLayout = () => {
   const location = useLocation();
@@ -35,7 +35,7 @@ const UserDashboardLayout = () => {
 
   useEffect(() => {
     const fetchNextEvent = async () => {
-      const response = await UserService.getMyNextEvent();
+      const response: UserNextTrip | null = await UserService.getMyNextTrip();
 
       if (response) {
         setEventType(response.type);

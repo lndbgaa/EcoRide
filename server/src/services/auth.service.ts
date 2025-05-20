@@ -10,43 +10,16 @@ import AccountService from "@/services/account.service.js";
 import AppError from "@/utils/AppError.js";
 import { generateToken } from "@/utils/jwt.utils.js";
 
-interface RegisterUserData {
-  email: string;
-  pseudo: string;
-  password: string;
-  firstName: string;
-  lastName: string;
-}
+import type {
+  LoginDTO,
+  LoginResult,
+  RefreshAccessTokenResult,
+  RegisterEmployeeDTO,
+  RegisterUserDTO,
+  RegisterUserResult,
+} from "@/types/auth.types.js";
 
-interface RegisterUserResponse {
-  accountId: string;
-  accessToken: string;
-  refreshToken: string;
-}
-
-interface RegisterEmployeeData {
-  email: string;
-  password: string;
-  firstName: string;
-  lastName: string;
-}
-
-interface LoginData {
-  email: string;
-  password: string;
-}
-
-interface LoginResponse {
-  accessToken: string;
-  refreshToken: string;
-}
-
-interface RefreshAccessTokenResponse {
-  accessToken: string;
-  newRefreshToken: string;
-}
-
-const { access_secret, access_expiration, refresh_expiration } = config.jwt;
+const { accessSecret, accessExpiration, refreshExpiration } = config.jwt;
 
 class AuthService {
   private static async assertEmailIsUnique(email: string): Promise<void> {
@@ -81,7 +54,7 @@ class AuthService {
    * @param data - Données du compte
    * @returns Jeton d'accès (access token) et de rafraîchissement (refresh token)
    */
-  public static async registerUser(data: RegisterUserData): Promise<RegisterUserResponse> {
+  public static async registerUser(data: RegisterUserDTO): Promise<RegisterUserResult> {
     const { email, pseudo, password, firstName, lastName } = data;
 
     await this.assertEmailIsUnique(email);
@@ -101,23 +74,25 @@ class AuthService {
         { transaction }
       );
 
+      const accountId = newUser.getId();
+
       const refreshToken = await RefreshToken.create(
         {
-          account_id: newUser.id,
+          account_id: accountId,
           token: nanoid(),
-          expires_at: now.add(ms(refresh_expiration), "ms").toDate(),
+          expires_at: now.add(ms(refreshExpiration), "ms").toDate(),
         },
         { transaction }
       );
 
       const accessToken = generateToken(
-        { id: newUser.id, role: ACCOUNT_ROLES_LABEL.USER },
-        access_secret,
-        access_expiration
+        { id: accountId, role: ACCOUNT_ROLES_LABEL.USER },
+        accessSecret,
+        accessExpiration
       );
 
       return {
-        accountId: newUser.id,
+        accountId,
         accessToken,
         refreshToken: refreshToken.token,
       };
@@ -132,21 +107,17 @@ class AuthService {
    * @param data - Données du compte (email, mot de passe, prénom, nom)
    * @returns ID du compte
    */
-  public static async registerEmployee(data: RegisterEmployeeData): Promise<{ accountId: string }> {
+  public static async registerEmployee(data: RegisterEmployeeDTO): Promise<void> {
     const { email, password, firstName, lastName } = data;
 
     await this.assertEmailIsUnique(email);
 
-    const newEmployee: Employee = await Employee.create({
+    await Employee.create({
       email,
       password,
       first_name: firstName,
       last_name: lastName,
     });
-
-    return {
-      accountId: newEmployee.id,
-    };
   }
 
   /**
@@ -155,7 +126,7 @@ class AuthService {
    * @param data - Données du compte
    * @returns Jeton d'accès (access token) et de rafraîchissement (refresh token)
    */
-  public static async login(data: LoginData): Promise<LoginResponse> {
+  public static async login(data: LoginDTO): Promise<LoginResult> {
     const { email, password } = data;
 
     const account = await AccountService.findOneByEmail(email);
@@ -176,23 +147,29 @@ class AuthService {
       });
     }
 
+    const accountId = account.getId();
     const role = account.role?.label ?? ACCOUNT_ROLES_LABEL.USER;
     const now = dayjs();
 
-    const refreshToken = await RefreshToken.create({
-      account_id: account.id,
-      token: nanoid(),
-      expires_at: now.add(ms(refresh_expiration), "ms").toDate(),
+    return await sequelize.transaction(async (transaction) => {
+      const refreshToken = await RefreshToken.create(
+        {
+          account_id: accountId,
+          token: nanoid(),
+          expires_at: now.add(ms(refreshExpiration), "ms").toDate(),
+        },
+        { transaction }
+      );
+
+      const accessToken = generateToken({ id: accountId, role }, accessSecret, accessExpiration);
+
+      await account.updateLastLogin({ transaction });
+
+      return {
+        accessToken,
+        refreshToken: refreshToken.token,
+      };
     });
-
-    const accessToken = generateToken({ id: account.id, role }, access_secret, access_expiration);
-
-    await account.updateLastLogin();
-
-    return {
-      accessToken,
-      refreshToken: refreshToken.token,
-    };
   }
 
   /**
@@ -210,12 +187,12 @@ class AuthService {
    * @param refreshToken - Jeton de rafraîchissement
    * @returns Jeton d'accès (access token)
    */
-  public static async refreshAccessToken(refreshToken: string): Promise<RefreshAccessTokenResponse> {
+  public static async refreshAccessToken(refreshToken: string): Promise<RefreshAccessTokenResult> {
     const refreshTokenRecord = await RefreshToken.findOne({
       where: { token: refreshToken },
     });
 
-    if (!refreshTokenRecord || refreshTokenRecord.revoked_at) {
+    if (!refreshTokenRecord || refreshTokenRecord.isRevoked()) {
       throw new AppError({
         statusCode: 403,
         statusText: "Forbidden",
@@ -235,15 +212,7 @@ class AuthService {
       });
     }
 
-    await refreshTokenRecord.update({ revoked_at: now.toDate() }); // une seule utilisation du jeton de rafraîchissement
-
-    const newRefreshToken = await RefreshToken.create({
-      account_id: refreshTokenRecord.account_id,
-      token: nanoid(),
-      expires_at: now.add(ms(refresh_expiration), "ms").toDate(),
-    });
-
-    const account = await AccountService.findOneById(refreshTokenRecord.account_id);
+    const account = await AccountService.findOneById(refreshTokenRecord.getAccountId());
 
     if (!account) {
       throw new AppError({
@@ -261,9 +230,31 @@ class AuthService {
       });
     }
 
+    const accountId = account.getId();
     const role = account.role?.label ?? ACCOUNT_ROLES_LABEL.USER;
 
-    const newAccessToken = generateToken({ id: account.id, role }, access_secret, access_expiration);
+    const newRefreshToken = await sequelize.transaction<RefreshToken>(async (transaction) => {
+      await refreshTokenRecord.update({ revoked_at: now.toDate() }, { transaction });
+
+      return RefreshToken.create(
+        {
+          account_id: accountId,
+          token: nanoid(),
+          expires_at: now.add(ms(refreshExpiration), "ms").toDate(),
+        },
+        { transaction }
+      );
+    });
+
+    if (!newRefreshToken) {
+      throw new AppError({
+        statusCode: 500,
+        statusText: "Internal Server Error",
+        message: "Erreur lors de la création du jeton de rafraîchissement.",
+      });
+    }
+
+    const newAccessToken = generateToken({ id: accountId, role }, accessSecret, accessExpiration);
 
     return {
       accessToken: newAccessToken,

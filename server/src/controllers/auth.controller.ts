@@ -1,35 +1,43 @@
 import ms from "ms";
 
-import type { Request, Response } from "express";
-
 import config from "@/config/app.config.js";
 import AuthService from "@/services/auth.service.js";
 import PreferenceService from "@/services/preference.service.js";
-import AppError from "@/utils/AppError";
+import AppError from "@/utils/AppError.js";
 import catchAsync from "@/utils/catchAsync.js";
 
+import type {
+  LoginDTO,
+  LoginResult,
+  RefreshAccessTokenResult,
+  RegisterEmployeeDTO,
+  RegisterUserDTO,
+  RegisterUserResult,
+} from "@/types/auth.types.js";
+import type { Request, Response } from "express";
+
 const { env } = config;
-const { refresh_expiration } = config.jwt;
+const { refreshExpiration } = config.jwt;
 
 /**
  * Gère la création d'un compte (utilisateur).
  */
-export const registerUser = catchAsync(async (req: Request, res: Response): Promise<void> => {
-  const data = req.body;
+export const registerUser = catchAsync(async (req: Request, res: Response): Promise<Response> => {
+  const data: RegisterUserDTO = req.body;
 
-  const { accountId, accessToken, refreshToken } = await AuthService.registerUser(data);
+  const { accountId, accessToken, refreshToken }: RegisterUserResult = await AuthService.registerUser(data);
 
   res.cookie("refreshToken", refreshToken, {
     httpOnly: true,
     secure: env === "production",
     sameSite: "lax",
     path: "/",
-    maxAge: ms(refresh_expiration),
+    maxAge: ms(refreshExpiration),
   });
 
   await PreferenceService.defineDefaultPreferences(accountId);
 
-  res.status(201).json({
+  return res.status(201).json({
     success: true,
     message: "Compte utilisateur créé avec succès.",
     data: { accessToken },
@@ -37,36 +45,33 @@ export const registerUser = catchAsync(async (req: Request, res: Response): Prom
 });
 
 /**
- * Gère la création d'un compte employé.
+ * Gère la création d'un compte (employé).
  */
-export const registerEmployee = catchAsync(async (req: Request, res: Response): Promise<void> => {
-  const data = req.body;
+export const registerEmployee = catchAsync(async (req: Request, res: Response): Promise<Response> => {
+  const data: RegisterEmployeeDTO = req.body;
 
   await AuthService.registerEmployee(data);
 
-  res.status(201).json({ success: true, message: "Compte employé créé avec succès." });
+  return res.status(201).json({ success: true, message: "Compte employé créé avec succès." });
 });
 
 /**
  * Gère la connexion d'un compte (utilisateur, employé, administrateur).
  */
-export const login = catchAsync(async (req: Request, res: Response): Promise<void> => {
-  const { email, password } = req.body;
+export const login = catchAsync(async (req: Request, res: Response): Promise<Response> => {
+  const data: LoginDTO = req.body;
 
-  const { accessToken, refreshToken } = await AuthService.login({
-    email,
-    password,
-  });
+  const { accessToken, refreshToken }: LoginResult = await AuthService.login(data);
 
   res.cookie("refreshToken", refreshToken, {
     httpOnly: true,
     secure: env === "production",
     sameSite: "lax",
     path: "/",
-    maxAge: ms(refresh_expiration),
+    maxAge: ms(refreshExpiration),
   });
 
-  res.status(200).json({
+  return res.status(200).json({
     success: true,
     message: "Connexion réussie.",
     data: { accessToken },
@@ -76,15 +81,14 @@ export const login = catchAsync(async (req: Request, res: Response): Promise<voi
 /**
  * Gère la déconnexion d'un compte (utilisateur, employé, administrateur).
  */
-export const logout = catchAsync(async (req: Request, res: Response): Promise<void> => {
+export const logout = catchAsync(async (req: Request, res: Response): Promise<Response> => {
   const refreshToken = req.cookies.refreshToken;
 
   if (!refreshToken) {
-    res.status(200).json({
+    return res.status(200).json({
       success: true,
       message: "Aucune session active détectée.",
     });
-    return;
   }
 
   await AuthService.logout(refreshToken);
@@ -96,35 +100,36 @@ export const logout = catchAsync(async (req: Request, res: Response): Promise<vo
     path: "/",
   });
 
-  res.status(200).json({ success: true, message: "Déconnexion réussie." });
+  return res.sendStatus(204);
 });
 
 /**
  * Gère le rafraîchissement d'un jeton d'accès (utilisateur, employé, administrateur).
  */
-export const handleTokenRefresh = catchAsync(async (req: Request, res: Response): Promise<void> => {
+export const handleTokenRefresh = catchAsync(async (req: Request, res: Response): Promise<Response> => {
   try {
     const refreshToken = req.cookies.refreshToken;
 
     if (!refreshToken) {
-      res.status(200).json({
+      return res.status(200).json({
         success: true,
         message: "Aucune session active détectée.",
       });
-      return;
     }
 
-    const { accessToken, newRefreshToken } = await AuthService.refreshAccessToken(refreshToken);
+    const { accessToken, newRefreshToken }: RefreshAccessTokenResult = await AuthService.refreshAccessToken(
+      refreshToken
+    );
 
     res.cookie("refreshToken", newRefreshToken, {
       httpOnly: true,
       secure: env === "production",
       sameSite: "lax",
       path: "/",
-      maxAge: ms(refresh_expiration),
+      maxAge: ms(refreshExpiration),
     });
 
-    res.status(200).json({
+    return res.status(200).json({
       success: true,
       message: "Token d'accès rafraîchi avec succès.",
       data: { accessToken },

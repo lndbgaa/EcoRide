@@ -11,7 +11,7 @@ import type { VehiclePublicDTO } from "@/models/mysql/Vehicle.model.js";
 import type { RideStatus } from "@/types/index.js";
 import type { SaveOptions } from "sequelize";
 
-export interface RideDTO {
+export interface RidePublicDTO {
   id: string;
   departureDate: string;
   departureLocation: string;
@@ -261,7 +261,7 @@ class Ride extends Model {
     return this.status === "cancelled";
   }
 
-  public toDTO(): RideDTO {
+  public toPublicDTO(): RidePublicDTO {
     return {
       id: this.id,
       departureDate: toDateOnly(this.departure_datetime),

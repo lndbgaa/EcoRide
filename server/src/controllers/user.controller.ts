@@ -1,12 +1,12 @@
-import { Booking, Ride, User } from "@/models/mysql/index.js";
-import PreferenceService from "@/services/preference.service";
+import { Booking, Ride, User } from "@/models/mysql/";
+import PreferenceService from "@/services/preference.service.js";
 import UserService from "@/services/user.service.js";
 import VehicleService from "@/services/vehicle.service.js";
 import AppError from "@/utils/AppError.js";
 import catchAsync from "@/utils/catchAsync.js";
 
-import type { BookingPrivateDTO } from "@/models/mysql/Booking.model.js";
-import type { RideDTO } from "@/models/mysql/Ride.model.js";
+import type { BookingPublicDTO } from "@/models/mysql/Booking.model.js";
+import type { RidePublicDTO } from "@/models/mysql/Ride.model.js";
 import type { MulterRequest } from "@/types/express.js";
 import type { Request, Response } from "express";
 
@@ -28,12 +28,12 @@ export const getUserInfo = catchAsync(async (req: Request, res: Response): Promi
 /**
  * Gère la récupération des informations de profil de l'utilisateur connecté
  */
-export const getMyInfo = catchAsync(async (req: Request, res: Response): Promise<void> => {
+export const getMyInfo = catchAsync(async (req: Request, res: Response): Promise<Response> => {
   const userId = req.user.id;
 
   const user: User = await UserService.getInfo(userId);
 
-  res.status(200).json({
+  return res.status(200).json({
     success: true,
     message: "Informations de profil récupérées avec succès.",
     data: user.toPrivateDTO(),
@@ -43,13 +43,13 @@ export const getMyInfo = catchAsync(async (req: Request, res: Response): Promise
 /**
  * Gère la mise à jour des informations de profil de l'utilisateur connecté
  */
-export const updateMyInfo = catchAsync(async (req: Request, res: Response): Promise<void> => {
+export const updateMyInfo = catchAsync(async (req: Request, res: Response): Promise<Response> => {
   const userId = req.user.id;
   const data = req.body;
 
   const user: User = await UserService.updateInfo(userId, data);
 
-  res.status(200).json({
+  return res.status(200).json({
     success: true,
     message: "Informations de profil mises à jour avec succès.",
     data: user.toPrivateDTO(),
@@ -59,19 +59,19 @@ export const updateMyInfo = catchAsync(async (req: Request, res: Response): Prom
 /**
  * Gère la mise à jour du rôle de l'utilisateur connecté
  */
-export const updateMyRole = catchAsync(async (req: Request, res: Response): Promise<void> => {
+export const updateMyRole = catchAsync(async (req: Request, res: Response): Promise<Response> => {
   const userId = req.user.id;
   const { role } = req.body;
 
   await UserService.updateRole(role, userId);
 
-  res.status(200).json({ success: true, message: "Rôle mis à jour avec succès." });
+  return res.sendStatus(204);
 });
 
 /**
  * Gère la mise à jour de la photo de profil de l'utilisateur connecté
  */
-export const updateMyAvatar = catchAsync(async (req: MulterRequest, res: Response): Promise<void> => {
+export const updateMyAvatar = catchAsync(async (req: MulterRequest, res: Response): Promise<Response> => {
   const userId = req.user.id;
 
   const { file } = req;
@@ -86,7 +86,7 @@ export const updateMyAvatar = catchAsync(async (req: MulterRequest, res: Respons
 
   const { url } = await UserService.updateAvatar(file, userId);
 
-  res.status(200).json({
+  return res.status(200).json({
     success: true,
     message: "Photo de profil mise à jour avec succès.",
     data: { url },
@@ -96,14 +96,14 @@ export const updateMyAvatar = catchAsync(async (req: MulterRequest, res: Respons
 /**
  * Gère la récupération d'un véhicule par l'utilisateur connecté
  */
-export const getMyVehicles = catchAsync(async (req: Request, res: Response): Promise<void> => {
+export const getMyVehicles = catchAsync(async (req: Request, res: Response): Promise<Response> => {
   const userId = req.user.id;
 
   const vehicles = await VehicleService.getUserVehicles(userId);
 
   const dto = vehicles.map((vehicle) => vehicle.toPrivateDTO());
 
-  res.status(200).json({
+  return res.status(200).json({
     success: true,
     message: "Véhicules récupérés avec succès.",
     data: dto,
@@ -113,14 +113,14 @@ export const getMyVehicles = catchAsync(async (req: Request, res: Response): Pro
 /**
  * Gère la récupération des préférences de l'utilisateur connecté
  */
-export const getMyPreferences = catchAsync(async (req: Request, res: Response): Promise<void> => {
+export const getMyPreferences = catchAsync(async (req: Request, res: Response): Promise<Response> => {
   const userId = req.user.id;
 
   const preferences = await PreferenceService.getPreferences(userId);
 
   const dto = preferences.map((preference) => preference.toPrivateDTO());
 
-  res.status(200).json({
+  return res.status(200).json({
     success: true,
     message: "Préférences récupérées avec succès.",
     data: dto,
@@ -142,13 +142,7 @@ export const getMyNextEvent = catchAsync(async (req: Request, res: Response): Pr
     });
   }
 
-  let dto: BookingPrivateDTO | RideDTO | null = null;
-
-  if (nextEvent instanceof Booking) {
-    dto = nextEvent.toPrivateDTO();
-  } else if (nextEvent instanceof Ride) {
-    dto = nextEvent.toDTO();
-  }
+  const dto: BookingPublicDTO | RidePublicDTO = nextEvent.toPublicDTO();
 
   return res.status(200).json({
     success: true,
@@ -166,21 +160,26 @@ export const getMyUpcomingEvents = catchAsync(async (req: Request, res: Response
 
   const upcomingEvents = await UserService.getUpcomingEvents(userId);
 
-  const message = upcomingEvents.length === 0 ? "Aucun évènement à venir" : "Événements à venir récupérés avec succès.";
+  if (upcomingEvents.length === 0) {
+    return res.status(200).json({
+      success: true,
+      message: "Aucun évènement à venir",
+    });
+  }
 
-  const dto = upcomingEvents.map((event) => {
+  const dto: ((BookingPublicDTO | RidePublicDTO) & { type: "booking" | "ride" })[] = upcomingEvents.map((event) => {
     const { data, type } = event;
-    const dto = type === "booking" ? data.toPrivateDTO() : data.toDTO();
+    const baseDto = data.toPublicDTO();
 
     return {
-      ...dto,
+      ...baseDto,
       type,
     };
   });
 
   return res.status(200).json({
     success: true,
-    message,
+    message: "Événements à venir récupérés avec succès.",
     data: dto,
   });
 });

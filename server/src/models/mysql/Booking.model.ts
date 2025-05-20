@@ -7,19 +7,13 @@ import { Ride, User } from "./index.js";
 
 import type { BookingStatus } from "@/types/index.js";
 import type { SaveOptions } from "sequelize";
-import type { RideDTO } from "./Ride.model.js";
+import type { RidePublicDTO } from "./Ride.model.js";
 import type { UserPublicDTO } from "./User.model.js";
 
 export interface BookingPublicDTO {
   id: string;
+  ride: RidePublicDTO | null;
   passenger: UserPublicDTO | null;
-  seatsBooked: number;
-  status: BookingStatus;
-}
-
-export interface BookingPrivateDTO {
-  id: string;
-  ride: RideDTO | null;
   seatsBooked: number;
   status: BookingStatus;
   createdAt: string;
@@ -84,16 +78,8 @@ class Booking extends Model {
   public toPublicDTO(): BookingPublicDTO {
     return {
       id: this.id,
+      ride: this.ride?.toPublicDTO() ?? null,
       passenger: this.passenger?.toPublicDTO() ?? null,
-      seatsBooked: this.seats_booked,
-      status: this.status,
-    };
-  }
-
-  public toPrivateDTO(): BookingPrivateDTO {
-    return {
-      id: this.id,
-      ride: this.ride?.toDTO() ?? null,
       seatsBooked: this.seats_booked,
       status: this.status,
       createdAt: toDateOnly(this.created_at),

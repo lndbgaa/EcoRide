@@ -4,10 +4,15 @@
   flex-direction: column;
 }
 
+.dropdownContainer.disabled {
+  pointer-events: none;
+  opacity: 0.5;
+}
+
 .selectorWrapper {
   position: relative;
   width: 100%;
-  height: 4.35rem; /* !!! */
+  height: 4.35rem;
 }
 
 .label {
@@ -31,6 +36,10 @@
   cursor: pointer;
 }
 
+.selectedContainer.disabled {
+  cursor: not-allowed;
+}
+
 .selectedContainer.hasError {
   border-color: var(--clr-error);
 }
@@ -44,12 +53,24 @@
   font-weight: var(--fw-medium);
 }
 
+.selectedContainer.disabled .selectedDisplay {
+  color: var(--clr-medium-gray);
+}
+
 .openIcon,
 .closeIcon {
   width: 2.4rem;
   height: 2.4rem;
   cursor: pointer;
   z-index: 1;
+}
+
+.selectedContainer.disabled .openIcon {
+  pointer-events: none;
+}
+
+.selectedContainer.disabled .openIcon path {
+  stroke: var(--clr-medium-gray);
 }
 
 .searchContainer {

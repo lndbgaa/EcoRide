@@ -9,6 +9,14 @@ class RefreshToken extends Model {
   declare revoked_at: Date;
   declare created_at: Date;
   declare updated_at: Date;
+
+  public getAccountId(this: RefreshToken): string {
+    return this.account_id;
+  }
+
+  public isRevoked(this: RefreshToken): boolean {
+    return this.revoked_at !== null;
+  }
 }
 
 RefreshToken.init(

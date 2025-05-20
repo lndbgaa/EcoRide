@@ -25,7 +25,7 @@ import bookingsRoutes from "@/routes/booking.route.js";
 import catalogRoutes from "@/routes/catalog.routes.js";
 import employeesRoutes from "@/routes/employee.route.js";
 import incidentsRoutes from "@/routes/incident.route.js";
-import userPrivateRoutes from "@/routes/me.route.js";
+import userPrivateRoutes from "@/routes/user.route.js";
 import preferencesRoutes from "@/routes/preference.route.js";
 import publicRoutes from "@/routes/public.route.js";
 import reviewsRoutes from "@/routes/review.route.js";

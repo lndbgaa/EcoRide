@@ -6,7 +6,7 @@ import Role from "@/models/mysql/Role.model.js";
 import AppError from "@/utils/AppError.js";
 
 import type { AccountRoleId, AccountStatus } from "@/types/index.js";
-import type { ModelStatic } from "sequelize";
+import type { ModelStatic, Transaction } from "sequelize";
 
 /**
  * Modèle représentant un compte générique.
@@ -153,9 +153,9 @@ abstract class Account extends Model {
     return await bcrypt.compare(password, this.password);
   }
 
-  public async updateLastLogin(): Promise<void> {
+  public async updateLastLogin(options?: { transaction?: Transaction }): Promise<void> {
     this.last_login = new Date();
-    await this.save();
+    await this.save(options);
   }
 
   public async suspend(): Promise<void> {

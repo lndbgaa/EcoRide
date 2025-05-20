@@ -3,9 +3,8 @@ import { useEffect, useRef, useState } from "react";
 
 import styles from "./Dropdown.module.css";
 
-import arrowIcon from "@/assets/images/arrow-icon.svg";
-import crossIcon from "@/assets/images/cross-icon.svg";
-
+import ArrowIcon from "@/assets/images/arrow-icon.svg?react";
+import CrossIcon from "@/assets/images/cross-icon.svg?react";
 interface DropdownOption {
   id: string | number;
   label: string;
@@ -18,6 +17,7 @@ interface DropdownProps {
   label?: string;
   placeholder?: string;
   hasError?: boolean;
+  disabled?: boolean;
 }
 
 const Dropdown = ({
@@ -27,6 +27,7 @@ const Dropdown = ({
   onChange,
   placeholder = "Sélectionnez une option",
   hasError,
+  disabled,
 }: DropdownProps) => {
   const selectorRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -92,14 +93,18 @@ const Dropdown = ({
       <div className={styles.selectorWrapper} ref={selectorRef}>
         {!isOpen ? (
           <div
-            className={classNames(styles.selectedContainer, { [styles.hasError]: hasError })}
+            className={classNames(styles.selectedContainer, {
+              [styles.hasError]: hasError,
+              [styles.disabled]: disabled,
+            })}
             onClick={(e) => {
+              if (disabled) return;
               e.stopPropagation();
               setIsOpen(true);
             }}
           >
             <p className={styles.selectedDisplay}>{displayValue}</p>
-            <img src={arrowIcon} alt="" className={styles.openIcon} aria-hidden="true" />
+            <ArrowIcon className={styles.openIcon} />
           </div>
         ) : (
           <div className={styles.searchContainer}>
@@ -113,13 +118,7 @@ const Dropdown = ({
               autoComplete="off"
               onChange={(e) => setSearchValue(e.target.value)}
             />
-            <img
-              src={crossIcon}
-              alt=""
-              className={styles.closeIcon}
-              onClick={() => setIsOpen(false)}
-              aria-hidden="true"
-            />
+            <CrossIcon className={styles.closeIcon} onClick={() => setIsOpen(false)} />
             <ul ref={dropdownRef} className={styles.dropdownMenu}>
               {filteredOptions.length > 0 ? (
                 filteredOptions.map((option) => (

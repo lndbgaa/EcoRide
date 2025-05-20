@@ -49,7 +49,7 @@ export const getMyBookings = catchAsync(async (req: Request, res: Response): Pro
       ? "1 réservation trouvée."
       : `${count} réservations trouvées.`;
 
-  const dto = bookings.map((booking: Booking) => booking.toPrivateDTO());
+  const dto = bookings.map((booking: Booking) => booking.toPublicDTO());
 
   res.status(200).json({
     success: true,

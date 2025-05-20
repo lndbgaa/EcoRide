@@ -153,7 +153,8 @@
 }
 
 .unavailableReason,
-.loginMessage {
+.loginMessage,
+.roleMessage {
   margin-top: 0.5rem;
   text-align: center;
   font-weight: var(--fw-bold);
@@ -164,16 +165,19 @@
   color: var(--clr-error);
 }
 
-.loginMessage {
+.loginMessage,
+.roleMessage {
   color: var(--clr-text-secondary);
 }
 
-.loginMessage a {
+.loginMessage a,
+.roleMessage a {
   color: var(--clr-accent);
   transition: color 0.3s ease;
 }
 
-.loginMessage a:hover {
+.loginMessage a:hover,
+.roleMessage a:hover {
   color: var(--clr-accent-dark);
   text-decoration: underline;
 }

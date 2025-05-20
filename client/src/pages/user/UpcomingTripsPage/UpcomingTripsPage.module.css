@@ -29,10 +29,18 @@
   color: var(--clr-text-primary);
 }
 
-.illustration {
+.errorIllustration,
+.emptyIllustration {
   width: 100%;
-  max-width: 35rem;
   height: auto;
+}
+
+.errorIllustration {
+  max-width: 55rem;
+}
+
+.emptyIllustration {
+  max-width: 40rem;
 }
 
 .retryButton {
@@ -47,22 +55,56 @@
   transition: background-color 0.3s ease;
 }
 
+.errorContainer {
+  margin-top: 4rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4rem;
+}
+
+.errorContainer p {
+  text-align: center;
+  font-size: var(--fs-xlarge);
+  font-weight: var(--fw-bold);
+  color: var(--clr-text-primary);
+}
+
 .retryButton:hover {
   background-color: var(--clr-accent-dark);
 }
 
 @media screen and (max-width: 768px) {
-  .noTripsContainer p {
+  .noTripsContainer p,
+  .errorContainer p {
     font-size: var(--fs-large);
+  }
+
+  .errorIllustration {
+    max-width: 40rem;
+  }
+
+  .emptyIllustration {
+    max-width: 30rem;
   }
 }
 
 @media screen and (max-width: 480px) {
-  .illustration {
+  .noTripsContainer p,
+  .errorContainer p {
+    font-size: var(--fs-medium);
+  }
+
+  .errorIllustration {
+    max-width: 30rem;
+  }
+
+  .emptyIllustration {
     max-width: 25rem;
   }
 
-  .noTripsContainer p {
-    font-size: var(--fs-medium);
+  .retryButton {
+    font-size: var(--fs-base);
   }
 }

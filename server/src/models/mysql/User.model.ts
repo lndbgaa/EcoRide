@@ -8,7 +8,6 @@ import AppError from "@/utils/AppError.js";
 import { toDateOnly } from "@/utils/date.utils.js";
 
 export interface UserPublicDTO {
-  role: string;
   id: string;
   firstName: string;
   pseudo: string;
@@ -130,7 +129,6 @@ class User extends Account {
 
   public toPublicDTO(): UserPublicDTO {
     return {
-      role: this.role?.label ?? "user",
       id: this.id,
       firstName: this.first_name,
       pseudo: this.pseudo,
@@ -158,19 +156,6 @@ class User extends Account {
       isDriver: this.is_driver,
       credits: this.credits,
       lastLogin,
-    };
-  }
-
-  public toAdminDTO(): UserAdminDTO {
-    return {
-      role: this.role?.label ?? "user",
-      id: this.id,
-      firstName: this.first_name,
-      pseudo: this.pseudo,
-      email: this.email,
-      avatar: this.profile_picture ?? null,
-      averageRating: this.average_rating ?? null,
-      memberSince: this.created_at ? toDateOnly(this.created_at) : null,
     };
   }
 }

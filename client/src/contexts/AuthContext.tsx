@@ -1,23 +1,23 @@
-import { jwtDecode } from "jwt-decode";
-import { ReactNode, createContext, useEffect, useState } from "react";
-
 import AuthService from "@/services/AuthService";
+import { setLogoutFn } from "@/utils/authManager";
+import { jwtDecode } from "jwt-decode";
+import { ReactNode, createContext, useCallback, useEffect, useState } from "react";
 
 import type { CustomJwtPayload, LoginData, RegisterData } from "@/types/AuthTypes";
 
 interface AuthContextType {
+  isLoading: boolean;
   isAuthenticated: boolean;
   role: string;
-  isLoading: boolean;
   register: (data: RegisterData) => Promise<void>;
   login: (data: LoginData) => Promise<void>;
   logout: () => Promise<void>;
 }
 
 const defaultAuthContext: AuthContextType = {
+  isLoading: true,
   isAuthenticated: false,
   role: "guest",
-  isLoading: true,
   register: async () => {},
   login: async () => {},
   logout: async () => {},
@@ -32,6 +32,13 @@ const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
   const [role, setRole] = useState<string>("guest");
 
+  const handleAuthSuccess = (accessToken: string) => {
+    localStorage.setItem("accessToken", accessToken);
+    const decoded = jwtDecode<CustomJwtPayload>(accessToken);
+    setIsAuthenticated(true);
+    setRole(decoded.role);
+  };
+
   const resetAuthState = () => {
     setIsAuthenticated(false);
     setRole("guest");
@@ -41,34 +48,20 @@ const AuthProvider = ({ children }: { children: ReactNode }) => {
   useEffect(() => {
     const initializeAuth = async () => {
       setIsLoading(true);
+
       const storedToken = localStorage.getItem("accessToken");
+
       if (storedToken) {
         try {
           const decoded = jwtDecode<CustomJwtPayload>(storedToken);
-          const { role, exp } = decoded;
-
-          const isTokenExpired = exp && exp < Date.now() / 1000;
-
-          if (isTokenExpired) {
-            try {
-              const { accessToken: newAccessToken } = await AuthService.refreshAccessToken();
-              localStorage.setItem("accessToken", newAccessToken);
-
-              const refreshedDecoded = jwtDecode<CustomJwtPayload>(newAccessToken);
-              const { role } = refreshedDecoded;
-              setIsAuthenticated(true);
-              setRole(role);
-            } catch {
-              resetAuthState();
-            }
-          } else {
-            setIsAuthenticated(true);
-            setRole(role);
-          }
+          const { role } = decoded;
+          setIsAuthenticated(true);
+          setRole(role);
         } catch {
           resetAuthState();
         }
       }
+
       setIsLoading(false);
     };
 
@@ -79,11 +72,7 @@ const AuthProvider = ({ children }: { children: ReactNode }) => {
     setIsLoading(true);
     try {
       const { accessToken } = await AuthService.register(data);
-      localStorage.setItem("accessToken", accessToken);
-      const decoded = jwtDecode<CustomJwtPayload>(accessToken);
-      const { role } = decoded;
-      setIsAuthenticated(true);
-      setRole(role);
+      handleAuthSuccess(accessToken);
     } catch (error) {
       resetAuthState();
       throw error;
@@ -96,10 +85,7 @@ const AuthProvider = ({ children }: { children: ReactNode }) => {
     setIsLoading(true);
     try {
       const { accessToken } = await AuthService.login(data);
-      localStorage.setItem("accessToken", accessToken);
-      const decoded = jwtDecode<CustomJwtPayload>(accessToken);
-      setIsAuthenticated(true);
-      setRole(decoded.role);
+      handleAuthSuccess(accessToken);
     } catch (error) {
       resetAuthState();
       throw error;
@@ -108,16 +94,23 @@ const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
-  const logout = async () => {
+  const logout = useCallback(async () => {
     setIsLoading(true);
-
     try {
       await AuthService.logout();
       resetAuthState();
+    } catch (error) {
+      resetAuthState();
+
+      throw error;
     } finally {
       setIsLoading(false);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    setLogoutFn(logout);
+  }, [logout]);
 
   return (
     <AuthContext.Provider

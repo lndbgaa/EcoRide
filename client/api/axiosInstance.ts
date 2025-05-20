@@ -2,7 +2,7 @@ import axios from "axios";
 
 import config from "../src/config/config";
 import AuthService from "../src/services/AuthService";
-
+import { triggerLogout } from "../src/utils/authManager";
 const axiosPublic = axios.create({
   baseURL: config.apiBaseUrl,
   timeout: 10000,
@@ -39,7 +39,7 @@ axiosPrivate.interceptors.response.use(
 
     if (
       error.response?.status === 401 &&
-      error.response.data?.message === "Token invalide ou expiré" &&
+      error.response.data?.message === "Token invalide ou expiré." &&
       !originalRequest._retry
     ) {
       originalRequest._retry = true;
@@ -51,7 +51,7 @@ axiosPrivate.interceptors.response.use(
         return axiosPrivate(originalRequest);
       } catch (refreshError) {
         localStorage.removeItem("accessToken");
-        window.location.href = "/login";
+        triggerLogout();
         return Promise.reject(refreshError instanceof Error ? refreshError : new Error(String(refreshError)));
       }
     }

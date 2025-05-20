@@ -17,7 +17,7 @@ export const createRide = catchAsync(async (req: Request, res: Response): Promis
   res.status(201).json({
     success: true,
     message: "Trajet créé avec succès.",
-    data: ride.toDTO(),
+    data: ride.toPublicDTO(),
   });
 });
 
@@ -33,7 +33,7 @@ export const searchForRides = catchAsync(async (req: Request, res: Response): Pr
 
   const message = count === 0 ? "Aucun trajet trouvé." : count === 1 ? "1 trajet trouvé." : `${count} trajets trouvés.`;
 
-  const dto = rides.map((ride: Ride) => ride.toDTO());
+  const dto = rides.map((ride: Ride) => ride.toPublicDTO());
 
   res.status(200).json({
     success: true,
@@ -62,7 +62,7 @@ export const getRideDetails = catchAsync(async (req: Request, res: Response): Pr
     message: "Trajet récupéré avec succès.",
     data: {
       isDriver: ride.getDriverId() === userId,
-      ride: ride.toDTO(),
+      ride: ride.toPublicDTO(),
       preferences,
       bookings: bookings.map((booking) => booking.toPublicDTO()),
     },
@@ -115,7 +115,7 @@ export const getMyRides = catchAsync(async (req: Request, res: Response): Promis
 
   const { count, rides } = await RideService.getUserRides(userId, limit, offset);
 
-  const dto = rides.map((ride: Ride) => ride.toDTO());
+  const dto = rides.map((ride: Ride) => ride.toPublicDTO());
 
   res.status(200).json({
     success: true,

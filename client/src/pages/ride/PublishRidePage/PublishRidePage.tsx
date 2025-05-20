@@ -10,12 +10,14 @@ import InfoIcon from "@/assets/images/info-icon.svg?react";
 import ConfirmationModal from "@/components/ConfirmationModal/ConfirmationModal";
 import Dropdown from "@/components/Dropdown/Dropdown";
 import Loader from "@/components/Loader/Loader";
+import useAccount from "@/hooks/useAccount";
 import RideService from "@/services/RideService";
 import UserService from "@/services/UserService";
 
 import styles from "./PublishRidePage.module.css";
 
 import type { CreateRideData } from "@/types/RideTypes";
+import type { User } from "@/types/UserTypes";
 
 interface VehicleOption {
   id: string;
@@ -26,6 +28,7 @@ const CreateRidePage = () => {
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [error, setError] = useState<{ [key: string]: string }>({});
+  const [canPublish, setCanPublish] = useState<boolean>(true);
   const [showModal, setShowModal] = useState<boolean>(false);
 
   const [vehicleOptions, setVehicleOptions] = useState<VehicleOption[]>([]);
@@ -43,6 +46,9 @@ const CreateRidePage = () => {
   const [rideToCreate, setRideToCreate] = useState<CreateRideData | null>(null);
 
   const navigate = useNavigate();
+  const { account } = useAccount();
+  const user = account as User;
+  const { isDriver } = user;
 
   const minDate = dayjs().format("YYYY-MM-DD");
   const maxDate = dayjs().add(1, "year").format("YYYY-MM-DD");
@@ -173,6 +179,12 @@ const CreateRidePage = () => {
   };
 
   useEffect(() => {
+    if (!isDriver) {
+      setCanPublish(false);
+    }
+  }, [isDriver]);
+
+  useEffect(() => {
     const fetchUserVehicles = async (): Promise<void> => {
       try {
         const vehicles = await UserService.getMyVehicles();
@@ -218,11 +230,21 @@ const CreateRidePage = () => {
           </div>
         ) : (
           <>
-            <div className={styles.infoContainer}>
+            <div className={classNames(styles.infoContainer, { [styles.urgent]: canPublish === false })}>
               <InfoIcon className={styles.infoIcon} />
-              <p className={styles.infoText}>
-                La plateforme prélève une commission de <span>2 crédits</span> sur chaque réservation.
-              </p>
+              {canPublish ? (
+                <p className={styles.infoText}>
+                  La plateforme prélève une commission de <span>2 crédits</span> sur chaque réservation.
+                </p>
+              ) : (
+                <p className={styles.infoText}>
+                  Vous devez être chauffeur pour créer un trajet. Rendez-vous dans votre{" "}
+                  <Link to="/dashboard/profile" className={styles.profileLink}>
+                    profil
+                  </Link>{" "}
+                  pour modifier votre rôle.
+                </p>
+              )}
             </div>
 
             <form noValidate className={styles.form}>
@@ -235,6 +257,7 @@ const CreateRidePage = () => {
                   onChange={(value) => setVehicleId(value as string)}
                   placeholder="Sélectionnez un véhicule"
                   hasError={!!error.vehicle}
+                  disabled={!canPublish}
                 />
                 {error.vehicle && (
                   <div className={classNames(styles.errorMessage, styles.inputErrorMessage)}>{error.vehicle}</div>
@@ -242,7 +265,10 @@ const CreateRidePage = () => {
 
                 <div className={styles.newVehicleContainer}>
                   <p>ou</p>
-                  <Link to="/dashboard/profile/vehicle/add" className={styles.newVehicleButton}>
+                  <Link
+                    to="/dashboard/profile/vehicle/add"
+                    className={classNames(styles.newVehicleButton, { [styles.disabled]: !canPublish })}
+                  >
                     + Nouveau véhicule
                   </Link>
                 </div>
@@ -261,6 +287,7 @@ const CreateRidePage = () => {
                   placeholder="ex: Paris, Lyon, etc."
                   value={departureLocation}
                   autoComplete="off"
+                  disabled={!canPublish}
                   onChange={(e) => setDepartureLocation(e.target.value)}
                   aria-invalid={!!error.departureLocation}
                   aria-describedby="departureLocation-error"
@@ -288,6 +315,7 @@ const CreateRidePage = () => {
                   placeholder="ex: Paris, Lyon, etc."
                   value={arrivalLocation}
                   autoComplete="off"
+                  disabled={!canPublish}
                   onChange={(e) => setArrivalLocation(e.target.value)}
                   aria-invalid={!!error.arrivalLocation}
                   aria-describedby="arrivalLocation-error"
@@ -312,6 +340,7 @@ const CreateRidePage = () => {
                   value={departureDate}
                   min={minDate}
                   max={maxDate}
+                  disabled={!canPublish}
                   onChange={(e) => setDepartureDate(e.target.value)}
                   aria-invalid={!!error.departureDate}
                   aria-describedby="departureDate-error"
@@ -334,6 +363,7 @@ const CreateRidePage = () => {
                   name="departureTime"
                   className={classNames(styles.inputField, { [styles.hasError]: error.departureTime })}
                   value={departureTime}
+                  disabled={!canPublish}
                   onChange={(e) => setDepartureTime(e.target.value)}
                   aria-invalid={!!error.departureTime}
                   aria-describedby="departureTime-error"
@@ -356,6 +386,7 @@ const CreateRidePage = () => {
                   name="arrivalTime"
                   className={classNames(styles.inputField, { [styles.hasError]: error.arrivalTime })}
                   value={arrivalTime}
+                  disabled={!canPublish}
                   onChange={(e) => setArrivalTime(e.target.value)}
                   aria-invalid={!!error.arrivalTime}
                   aria-describedby="arrivalTime-error"
@@ -381,6 +412,7 @@ const CreateRidePage = () => {
                   placeholder="ex: 20"
                   value={price || ""}
                   autoComplete="off"
+                  disabled={!canPublish}
                   onChange={(e) => setPrice(Number(e.target.value))}
                   aria-invalid={!!error.price}
                   aria-describedby="price-error"
@@ -407,6 +439,7 @@ const CreateRidePage = () => {
                   placeholder="ex: 3"
                   value={offeredSeats || ""}
                   autoComplete="off"
+                  disabled={!canPublish}
                   onChange={(e) => setOfferedSeats(Number(e.target.value))}
                   aria-invalid={!!error.offeredSeats}
                   aria-describedby="offeredSeats-error"
@@ -426,7 +459,7 @@ const CreateRidePage = () => {
                   type="button"
                   className={styles.createButton}
                   onClick={handlePublishBtnClick}
-                  disabled={isSubmitting}
+                  disabled={isSubmitting || !canPublish}
                 >
                   {isSubmitting ? "Publication en cours..." : "Publier le trajet"}
                 </button>

@@ -12,7 +12,7 @@ import StarIcon from "@/assets/images/star-icon.svg?react";
 
 import ConfirmationModal from "@/components/ConfirmationModal/ConfirmationModal";
 import Loader from "@/components/Loader/Loader";
-import useUser from "@/hooks/useAccount";
+import useAccount from "@/hooks/useAccount";
 import BookingService from "@/services/BookingService";
 import RideService from "@/services/RideService";
 import { formatDuration, formatFullDateFr } from "@/utils/dateUtils";
@@ -20,6 +20,7 @@ import { formatDuration, formatFullDateFr } from "@/utils/dateUtils";
 import styles from "./RidePublicInfoPage.module.css";
 
 import type { RideDetails } from "@/types/RideTypes";
+import type { User } from "@/types/UserTypes";
 
 const RidePublicInfoPage = () => {
   const [isLoading, setIsLoading] = useState<boolean>(true);
@@ -29,7 +30,10 @@ const RidePublicInfoPage = () => {
   const [rideDetails, setRideDetails] = useState<RideDetails | null>(null);
 
   const { id } = useParams<{ id: string }>();
-  const { user } = useUser();
+  const { account } = useAccount();
+  const user = account as User;
+  const { isPassenger } = user;
+
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -79,6 +83,7 @@ const RidePublicInfoPage = () => {
 
     const departure = dayjs(`${ride.departureDate} ${ride.departureTime}`, "YYYY-MM-DD HH:mm", true);
 
+    const isNotAllowedToBook = !isPassenger;
     const isFinished = ride.status === "completed" || departure.isBefore(dayjs());
     const isCancelled = ride.status === "cancelled";
     const isFull = ride.status === "full";
@@ -86,7 +91,7 @@ const RidePublicInfoPage = () => {
     const insufficientCredits = user.credits < ride.price;
     const isDriver = ride.driver.id === user.id;
 
-    if (insufficientCredits || isDriver || isFinished || isCancelled || hasDeparted || isFull) {
+    if (isNotAllowedToBook || insufficientCredits || isDriver || isFinished || isCancelled || hasDeparted || isFull) {
       return false;
     }
 
@@ -201,12 +206,17 @@ const RidePublicInfoPage = () => {
               {isBooking ? "Réservation en cours..." : "Participer"}
             </button>
 
-            {!canBookRide() && user && <p className={styles.unavailableReason}>{getUnavailabilityReason()}</p>}
-
-            {!user && (
+            {!user ? (
               <p className={styles.loginMessage}>
                 <Link to="/login">Connectez-vous</Link> pour réserver ce covoiturage
               </p>
+            ) : !isPassenger ? (
+              <p className={styles.roleMessage}>
+                Vous devez être passager pour réserver ce covoiturage. Rendez-vous dans votre{" "}
+                <Link to="/dashboard/profile">profil</Link> pour modifier votre rôle.
+              </p>
+            ) : (
+              !canBookRide() && <p className={styles.unavailableReason}>{getUnavailabilityReason()}</p>
             )}
           </div>
         </div>

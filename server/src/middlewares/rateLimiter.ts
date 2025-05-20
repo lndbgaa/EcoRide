@@ -4,8 +4,8 @@ import { rateLimit } from "express-rate-limit";
  * Limiteur global pour toutes les requêtes
  */
 export const globalLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000,
-  limit: 100,
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  limit: 100, // 100 requêtes par 15 minutes
   standardHeaders: true,
   legacyHeaders: false,
   message: {
@@ -20,8 +20,8 @@ export const globalLimiter = rateLimit({
  * Limiteur pour les requêtes d'authentification
  */
 export const authLimiter = rateLimit({
-  windowMs: 10 * 60 * 1000,
-  limit: 5,
+  windowMs: 10 * 60 * 1000, // 10 minutes
+  limit: 5, // 5 tentatives de connexion par 10 minutes
   standardHeaders: true,
   legacyHeaders: false,
   message: {
@@ -36,8 +36,8 @@ export const authLimiter = rateLimit({
  * Limiteur pour les requêtes d'inscription
  */
 export const registerLimiter = rateLimit({
-  windowMs: 10 * 60 * 1000,
-  limit: 5,
+  windowMs: 10 * 60 * 1000, // 10 minutes
+  limit: 5, // 5 tentatives d'inscription par 10 minutes
   standardHeaders: true,
   legacyHeaders: false,
   message: {

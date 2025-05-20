@@ -11,13 +11,14 @@ const ContactPage = lazy(() => import("@/pages/public/ContactPage/ContactPage"))
 const CarpoolPage = lazy(() => import("@/pages/public/CarpoolPage/CarpoolPage"));
 const SearchPage = lazy(() => import("@/pages/public/SearchPage/SearchPage"));
 const ResultsPage = lazy(() => import("@/pages/public/ResultsPage/ResultsPage"));
-const NotFoundPage = lazy(() => import("@/pages/error/NotFoundPage/NotFoundPage"));
-const UnauthorizedPage = lazy(() => import("@/pages/error/UnauthorizedPage/UnauthorizedPage"));
-const ErrorPage = lazy(() => import("@/pages/error/ErrorPage/ErrorPage"));
 
 const UserPublicInfoPage = lazy(() => import("@/pages/user/PublicInfoPage/UserPublicInfoPage"));
 const RidePublicInfoPage = lazy(() => import("@/pages/ride/RidePublicInfo/RidePublicInfoPage"));
 const UserPublicRatingsPage = lazy(() => import("@/pages/user/UserPublicRatingsPage/UserPublicRatingsPage"));
+
+const NotFoundPage = lazy(() => import("@/pages/error/NotFoundPage/NotFoundPage"));
+const UnauthorizedPage = lazy(() => import("@/pages/error/UnauthorizedPage/UnauthorizedPage"));
+const ErrorPage = lazy(() => import("@/pages/error/ErrorPage/ErrorPage"));
 
 const publicRoutes = {
   path: "/",

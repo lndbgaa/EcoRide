@@ -1,6 +1,6 @@
+import type { Booking } from "@/types/BookingTypes";
 import type { User } from "@/types/UserTypes";
 import type { Vehicle } from "@/types/VehicleTypes";
-import type { Booking } from "./BookingTypes";
 
 export type RideStatus = "open" | "full" | "in_progress" | "completed" | "cancelled";
 

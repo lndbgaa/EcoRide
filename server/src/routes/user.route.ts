@@ -8,6 +8,9 @@ import validate from "@/middlewares/validateAll.js";
 
 import { updateInfoSchema, updateRoleSchema } from "@/validators/user.validator.js";
 
+import { getMyBookings } from "@/controllers/booking.controller.js";
+import { getMyReceivedReviews, getMyWrittenReviews } from "@/controllers/review.controller.js";
+import { getMyRides } from "@/controllers/ride.controller.js";
 import {
   getMyInfo,
   getMyNextEvent,
@@ -18,10 +21,6 @@ import {
   updateMyInfo,
   updateMyRole,
 } from "@/controllers/user.controller.js";
-
-import { getMyBookings } from "@/controllers/booking.controller.js";
-import { getMyReceivedReviews, getMyWrittenReviews } from "@/controllers/review.controller.js";
-import { getMyRides } from "@/controllers/ride.controller.js";
 
 const router = Router();
 

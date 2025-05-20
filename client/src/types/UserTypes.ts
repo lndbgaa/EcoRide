@@ -1,3 +1,6 @@
+import type { Booking } from "@/types/BookingTypes";
+import type { Ride } from "@/types/RideTypes";
+
 export interface User {
   role: "user";
   id: string;
@@ -26,10 +29,9 @@ export interface UpdateUserInfo {
   birthDate?: string;
 }
 
-export interface UserPublicDTO {
-  id: string;
-  firstName: string;
-  pseudo: string;
-  avatar: string | null;
-  averageRating: string | null;
-}
+export type UserUpcomingTrip = (Ride | Booking) & { type: "ride" | "booking" };
+
+export type UserNextTrip = {
+  type: "ride" | "booking";
+  data: Ride | Booking;
+};

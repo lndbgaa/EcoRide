@@ -34,9 +34,9 @@ const config = {
     credentials: true,
   },
   jwt: {
-    access_secret: getEnvVar("JWT_ACCESS_SECRET"),
-    access_expiration: (process.env.JWT_ACCESS_EXPIRATION as StringValue) ?? "10m", // 10 minutes
-    refresh_expiration: (process.env.JWT_REFRESH_EXPIRATION as StringValue) ?? "7d", // 7 jours
+    accessSecret: getEnvVar("JWT_ACCESS_SECRET"),
+    accessExpiration: (process.env.JWT_ACCESS_EXPIRATION as StringValue) ?? "10m", // 10 minutes
+    refreshExpiration: (process.env.JWT_REFRESH_EXPIRATION as StringValue) ?? "7d", // 7 jours
   },
   mysql: {
     port: process.env.MYSQL_DB_PORT ? Number(process.env.MYSQL_DB_PORT) : 3306,
@@ -49,9 +49,9 @@ const config = {
     uri: getEnvVar("MONGO_DB_URI"),
   },
   cloudinary: {
-    cloud_name: getEnvVar("CLOUDINARY_CLOUD_NAME"),
-    api_key: getEnvVar("CLOUDINARY_KEY"),
-    api_secret: getEnvVar("CLOUDINARY_SECRET"),
+    cloudName: getEnvVar("CLOUDINARY_CLOUD_NAME"),
+    apiKey: getEnvVar("CLOUDINARY_KEY"),
+    apiSecret: getEnvVar("CLOUDINARY_SECRET"),
   },
   nodemailer: {
     host: getEnvVar("SMTP_HOST"),

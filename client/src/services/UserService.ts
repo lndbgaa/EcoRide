@@ -1,8 +1,10 @@
 import { axiosPrivate, axiosPublic } from "../../api/axiosInstance";
 
 import type { Booking } from "@/types/BookingTypes";
+import type { Preference } from "@/types/PreferenceTypes";
+import type { Review } from "@/types/ReviewTypes";
 import type { Ride } from "@/types/RideTypes";
-import type { UpdateUserInfo, User } from "@/types/UserTypes";
+import type { UpdateUserInfo, User, UserNextTrip, UserUpcomingTrip } from "@/types/UserTypes";
 import type { Vehicle } from "@/types/VehicleTypes";
 
 class UserService {
@@ -31,7 +33,7 @@ class UserService {
    */
   static async updateMyInfo(data: UpdateUserInfo) {
     const url = "/users/me";
-    await axiosPrivate.patch(url, data, { headers: { "Content-Type": "application/json" } });
+    await axiosPrivate.patch(url, data);
   }
 
   /**
@@ -42,7 +44,7 @@ class UserService {
     const formData = new FormData();
     formData.append("image", file);
 
-    const response = await axiosPrivate.patch(url, formData, { headers: { "Content-Type": "multipart/form-data" } });
+    const response = await axiosPrivate.patch(url, formData);
     const { data } = response.data;
     return data;
   }
@@ -52,7 +54,7 @@ class UserService {
    */
   static async toggleMyRole(role: string) {
     const url = "/users/me/role";
-    await axiosPrivate.patch(url, { role }, { headers: { "Content-Type": "application/json" } });
+    await axiosPrivate.patch(url, { role });
   }
 
   /**
@@ -68,7 +70,7 @@ class UserService {
   /**
    * Récupère les préférences de l'utilisateur connecté
    */
-  static async getMyPreferences() {
+  static async getMyPreferences(): Promise<Preference[]> {
     const url = "/users/me/preferences";
     const response = await axiosPrivate.get(url);
     const { data } = response.data;
@@ -78,26 +80,21 @@ class UserService {
   /**
    * Récupère le prochain événement de l'utilisateur connecté (réservation, trajet)
    */
-  static async getMyNextEvent() {
-    try {
-      const url = "/users/me/events/next";
-      const response = await axiosPrivate.get(url);
-
-      return response.data ?? null;
-    } catch (error) {
-      console.error(error);
-      return null;
-    }
+  static async getMyNextTrip(): Promise<UserNextTrip | null> {
+    const url = "/users/me/events/next";
+    const response = await axiosPrivate.get(url);
+    const { data } = response.data;
+    return data ?? null;
   }
 
   /**
    * Récupère tous les évènements à venir de l'utilisateur connecté (réservation, trajet)
    */
-  static async getMyUpcomingEvents() {
+  static async getMyUpcomingTrips(): Promise<UserUpcomingTrip[]> {
     const url = "/users/me/events/upcoming";
     const response = await axiosPrivate.get(url);
     const { data } = response.data;
-    return data ?? null;
+    return data ?? [];
   }
 
   /**
@@ -123,7 +120,7 @@ class UserService {
   /**
    * Récupère l'historique des avis reçus par l'utilisateur connecté
    */
-  static async getMyReceivedReviews() {
+  static async getMyReceivedReviews(): Promise<Review[]> {
     const url = "/users/me/reviews/received";
     const response = await axiosPrivate.get(url);
     const { data } = response.data;
@@ -133,7 +130,7 @@ class UserService {
   /**
    * Récupère l'historique des avis écrits par l'utilisateur connecté
    */
-  static async getMyWrittenReviews() {
+  static async getMyWrittenReviews(): Promise<Review[]> {
     const url = "/users/me/reviews/written";
     const response = await axiosPrivate.get(url);
     const { data } = response.data;

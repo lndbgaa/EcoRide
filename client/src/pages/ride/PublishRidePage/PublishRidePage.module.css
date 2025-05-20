@@ -56,6 +56,11 @@
   border-left: 4px solid var(--clr-accent-dark);
 }
 
+.infoContainer.urgent {
+  background-color: rgb(255, 100, 100, 0.1);
+  border-left: 4px solid var(--clr-error);
+}
+
 .infoText {
   color: var(--clr-text-primary);
   font-size: var(--fs-small);
@@ -68,6 +73,16 @@
 
 .infoText span {
   font-weight: var(--fw-bold);
+}
+
+.profileLink {
+  color: var(--clr-accent);
+  font-weight: var(--fw-bold);
+}
+
+.profileLink:hover {
+  color: var(--clr-accent-dark);
+  text-decoration: underline;
 }
 
 .form {
@@ -118,6 +133,11 @@
   color: var(--clr-accent-soft);
 }
 
+.inputField:disabled {
+  color: var(--clr-medium-gray);
+  cursor: not-allowed;
+}
+
 .departureLocation,
 .arrivalLocation,
 .departureDate,
@@ -143,9 +163,14 @@
 
 .newVehicleButton {
   color: var(--clr-accent);
-
   font-weight: var(--fw-bold);
   transition: color 0.3s ease;
+}
+
+.newVehicleButton.disabled {
+  color: var(--clr-medium-gray);
+  pointer-events: none;
+  cursor: not-allowed;
 }
 
 .newVehicleButton:hover {
