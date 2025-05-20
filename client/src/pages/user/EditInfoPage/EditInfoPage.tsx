@@ -5,11 +5,12 @@ import { Link, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 
 import Loader from "@/components/Loader/Loader";
-import useUser from "@/hooks/useAccount";
+import useAccount from "@/hooks/useAccount";
+import useUser from "@/hooks/useUser";
 
 import styles from "./EditInfoPage.module.css";
 
-import type { UpdateUserInfo } from "@/types/UserTypes";
+import type { UpdateUserInfo, User } from "@/types/UserTypes";
 
 const EditInfoPage = () => {
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
@@ -22,7 +23,10 @@ const EditInfoPage = () => {
   const [address, setAddress] = useState<string | null>(null);
   const [birthDate, setBirthDate] = useState<string | null>(null);
 
-  const { user, updateUserInfo, isLoading: isUserLoading } = useUser();
+  const { account, isLoading: isUserLoading } = useAccount();
+  const user = account as User | null;
+
+  const { updateInfo } = useUser();
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -131,7 +135,7 @@ const EditInfoPage = () => {
     }
 
     try {
-      await updateUserInfo(cleanedData);
+      await updateInfo(cleanedData);
       toast.success("Vos informations ont été mises à jour avec succès");
       navigate("/dashboard");
     } catch {

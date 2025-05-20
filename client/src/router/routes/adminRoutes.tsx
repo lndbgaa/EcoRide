@@ -4,11 +4,11 @@ import { Navigate } from "react-router-dom";
 import Protected from "@/router/Protected";
 import lazyLoad from "@/router/lazyLoad";
 
-import AdminLayout from "@/layouts/AdminLayout";
+import AdminLayout from "@/layouts/AdminLayout/AdminLayout";
 
-const AdminDashboardPage = lazy(() => import("@/pages/admin/AdminDashboardPage"));
-const CreateEmployeePage = lazy(() => import("@/pages/admin/CreateEmployeePage"));
-const ManageAccountsPage = lazy(() => import("@/pages/admin/ManageAccountsPage"));
+const AdminDashboardPage = lazy(() => import("@/pages/admin/AdminDashboardPage/AdminDashboardPage"));
+const CreateEmployeePage = lazy(() => import("@/pages/admin/CreateEmployeePage/CreateEmployeePage"));
+const ManageAccountsPage = lazy(() => import("@/pages/admin/ManageAccountsPage/ManageAccountsPage"));
 
 const adminRoutes = {
   path: "/admin",

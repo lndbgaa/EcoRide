@@ -16,6 +16,7 @@ export interface EmployeePrivateDTO {
 }
 
 export interface EmployeeAdminDTO {
+  role: string;
   id: string;
   firstName: string;
   lastName: string;
@@ -44,6 +45,7 @@ class Employee extends Account {
 
   toAdminDTO(): EmployeeAdminDTO {
     return {
+      role: this.role?.label ?? "Employee",
       id: this.id,
       firstName: this.first_name,
       lastName: this.last_name,

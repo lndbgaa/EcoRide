@@ -1,0 +1,148 @@
+.mainContainer {
+  padding: 1.5rem 2rem;
+  margin-bottom: 4rem;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.navbarContainer {
+  width: 100%;
+  max-width: 120rem;
+  margin: 0 auto;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.leftSection,
+.rightSection {
+  display: flex;
+  align-items: center;
+  gap: 3rem;
+}
+
+.bigLogo {
+  cursor: pointer;
+}
+
+.smallLogo {
+  width: 2.5rem;
+  height: 2.5rem;
+}
+
+.avatarContainer {
+  position: relative;
+}
+
+.avatarWrapper {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
+}
+
+.avatar {
+  width: 5.5rem;
+  height: 5.5rem;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid var(--clr-accent-dark);
+}
+
+.arrowIcon {
+  color: var(--clr-accent);
+  transition: transform 0.3s ease;
+}
+
+.arrowIcon.down {
+  transform: rotate(90deg);
+}
+
+.arrowIcon.up {
+  transform: rotate(270deg);
+}
+
+.dropdownMenu {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  min-width: 30rem;
+  margin-top: 1rem;
+  padding: 1rem 0;
+  border-radius: 0.5rem;
+  background-color: var(--clr-background);
+  box-shadow: 0 0.5rem 0.8rem -0.2rem rgba(0, 0, 0, 0.2);
+  z-index: 1000;
+  animation: slideDown 0.3s ease forwards;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-0.5rem);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.dropdownItem {
+  display: block;
+  width: 100%;
+  padding: 1.5rem 2rem;
+  text-align: left;
+  line-height: normal;
+  color: var(--clr-text-primary);
+  font-weight: var(--fw-medium);
+  background-color: transparent;
+  border: none;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.dropdownItem:hover {
+  background-color: var(--clr-accent);
+  color: var(--clr-white);
+}
+
+@media screen and (max-width: 768px) {
+  .leftSection {
+    width: 50%;
+    justify-content: space-between;
+    order: 2;
+  }
+
+  .dropdownMenu {
+    left: -2rem;
+    height: 100vh;
+    min-width: 35rem;
+  }
+
+  .avatar {
+    width: 4.5rem;
+    height: 4.5rem;
+  }
+}
+
+@media screen and (max-width: 480px) {
+  .dropdownMenu {
+    width: 100vw;
+  }
+
+  .avatarWrapper {
+    gap: 0.25rem;
+  }
+
+  .avatar {
+    width: 3rem;
+    height: 3rem;
+  }
+
+  .arrowIcon {
+    width: 2rem;
+    height: 2rem;
+  }
+}

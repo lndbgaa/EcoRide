@@ -8,12 +8,11 @@ const useAuth = () => {
     throw new Error("useAuth doit être utilisé à l'intérieur d'un AuthProvider");
   }
 
-  const { isAuthenticated, role, id, isLoading, login, register, logout } = context;
+  const { isAuthenticated, role, isLoading, login, register, logout } = context;
 
   return {
     isAuthenticated,
     role,
-    id,
     isLoading,
     login,
     register,

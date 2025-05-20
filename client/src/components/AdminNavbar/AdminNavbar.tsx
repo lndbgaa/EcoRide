@@ -1,35 +1,30 @@
 import classNames from "classnames";
 import { useEffect, useRef, useState } from "react";
 import { useMediaQuery } from "react-responsive";
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 
 import ArrowIcon from "@/assets/images/arrow-icon.svg?react";
 import BigLogo from "@/assets/images/big-logo.svg?react";
 import DefaultAvatar from "@/assets/images/default-avatar.jpg";
-import SearchIcon from "@/assets/images/search-icon.svg?react";
 import SmallLogo from "@/assets/images/small-logo.svg?react";
 
 import useAccount from "@/hooks/useAccount";
 import useAuth from "@/hooks/useAuth";
 
-import styles from "./UserNavbar.module.css";
+import styles from "./AdminNavbar.module.css";
 
-import type { User } from "@/types/UserTypes";
-
-const UserNavbar = () => {
+const AdminNavbar = () => {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
-  const { isAuthenticated, logout } = useAuth();
-  const { account, clearAccount } = useAccount();
-
   const navigate = useNavigate();
+  const { logout } = useAuth();
+  const { clearAccount } = useAccount();
   const navbarRef = useRef<HTMLDivElement>(null);
 
-  const closeDropdown = () => setIsDropdownOpen(false);
   const toggleDropdown = () => setIsDropdownOpen(!isDropdownOpen);
 
-  const goHome = () => navigate("/");
+  const goDashboard = () => navigate("/admin/dashboard");
 
   const handleLogout = async () => {
     try {
@@ -69,61 +64,18 @@ const UserNavbar = () => {
 
   const isMobile = useMediaQuery({ query: "(max-width: 768px)" });
 
-  const AuthenticatedLinks = () => (
-    <>
-      <Link to="/trips" className={styles.dropdownItem} onClick={closeDropdown}>
-        Trajets
-      </Link>
-      <Link to="/dashboard" className={styles.dropdownItem} onClick={closeDropdown}>
-        Profil
-      </Link>
-      <Link to="/contact" className={styles.dropdownItem} onClick={closeDropdown}>
-        Nous contacter
-      </Link>
-      <button onClick={handleLogout} className={styles.dropdownItem}>
-        Déconnexion
-      </button>
-    </>
-  );
-
-  const UnauthenticatedLinks = () => (
-    <>
-      <Link to="/register" className={styles.dropdownItem} onClick={closeDropdown}>
-        Inscription
-      </Link>
-      <Link to="/login" className={styles.dropdownItem} onClick={closeDropdown}>
-        Connexion
-      </Link>
-    </>
-  );
-
   return (
     <nav ref={navbarRef} className={styles.mainContainer}>
       <div className={styles.navbarContainer}>
         <div className={styles.leftSection}>
           {!isMobile ? (
-            <BigLogo onClick={goHome} className={styles.bigLogo} />
+            <BigLogo onClick={goDashboard} className={styles.bigLogo} />
           ) : (
-            <SmallLogo onClick={goHome} className={styles.smallLogo} />
-          )}
-
-          {isMobile && (
-            <SearchIcon className={styles.searchIcon} onClick={() => navigate("/search")} aria-label="Rechercher" />
-          )}
-
-          {!isMobile && (
-            <Link to="/carpool" className={styles.navLink}>
-              Covoiturages
-            </Link>
+            <SmallLogo onClick={goDashboard} className={styles.smallLogo} />
           )}
         </div>
 
         <div className={styles.rightSection}>
-          {!isMobile && (
-            <Link to="/search" className={styles.navLink}>
-              Rechercher
-            </Link>
-          )}
           <div className={styles.avatarContainer}>
             <div
               className={styles.avatarWrapper}
@@ -134,20 +86,14 @@ const UserNavbar = () => {
               aria-haspopup="true"
               aria-expanded={isDropdownOpen}
             >
-              <img src={(account as User)?.avatar ?? DefaultAvatar} alt="Avatar" className={styles.avatar} />
+              <img src={DefaultAvatar} alt="Avatar" className={styles.avatar} />
               <ArrowIcon className={classNames(styles.arrowIcon, isDropdownOpen ? styles.up : styles.down)} />
             </div>
             {isDropdownOpen && (
               <div className={styles.dropdownMenu}>
-                {isAuthenticated ? <AuthenticatedLinks /> : <UnauthenticatedLinks />}
-                {isMobile && (
-                  <>
-                    <div className={styles.divider}></div>
-                    <Link to="/carpool" className={styles.dropdownItem} onClick={closeDropdown}>
-                      Covoiturages
-                    </Link>
-                  </>
-                )}
+                <button onClick={handleLogout} className={styles.dropdownItem}>
+                  Déconnexion
+                </button>
               </div>
             )}
           </div>
@@ -157,4 +103,4 @@ const UserNavbar = () => {
   );
 };
 
-export default UserNavbar;
+export default AdminNavbar;

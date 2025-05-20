@@ -1,0 +1,194 @@
+.pageContainer {
+  padding: 0 2rem 2rem;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+.title {
+  margin-bottom: 4rem;
+  font-size: var(--fs-xxlarge);
+  font-weight: var(--fw-bold);
+  color: var(--clr-text-secondary);
+  letter-spacing: 0.02rem;
+}
+
+.manageAccountsContainer {
+  width: 100%;
+  max-width: 120rem;
+  display: flex;
+  flex-direction: column;
+}
+
+.searchContainer {
+  width: 100%;
+  margin-bottom: 1rem;
+  display: flex;
+  justify-content: center;
+}
+
+.searchInput {
+  width: 100%;
+  max-width: 50rem;
+  padding: 1.2rem;
+  border-radius: 0.5rem;
+  border: 2px solid var(--clr-soft-gray);
+  background-color: transparent;
+  color: var(--clr-text-primary);
+  transition: border-color 0.3s ease;
+}
+
+.searchInput::placeholder {
+  color: var(--clr-medium-gray);
+}
+
+.searchInput:focus {
+  outline: none;
+  border: 2px solid var(--clr-accent-soft);
+}
+
+.searchInput:focus::placeholder {
+  color: var(--clr-accent-soft);
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  background-color: var(--clr-background);
+  border-radius: 0.5rem;
+  overflow: hidden;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.tableHeader {
+  padding: 0.75rem 1rem;
+  text-align: left;
+  font-weight: var(--fw-bold);
+  color: var(--clr-text-primary);
+  background-color: var(--clr-background);
+  border-bottom: 2px solid var(--clr-soft-gray);
+}
+
+.tableCell {
+  padding: 1.5rem;
+  color: var(--clr-text-primary);
+  border-bottom: 1px solid var(--clr-soft-gray);
+}
+
+.tableRow:hover {
+  background-color: var(--clr-soft-gray);
+}
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.25rem 1rem;
+  border-radius: 100rem;
+  font-weight: var(--fw-bold);
+}
+
+.badgeActive {
+  background-color: #dcfce7;
+  color: #166534;
+}
+
+.badgeSuspended {
+  background-color: #fee2e2;
+  color: #991b1b;
+}
+
+.button {
+  padding: 0.5rem 1rem;
+  border-radius: 0.5rem;
+  font-weight: var(--fw-bold);
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.buttonSuspend {
+  background-color: var(--clr-error);
+  color: var(--clr-white);
+}
+
+.buttonSuspend:hover {
+  background-color: var(--clr-error-dark);
+}
+
+.buttonActivate {
+  background-color: var(--clr-accent);
+  color: var(--clr-white);
+}
+
+.buttonActivate:hover {
+  background-color: var(--clr-accent-dark);
+}
+
+.errorContainer {
+  margin-top: 4rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4rem;
+}
+
+.errorContainer p {
+  text-align: center;
+  font-size: var(--fs-xlarge);
+  font-weight: var(--fw-bold);
+  color: var(--clr-text-primary);
+}
+
+.retryButton {
+  padding: 1rem 1.5rem;
+  color: var(--clr-white);
+  font-weight: var(--fw-medium);
+  background-color: var(--clr-accent);
+  border-radius: 0.5rem;
+  border: none;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.retryButton:hover {
+  background-color: var(--clr-accent-dark);
+}
+
+.illustration {
+  width: 100%;
+  max-width: 60rem;
+  height: auto;
+}
+
+@media (max-width: 768px) {
+  .table {
+    display: block;
+    overflow-x: auto;
+    white-space: nowrap;
+  }
+
+  .searchInput {
+    max-width: 100%;
+  }
+
+  .illustration {
+    max-width: 40rem;
+  }
+
+  .errorContainer p {
+    font-size: var(--fs-large);
+  }
+}
+
+@media (max-width: 480px) {
+  .errorContainer p {
+    font-size: var(--fs-medium);
+  }
+
+  .illustration {
+    max-width: 30rem;
+  }
+}

@@ -3,8 +3,6 @@ import { UpdateUserInfo, User } from "@/types/UserTypes";
 import { createContext, ReactNode, useContext } from "react";
 import { AccountContext } from "./AccountContext";
 
-import type { Account } from "@/types/AccountTypes";
-
 interface UserContextType {
   toggleRole: (role: string) => Promise<void>;
   updateInfo: (data: UpdateUserInfo) => Promise<void>;
@@ -17,10 +15,6 @@ const UserContext = createContext<UserContextType>({
   updateAvatar: async () => {},
 });
 
-function isUser(account: Account): account is User {
-  return account && typeof account === "object" && "isDriver" in account && "isPassenger" in account;
-}
-
 const UserProvider = ({ children }: { children: ReactNode }) => {
   const { setAccount } = useContext(AccountContext);
 
@@ -28,9 +22,9 @@ const UserProvider = ({ children }: { children: ReactNode }) => {
     await UserService.updateMyInfo(data);
 
     setAccount((prev) => {
-      if (!prev || !isUser(prev)) return prev;
+      const user = prev as User;
 
-      return { ...prev, ...data };
+      return { ...user, ...data };
     });
   };
 
@@ -38,9 +32,9 @@ const UserProvider = ({ children }: { children: ReactNode }) => {
     const { url } = await UserService.updateMyAvatar(file);
 
     setAccount((prev) => {
-      if (!prev || !isUser(prev)) return prev;
+      const user = prev as User;
 
-      return { ...prev, avatar: url };
+      return { ...user, avatar: url };
     });
   };
 
@@ -48,11 +42,11 @@ const UserProvider = ({ children }: { children: ReactNode }) => {
     await UserService.toggleMyRole(role);
 
     setAccount((prev) => {
-      if (!prev || !isUser(prev)) return prev;
+      const user = prev as User;
 
-      if (role === "driver") return { ...prev, isDriver: !prev.isDriver };
-      if (role === "passenger") return { ...prev, isPassenger: !prev.isPassenger };
-      return prev;
+      if (role === "driver") return { ...user, isDriver: !user.isDriver };
+      if (role === "passenger") return { ...user, isPassenger: !user.isPassenger };
+      return user;
     });
   };
 

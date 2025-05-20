@@ -8,7 +8,7 @@ import validate from "@/middlewares/validateAll.js";
 import { registerEmployeeSchema } from "@/validators/auth.validator.js";
 import { idParamSchema } from "@/validators/common.validator.js";
 
-import { suspendAccount, unsuspendAccount } from "@/controllers/admin.controller.js";
+import { getAllAccounts, suspendAccount, unsuspendAccount } from "@/controllers/admin.controller.js";
 import { registerEmployee } from "@/controllers/auth.controller.js";
 import {
   getPlatformDailyCredits,
@@ -21,19 +21,12 @@ const router = Router();
 router.use(requireAuth);
 router.use(requireRole([ACCOUNT_ROLES_LABEL.ADMIN]));
 
-// Création compte employé
 router.post("/employees", validate(registerEmployeeSchema), registerEmployee);
 
-// Gestion des comptes
+router.get("/accounts", getAllAccounts);
 router.patch("/accounts/:id/suspend", validate(idParamSchema, "params"), suspendAccount);
+router.patch("/accounts/:id/unsuspend", validate(idParamSchema, "params"), unsuspendAccount);
 
-router.patch(
-  "/accounts/:id/unsuspend",
-  validate(idParamSchema, "params"),
-  unsuspendAccount
-);
-
-// Statistiques
 router.get("/stats/daily-rides", getPlatformDailyRides);
 router.get("/stats/daily-credits", getPlatformDailyCredits);
 router.get("/stats/total-credits", getPlatformTotalCredits);

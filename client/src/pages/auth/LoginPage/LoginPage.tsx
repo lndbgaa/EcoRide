@@ -19,15 +19,15 @@ const LoginPage = () => {
   const { login, isAuthenticated } = useAuth();
   const navigate = useNavigate();
 
-  const { userRole } = useAuth();
+  const { role } = useAuth();
 
   const redirect = useCallback(() => {
-    return userRole === "employee"
+    return role === "employee"
       ? navigate("/employee/dashboard")
-      : userRole === "admin"
+      : role === "admin"
       ? navigate("/admin/dashboard")
       : navigate("/search");
-  }, [userRole, navigate]);
+  }, [role, navigate]);
 
   useEffect(() => {
     if (isAuthenticated) redirect();

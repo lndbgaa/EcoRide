@@ -30,6 +30,10 @@ export interface UserPrivateDTO extends UserPublicDTO {
   lastLogin: string | null;
 }
 
+export interface UserAdminDTO extends UserPublicDTO {
+  email: string;
+}
+
 /**
  * Modèle représentant un utilisateur standard de la plateforme.
  *
@@ -154,6 +158,19 @@ class User extends Account {
       isDriver: this.is_driver,
       credits: this.credits,
       lastLogin,
+    };
+  }
+
+  public toAdminDTO(): UserAdminDTO {
+    return {
+      role: this.role?.label ?? "user",
+      id: this.id,
+      firstName: this.first_name,
+      pseudo: this.pseudo,
+      email: this.email,
+      avatar: this.profile_picture ?? null,
+      averageRating: this.average_rating ?? null,
+      memberSince: this.created_at ? toDateOnly(this.created_at) : null,
     };
   }
 }

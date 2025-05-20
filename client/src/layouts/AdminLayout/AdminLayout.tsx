@@ -1,11 +1,11 @@
+import AdminNavbar from "@/components/AdminNavbar/AdminNavbar";
 import { Outlet } from "react-router-dom";
 
 const AdminLayout = () => {
   return (
     <div>
-      <main>
-        <Outlet />
-      </main>
+      <AdminNavbar />
+      <Outlet />
     </div>
   );
 };

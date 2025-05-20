@@ -11,16 +11,16 @@ interface AccountContextType {
   account: Account | null;
   isLoading: boolean;
   error: boolean;
-  clearAccount: () => void;
   setAccount: React.Dispatch<React.SetStateAction<Account | null>>;
+  clearAccount: () => void;
 }
 
 const defaultAccountContext: AccountContextType = {
   account: null,
   isLoading: true,
   error: false,
-  clearAccount: () => {},
   setAccount: () => {},
+  clearAccount: () => {},
 };
 
 const AccountContext = createContext<AccountContextType>(defaultAccountContext);

@@ -9,3 +9,10 @@ export type Employee = {
   birthDate: string | null;
   memberSince: string | null;
 };
+
+export type CreateEmployee = {
+  email: string;
+  password: string;
+  firstName: string;
+  lastName: string;
+};

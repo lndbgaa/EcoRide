@@ -9,7 +9,7 @@ import BigLogo from "@/assets/images/big-logo.svg?react";
 import DefaultAvatar from "@/assets/images/default-avatar.jpg";
 import SmallLogo from "@/assets/images/small-logo.svg?react";
 
-import useUser from "@/hooks/useAccount";
+import useAccount from "@/hooks/useAccount";
 import useAuth from "@/hooks/useAuth";
 
 import styles from "./EmployeeNavbar.module.css";
@@ -19,7 +19,7 @@ const EmployeeNavbar = () => {
 
   const navigate = useNavigate();
   const { logout } = useAuth();
-  const { user, clearUser } = useUser();
+  const { clearAccount } = useAccount();
   const navbarRef = useRef<HTMLDivElement>(null);
 
   const toggleDropdown = () => setIsDropdownOpen(!isDropdownOpen);
@@ -29,7 +29,7 @@ const EmployeeNavbar = () => {
   const handleLogout = async () => {
     try {
       await logout();
-      clearUser();
+      clearAccount();
       setIsDropdownOpen(false);
       navigate("/");
     } catch {
@@ -86,7 +86,7 @@ const EmployeeNavbar = () => {
               aria-haspopup="true"
               aria-expanded={isDropdownOpen}
             >
-              <img src={user?.avatar ?? DefaultAvatar} alt="Avatar" className={styles.avatar} />
+              <img src={DefaultAvatar} alt="Avatar" className={styles.avatar} />
               <ArrowIcon className={classNames(styles.arrowIcon, isDropdownOpen ? styles.up : styles.down)} />
             </div>
             {isDropdownOpen && (

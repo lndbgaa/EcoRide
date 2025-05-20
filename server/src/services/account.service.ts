@@ -3,6 +3,16 @@ import { Admin, Employee, User } from "@/models/mysql/index.js";
 type Account = User | Admin | Employee;
 
 class AccountService {
+  public static async getAllAccounts(): Promise<Account[]> {
+    const [users, employees, admins] = await Promise.all([
+      User.findAll({ include: [{ association: "role" }] }),
+      Employee.findAll({ include: [{ association: "role" }] }),
+      Admin.findAll({ include: [{ association: "role" }] }),
+    ]);
+
+    return [...users, ...employees, ...admins];
+  }
+
   public static async doesEmailExist(email: string): Promise<boolean> {
     const [user, admin, employee] = await Promise.all([
       User.findOne({ where: { email } }),

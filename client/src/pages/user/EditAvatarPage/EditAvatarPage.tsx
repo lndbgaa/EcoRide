@@ -2,7 +2,7 @@ import { FormEvent, useRef, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 
-import useUser from "@/hooks/useAccount";
+import useUser from "@/hooks/useUser";
 
 import styles from "./EditAvatarPage.module.css";
 
@@ -12,7 +12,8 @@ const EditAvatarPage = () => {
 
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
 
-  const { updateUserAvatar } = useUser();
+  const { updateAvatar } = useUser();
+
   const navigate = useNavigate();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -70,7 +71,7 @@ const EditAvatarPage = () => {
     setIsSubmitting(true);
 
     try {
-      await updateUserAvatar(selectedFile);
+      await updateAvatar(selectedFile);
       toast.success("Photo de profil mise à jour avec succès");
       navigate("/dashboard");
     } catch {
