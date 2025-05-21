@@ -6,7 +6,7 @@ import { toast } from "react-toastify";
 import validator from "validator";
 
 import Loader from "@/components/Loader/Loader";
-import useUser from "@/hooks/useAccount";
+import useAccount from "@/hooks/useAccount";
 import BookingService from "@/services/BookingService";
 import RideService from "@/services/RideService";
 import { formatFullDateFr } from "@/utils/dateUtils";
@@ -14,6 +14,7 @@ import { formatFullDateFr } from "@/utils/dateUtils";
 import styles from "./ReportRidePage.module.css";
 
 import type { RideDetails } from "@/types/RideTypes";
+import type { User } from "@/types/UserTypes";
 
 const ReportRidePage = () => {
   const [isLoading, setIsLoading] = useState<boolean>(true);
@@ -25,7 +26,8 @@ const ReportRidePage = () => {
 
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { user } = useUser();
+  const { account } = useAccount();
+  const user = account as User;
 
   useEffect(() => {
     const fetchRideDetails = async (): Promise<void> => {

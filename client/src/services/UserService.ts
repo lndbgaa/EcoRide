@@ -2,7 +2,7 @@ import { axiosPrivate, axiosPublic } from "../../api/axiosInstance";
 
 import type { Booking } from "@/types/BookingTypes";
 import type { Preference } from "@/types/PreferenceTypes";
-import type { Review } from "@/types/ReviewTypes";
+import type { ReceivedReview, WrittenReview } from "@/types/ReviewTypes";
 import type { Ride } from "@/types/RideTypes";
 import type { UpdateUserInfo, User, UserNextTrip, UserUpcomingTrip } from "@/types/UserTypes";
 import type { Vehicle } from "@/types/VehicleTypes";
@@ -120,7 +120,7 @@ class UserService {
   /**
    * Récupère l'historique des avis reçus par l'utilisateur connecté
    */
-  static async getMyReceivedReviews(): Promise<Review[]> {
+  static async getMyReceivedReviews(): Promise<ReceivedReview[]> {
     const url = "/users/me/reviews/received";
     const response = await axiosPrivate.get(url);
     const { data } = response.data;
@@ -130,7 +130,7 @@ class UserService {
   /**
    * Récupère l'historique des avis écrits par l'utilisateur connecté
    */
-  static async getMyWrittenReviews(): Promise<Review[]> {
+  static async getMyWrittenReviews(): Promise<WrittenReview[]> {
     const url = "/users/me/reviews/written";
     const response = await axiosPrivate.get(url);
     const { data } = response.data;
