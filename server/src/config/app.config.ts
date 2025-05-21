@@ -3,7 +3,7 @@ import path from "path";
 
 dotenv.config({ path: path.resolve(process.cwd(), ".env") });
 
-const env = process.env.NODE_ENV ?? "development";
+const env = process.env.NODE_ENV ?? "production";
 const envPath = path.resolve(process.cwd(), `.env.${env}`);
 dotenv.config({ path: envPath });
 
@@ -29,7 +29,6 @@ const clientUrl = env === "production" ? getEnvVar("CLIENT_URL") : "http://local
 
 const allowedOriginsString = env === "production" ? getEnvVar("ALLOWED_ORIGINS") : "http://localhost:5173";
 const allowedOrigins = allowedOriginsString.split(",").map((origin) => origin.trim());
-
 const config = {
   env,
   clientUrl,
@@ -43,6 +42,7 @@ const config = {
     },
     methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization", "Accept"],
+    exposedHeaders: ["Set-Cookie"],
     credentials: true,
   },
   jwt: {
