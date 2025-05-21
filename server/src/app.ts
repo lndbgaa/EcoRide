@@ -39,7 +39,7 @@ const PORT = config.port;
 
 app.set("trust proxy", 1);
 
-app.options("*", cors(config.cors));
+app.options("/*\\w", cors(config.cors));
 app.use(helmet({ contentSecurityPolicy: false }));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
