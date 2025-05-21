@@ -178,9 +178,9 @@ class RideService {
     };
 
     // Si l'utilisateur est connecté, on ne retourne pas ses propres trajets
-    /*if (userId) {
+    if (userId) {
       conditions.driver_id = { [Op.ne]: userId };
-    }*/
+    }
 
     if (data.isEcoFriendly === true) {
       conditions.is_eco_friendly = true;

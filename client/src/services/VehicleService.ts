@@ -15,7 +15,6 @@ class VehicleService {
     return data;
   }
 
-  // TODO: Gérer le cas ou le véhicule est lié à un trajet en cours
   static async deleteVehicle(vehicleId: string): Promise<void> {
     const url = `/vehicles/${vehicleId}`;
     await axiosPrivate.delete(url);

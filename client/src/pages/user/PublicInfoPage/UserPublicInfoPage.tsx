@@ -73,7 +73,6 @@ const UserPublicInfoPage = () => {
 
           <div className={styles.detailsContainer}>
             <p className={styles.memberSince}>Membre depuis le {dayjs(memberSince).format("DD/MM/YYYY")}</p>
-            {/* TODO Implémenter fonctionnalité pour afficher le nombre de trajets effectués */}
             <p className={styles.ridesCount}>
               Trajets effectués: <span>{0}</span>
             </p>
@@ -86,8 +85,6 @@ const UserPublicInfoPage = () => {
           <div className={styles.ratingContainer}>
             <div className={styles.ratingOverview}>
               <p className={styles.ratingScore}>{averageRating ? parseFloat(averageRating)?.toFixed(1) : "0.0"}</p>
-
-              {/* TODO Implémenter fonctionnalité pour afficher le nombre d'avis total */}
               <p className={styles.ratingCount}>{averageRating ? `(- avis)` : "(Aucun avis)"}</p>
             </div>
 
@@ -100,7 +97,6 @@ const UserPublicInfoPage = () => {
 
         <div className={styles.sectionContainer}>
           <h2 className={styles.sectionTitle}>Activités récentes</h2>
-          {/* TODO Implémenter fonctionnalité pour afficher les activités récentes */}
           <p className={styles.activitySection}>Ce membre n'a pas d'activité récente à afficher.</p>
         </div>
       </div>

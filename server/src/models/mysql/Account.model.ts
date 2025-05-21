@@ -45,10 +45,7 @@ abstract class Account extends Model {
    *
    *  ⚠️ À utiliser uniquement dans les modèles Sequelize enfants héritant de Account (User, Employee, Admin).
    */
-  public static defineAttributes(
-    roleId: AccountRoleId,
-    additionalAttributes: Record<string, any> = {}
-  ): Record<string, any> {
+  public static defineAttributes<T extends object>(roleId: AccountRoleId, additionalAttributes: T = {} as T): T {
     return {
       id: {
         type: DataTypes.UUID,

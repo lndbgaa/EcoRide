@@ -12,7 +12,6 @@ import type { IncidentDetailed, IncidentPreview } from "@/types/IncidentTypes";
 const IncidentCard = ({ data }: { data: IncidentPreview }) => {
   const { id: incidentId, description, createdAt } = data;
 
-  // TODO: améliorer la gestion du chargement
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [showModal, setShowModal] = useState<boolean>(false);
 

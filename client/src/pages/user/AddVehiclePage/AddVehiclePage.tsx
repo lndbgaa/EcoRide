@@ -277,7 +277,6 @@ const AddVehiclePage = () => {
             )}
           </div>
 
-          {/*TODO améliorer l'apparence du champ date*/}
           {/*Première immatriculation */}
           <div className={classNames(styles.formGroup, styles.firstRegistration)}>
             <label htmlFor="firstRegistration" className={styles.label}>

@@ -3,7 +3,6 @@ import { Link } from "react-router-dom";
 import styles from "./ErrorPage.module.css";
 
 const ErrorPage = () => {
-  // TODO: Implémenter la possibilité de réessayer l'action
   return (
     <div className={styles.container}>
       <div className={styles.content}>

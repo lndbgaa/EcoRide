@@ -7,9 +7,11 @@ import EmailIcon from "@/assets/images/email-icon.svg?react";
 import LocationIcon from "@/assets/images/location-icon.svg?react";
 import PhoneIcon from "@/assets/images/phone-icon.svg?react";
 
-import useUser from "@/hooks/useAccount";
+import useAccount from "@/hooks/useAccount";
 
 import styles from "./ContactPage.module.css";
+
+import type { User } from "@/types/UserTypes";
 
 interface ContactFormData {
   firstName: string;
@@ -20,7 +22,8 @@ interface ContactFormData {
 }
 
 const ContactPage = () => {
-  const { user } = useUser();
+  const { account } = useAccount();
+  const user = account as User;
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<{ [key: string]: string }>({});
@@ -95,7 +98,6 @@ const ContactPage = () => {
     setIsSubmitting(true);
 
     try {
-      // TODO: Mettre en place l'envoi du message (envoi d'un email)
       await new Promise((resolve) => setTimeout(resolve, 1000));
 
       setFormData((prev) => ({

@@ -11,6 +11,15 @@ import type { FindOptions, Transaction } from "sequelize";
 
 type UpcomingEvent = { type: "booking"; data: Booking } | { type: "ride"; data: Ride };
 
+interface UserUpdateInfoData {
+  firstName?: string;
+  lastName?: string;
+  birthDate?: string;
+  phone?: string;
+  address?: string;
+  pseudo?: string;
+}
+
 class UserService {
   /**
    * Vérifie si un utilisateur existe et le retourne
@@ -88,7 +97,7 @@ class UserService {
    * @param data - Les données à mettre à jour
    * @returns Les informations de l'utilisateur mises à jour
    */
-  public static async updateInfo(userId: string, data: any): Promise<User> {
+  public static async updateInfo(userId: string, data: UserUpdateInfoData): Promise<User> {
     const user = await this.findUserOrThrow(userId);
 
     const dataToUpdate = {
@@ -218,13 +227,13 @@ class UserService {
 
     const now = dayjs().toDate();
 
-    let upcomingBookings: Booking[] = await Booking.findAll({
+    const upcomingBookings: Booking[] = await Booking.findAll({
       where: { passenger_id: user.id, status: "confirmed" },
       include: [{ association: "ride" }],
       order: [[{ model: Ride, as: "ride" }, "departure_datetime", "ASC"]],
     });
 
-    let upcomingRides: Ride[] = await Ride.findAll({
+    const upcomingRides: Ride[] = await Ride.findAll({
       where: {
         driver_id: user.id,
         status: { [Op.in]: ["open", "full"] },

@@ -114,7 +114,6 @@ const ShowVehiclePage = () => {
             Retour
           </Link>
 
-          {/* TODO: Ajouter la fonctionnalité d'édition de véhicule */}
           {/*<Link to={`/vehicle/${mockVehicle.id}/edit`} className={`${styles.button} ${styles.editButton}`}>
             Modifier
           </Link>*/}

@@ -380,7 +380,6 @@ const ResultsPage = () => {
               <div className={styles.filterGroup}>
                 <label className={styles.filterLabel}>Note chauffeur :</label>
 
-                {/* TODO: proposer une alternative pour les mobiles */}
                 <Selector
                   options={driverRatingOptions}
                   value={confirmedSearch.minRating ?? ""}

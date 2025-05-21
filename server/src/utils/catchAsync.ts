@@ -1,10 +1,10 @@
-import type { NextFunction, Request, Response } from "express";
+import type { NextFunction, Request, RequestHandler, Response } from "express";
 
 /**
  * Permet de facilement capturer les erreurs asynchrones
  */
-function catchAsync(fn: Function) {
-  return (req: Request, res: Response, next: NextFunction) => {
+function catchAsync(fn: (req: Request, res: Response, next: NextFunction) => Promise<any>): RequestHandler {
+  return (req, res, next) => {
     fn(req, res, next).catch(next);
   };
 }

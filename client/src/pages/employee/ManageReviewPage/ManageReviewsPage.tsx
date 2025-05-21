@@ -27,8 +27,6 @@ const ManageReviewsPage = () => {
     setIsLoading(true);
     setError(false);
 
-    // TODO : mettre en place système de pagination
-
     try {
       const response = await ReviewService.getPendingReviews();
       setPendingReviews(response.data);

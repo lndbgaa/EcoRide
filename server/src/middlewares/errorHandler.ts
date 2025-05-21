@@ -4,12 +4,12 @@ import config from "@/config/app.config.js";
 import AppError from "@/utils/AppError.js";
 import logError from "@/utils/logError.js";
 
-import type { ErrorRequestHandler, NextFunction, Request, Response } from "express";
+import type { ErrorRequestHandler, Request, Response } from "express";
 
 /**
  * Middleware de gestion des erreurs
  */
-const errorHandler: ErrorRequestHandler = (err: Error, req: Request, res: Response, next: NextFunction) => {
+const errorHandler: ErrorRequestHandler = (err: Error, req: Request, res: Response) => {
   if (err instanceof AppError) {
     const { statusCode, statusText, message, details, stack } = err;
 

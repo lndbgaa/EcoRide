@@ -18,7 +18,6 @@ const AddPreferencePage = () => {
   const validateLabel = (label: string): boolean => {
     setError("");
 
-    // TODO: Améliorer la validation de la préférence (caractères spéciaux, etc.)
     if (!label) {
       setError("Veuillez entrer une préférence");
       return false;
