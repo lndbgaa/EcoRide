@@ -51,6 +51,8 @@ app.get("/", (req, res) => {
   res.send("Bienvenue sur le serveur!");
 });
 
+console.log(config.env);
+
 app.use("/api/v1/auth", authRoutes);
 app.use("/api/v1/users/me", userPrivateRoutes);
 app.use("/api/v1/admin", adminRoutes);
