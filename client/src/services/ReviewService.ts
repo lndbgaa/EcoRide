@@ -1,6 +1,6 @@
 import { axiosPrivate } from "api/axiosInstance";
 
-import { CreateReviewData } from "@/types/ReviewTypes";
+import type { CreateReviewData } from "@/types/ReviewTypes";
 
 class ReviewService {
   static async createReview(data: CreateReviewData) {

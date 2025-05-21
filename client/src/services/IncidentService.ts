@@ -1,5 +1,6 @@
-import { IncidentResolution } from "@/types/IncidentTypes";
 import { axiosPrivate } from "../../api/axiosInstance";
+
+import type { IncidentResolution } from "@/types/IncidentTypes";
 
 class IncidentService {
   static async getPendingIncidents() {
