@@ -1,10 +1,10 @@
-USE ecoride;
 
 -- Rôles
 INSERT INTO roles (label) VALUES 
 ('admin'),
 ('employee'), 
-('user');
+('user')
+ON DUPLICATE KEY UPDATE label = VALUES(label);
 
 -- Marques
 INSERT INTO vehicle_brands (label) VALUES 
@@ -36,8 +36,8 @@ INSERT INTO vehicle_brands (label) VALUES
 ('Mini'),
 ('Mitsubishi'),
 ('Land Rover'),
-('Jaguar');
-
+('Jaguar')
+ON DUPLICATE KEY UPDATE label = VALUES(label);
 -- Couleurs
 INSERT INTO vehicle_colors (label) VALUES 
 ('Noir'),
@@ -50,7 +50,8 @@ INSERT INTO vehicle_colors (label) VALUES
 ('Marron'),
 ('Orange'), 
 ('Violet'), 
-('Rose');
+('Rose')
+ON DUPLICATE KEY UPDATE label = VALUES(label);
 
 -- Énergies
 INSERT INTO vehicle_energies (label) VALUES 
@@ -62,4 +63,5 @@ INSERT INTO vehicle_energies (label) VALUES
 ('GPL'),
 ('GNV'),
 ('Bioéthanol'),
-('Hydrogène');
+('Hydrogène')
+ON DUPLICATE KEY UPDATE label = VALUES(label);
