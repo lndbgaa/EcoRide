@@ -5,7 +5,7 @@ import { rateLimit } from "express-rate-limit";
  */
 export const globalLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  limit: 100, // 100 requêtes par 15 minutes
+  limit: 200, // 100 requêtes par 15 minutes
   standardHeaders: true,
   legacyHeaders: false,
   message: {

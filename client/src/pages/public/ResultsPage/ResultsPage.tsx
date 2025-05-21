@@ -454,10 +454,12 @@ const ResultsPage = () => {
                         )}
                       </div>
                       <p className={styles.driverName}>{result.driver.firstName}</p>
-                      <div className={styles.driverRating}>
-                        <StarIcon className={styles.starIcon} />
-                        <p>{result.driver.averageRating}</p>
-                      </div>
+                      {result.driver.averageRating && (
+                        <div className={styles.driverRating}>
+                          <StarIcon className={styles.starIcon} />
+                          <p>{result.driver.averageRating}</p>
+                        </div>
+                      )}
                     </div>
 
                     {/* Bouton Détails */}

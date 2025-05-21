@@ -33,7 +33,6 @@ export const registerUser = catchAsync(async (req: Request, res: Response): Prom
     sameSite: env === "production" ? "none" : "lax",
     path: "/",
     maxAge: ms(refreshExpiration),
-    domain: env === "production" ? "eco-ride-app-a9dbdce60ec6.herokuapp.com" : undefined,
   });
 
   await PreferenceService.defineDefaultPreferences(accountId);
@@ -62,10 +61,6 @@ export const registerEmployee = catchAsync(async (req: Request, res: Response): 
 export const login = catchAsync(async (req: Request, res: Response): Promise<Response> => {
   const data: LoginDTO = req.body;
 
-  console.log(env);
-  console.log(config.cors);
-  console.log(config.cors.origin);
-
   const { accessToken, refreshToken }: LoginResult = await AuthService.login(data);
 
   res.cookie("refreshToken", refreshToken, {
@@ -74,10 +69,7 @@ export const login = catchAsync(async (req: Request, res: Response): Promise<Res
     sameSite: env === "production" ? "none" : "lax",
     path: "/",
     maxAge: ms(refreshExpiration),
-    domain: env === "production" ? "eco-ride-app-a9dbdce60ec6.herokuapp.com" : undefined,
   });
-
-  console.log("Cookie set");
 
   return res.status(200).json({
     success: true,
@@ -106,7 +98,6 @@ export const logout = catchAsync(async (req: Request, res: Response): Promise<Re
     secure: env === "production",
     sameSite: env === "production" ? "none" : "lax",
     path: "/",
-    domain: env === "production" ? "eco-ride-app-a9dbdce60ec6.herokuapp.com" : undefined,
   });
 
   return res.sendStatus(204);
@@ -136,7 +127,6 @@ export const handleTokenRefresh = catchAsync(async (req: Request, res: Response)
       sameSite: env === "production" ? "none" : "lax",
       path: "/",
       maxAge: ms(refreshExpiration),
-      domain: env === "production" ? "eco-ride-app-a9dbdce60ec6.herokuapp.com" : undefined,
     });
 
     return res.status(200).json({
@@ -154,7 +144,6 @@ export const handleTokenRefresh = catchAsync(async (req: Request, res: Response)
         secure: env === "production",
         sameSite: env === "production" ? "none" : "lax",
         path: "/",
-        domain: env === "production" ? "eco-ride-app-a9dbdce60ec6.herokuapp.com" : undefined,
       });
     }
 
