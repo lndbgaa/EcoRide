@@ -27,11 +27,11 @@
     "@types/node": "^22.14.1",
     "@types/nodemailer": "^6.4.17",
     "tsc-alias": "^1.8.15",
-    "tsx": "^4.19.3",
     "typescript": "^5.8.3"
   },
   "dependencies": {
     "bcrypt": "^5.1.1",
+    "tsx": "^4.19.3",
     "chalk": "^5.4.1",
     "cloudinary": "^2.6.0",
     "cookie-parser": "^1.4.7",
