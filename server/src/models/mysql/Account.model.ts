@@ -6,7 +6,7 @@ import Role from "@/models/mysql/Role.model.js";
 import AppError from "@/utils/AppError.js";
 
 import type { AccountRoleId, AccountStatus } from "@/types/index.js";
-import type { ModelStatic, Transaction } from "sequelize";
+import type { ModelAttributes, ModelStatic, Transaction } from "sequelize";
 
 /**
  * Modèle représentant un compte générique.
@@ -45,7 +45,10 @@ abstract class Account extends Model {
    *
    *  ⚠️ À utiliser uniquement dans les modèles Sequelize enfants héritant de Account (User, Employee, Admin).
    */
-  public static defineAttributes<T extends object>(roleId: AccountRoleId, additionalAttributes: T = {} as T): T {
+  public static defineAttributes<T extends object>(
+    roleId: AccountRoleId,
+    additionalAttributes: ModelAttributes = {}
+  ): ModelAttributes {
     return {
       id: {
         type: DataTypes.UUID,
