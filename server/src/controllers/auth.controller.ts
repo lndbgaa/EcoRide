@@ -33,6 +33,7 @@ export const registerUser = catchAsync(async (req: Request, res: Response): Prom
     sameSite: env === "production" ? "none" : "lax",
     path: "/",
     maxAge: ms(refreshExpiration),
+    domain: env === "production" ? "eco-ride-app-a9dbdce60ec6.herokuapp.com" : undefined,
   });
 
   await PreferenceService.defineDefaultPreferences(accountId);
@@ -69,6 +70,7 @@ export const login = catchAsync(async (req: Request, res: Response): Promise<Res
     sameSite: env === "production" ? "none" : "lax",
     path: "/",
     maxAge: ms(refreshExpiration),
+    domain: env === "production" ? "eco-ride-app-a9dbdce60ec6.herokuapp.com" : undefined,
   });
 
   return res.status(200).json({
@@ -127,6 +129,7 @@ export const handleTokenRefresh = catchAsync(async (req: Request, res: Response)
       sameSite: env === "production" ? "none" : "lax",
       path: "/",
       maxAge: ms(refreshExpiration),
+      domain: env === "production" ? "eco-ride-app-a9dbdce60ec6.herokuapp.com" : undefined,
     });
 
     return res.status(200).json({
