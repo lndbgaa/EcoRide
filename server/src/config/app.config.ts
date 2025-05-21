@@ -33,7 +33,7 @@ const config = {
   serverUrl,
   port: process.env.PORT ? Number(process.env.PORT) : 8080,
   cors: {
-    origin: process.env.ALLOWED_ORIGINS,
+    origin: clientUrl,
     methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization", "Accept"],
     credentials: true,
