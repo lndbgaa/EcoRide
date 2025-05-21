@@ -25,12 +25,14 @@ function getEnvVar(name: string): string {
 }
 
 const serverUrl = env === "production" ? getEnvVar("SERVER_URL") : "http://localhost:8080";
+const clientUrl = env === "production" ? getEnvVar("CLIENT_URL") : "http://localhost:5173";
 
-const rawClientUrls = env === "production" ? getEnvVar("CLIENT_URLS") : "http://localhost:5173";
-const allowedOrigins = rawClientUrls.split(",").map((url) => url.trim());
+const allowedOriginsString = env === "production" ? getEnvVar("ALLOWED_ORIGINS") : "http://localhost:5173";
+const allowedOrigins = allowedOriginsString.split(",").map((origin) => origin.trim());
 
 const config = {
   env,
+  clientUrl,
   serverUrl,
   port: process.env.PORT ? Number(process.env.PORT) : 8080,
   cors: {
