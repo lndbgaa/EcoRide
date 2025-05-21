@@ -25,15 +25,20 @@ function getEnvVar(name: string): string {
 }
 
 const serverUrl = env === "production" ? getEnvVar("SERVER_URL") : "http://localhost:8080";
-const clientUrl = env === "production" ? getEnvVar("CLIENT_URL") : "http://localhost:5173";
+
+const rawClientUrls = env === "production" ? getEnvVar("CLIENT_URLS") : "http://localhost:5173";
+const allowedOrigins = rawClientUrls.split(",").map((url) => url.trim());
 
 const config = {
   env,
   serverUrl,
-  clientUrl,
   port: process.env.PORT ? Number(process.env.PORT) : 8080,
   cors: {
-    origin: clientUrl,
+    origin: (origin: string | undefined, callback: (err: Error | null, allow?: boolean) => void) => {
+      if (!origin) return callback(null, true);
+      if (allowedOrigins.includes(origin)) return callback(null, true);
+      callback(new Error(`CORS policy: Origin ${origin} not allowed`));
+    },
     methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization", "Accept"],
     credentials: true,
