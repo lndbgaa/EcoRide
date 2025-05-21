@@ -39,7 +39,6 @@ const PORT = config.port;
 
 app.set("trust proxy", 1);
 
-app.options("/api/*", cors(config.cors));
 app.use(helmet({ contentSecurityPolicy: false }));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
