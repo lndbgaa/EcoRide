@@ -3,6 +3,7 @@ import axios from "axios";
 import config from "../src/config/config";
 import AuthService from "../src/services/AuthService";
 import { triggerLogout } from "../src/utils/authManager";
+
 const axiosPublic = axios.create({
   baseURL: config.apiBaseUrl,
   timeout: 10000,

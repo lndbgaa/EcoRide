@@ -30,7 +30,7 @@ export const registerUser = catchAsync(async (req: Request, res: Response): Prom
   res.cookie("refreshToken", refreshToken, {
     httpOnly: true,
     secure: env === "production",
-    sameSite: "none",
+    sameSite: env === "production" ? "none" : "lax",
     path: "/",
     maxAge: ms(refreshExpiration),
   });
@@ -66,7 +66,7 @@ export const login = catchAsync(async (req: Request, res: Response): Promise<Res
   res.cookie("refreshToken", refreshToken, {
     httpOnly: true,
     secure: env === "production",
-    sameSite: "none",
+    sameSite: env === "production" ? "none" : "lax",
     path: "/",
     maxAge: ms(refreshExpiration),
   });
@@ -96,7 +96,7 @@ export const logout = catchAsync(async (req: Request, res: Response): Promise<Re
   res.clearCookie("refreshToken", {
     httpOnly: true,
     secure: env === "production",
-    sameSite: "none",
+    sameSite: env === "production" ? "none" : "lax",
     path: "/",
   });
 
@@ -124,7 +124,7 @@ export const handleTokenRefresh = catchAsync(async (req: Request, res: Response)
     res.cookie("refreshToken", newRefreshToken, {
       httpOnly: true,
       secure: env === "production",
-      sameSite: "none",
+      sameSite: env === "production" ? "none" : "lax",
       path: "/",
       maxAge: ms(refreshExpiration),
     });
@@ -142,7 +142,7 @@ export const handleTokenRefresh = catchAsync(async (req: Request, res: Response)
       res.clearCookie("refreshToken", {
         httpOnly: true,
         secure: env === "production",
-        sameSite: "none",
+        sameSite: env === "production" ? "none" : "lax",
         path: "/",
       });
     }
