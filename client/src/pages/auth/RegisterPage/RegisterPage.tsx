@@ -98,8 +98,6 @@ const RegisterPage = () => {
       pseudo: formData.pseudo.trim(),
     };
 
-    console.log(cleanedData);
-
     const isValid = validateData(cleanedData);
 
     if (!isValid) {
