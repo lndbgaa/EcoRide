@@ -39,13 +39,13 @@ const PORT = config.port;
 
 app.set("trust proxy", 1);
 
+app.use(helmet({ contentSecurityPolicy: false }));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
+app.use(cors(config.cors));
 app.use(sanitizeAll);
 app.use(globalLimiter);
-app.use(cors(config.cors));
-app.use(helmet({ contentSecurityPolicy: false }));
 
 app.get("/", (req, res) => {
   res.send("Bienvenue sur le serveur!");
