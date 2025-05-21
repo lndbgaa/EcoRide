@@ -1,6 +1,7 @@
 import { Router } from "express";
 
 import { ACCOUNT_ROLES_LABEL } from "@/constants/index.js";
+
 import requireAuth from "@/middlewares/requireAuth.js";
 import requireRole from "@/middlewares/requireRole.js";
 import validate from "@/middlewares/validateAll.js";

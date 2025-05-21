@@ -18,6 +18,7 @@ import config from "@/config/app.config.js";
 import connectMongo from "@/config/mongo.config.js";
 import { connectMySQL } from "@/config/mysql.config.js";
 import errorHandler from "@/middlewares/errorHandler.js";
+import { globalLimiter } from "@/middlewares/rateLimiter.js";
 import sanitizeAll from "@/middlewares/sanitizeAll.js";
 import adminRoutes from "@/routes/admin.route.js";
 import authRoutes from "@/routes/auth.route.js";
@@ -25,11 +26,11 @@ import bookingsRoutes from "@/routes/booking.route.js";
 import catalogRoutes from "@/routes/catalog.routes.js";
 import employeesRoutes from "@/routes/employee.route.js";
 import incidentsRoutes from "@/routes/incident.route.js";
-import userPrivateRoutes from "@/routes/user.route.js";
 import preferencesRoutes from "@/routes/preference.route.js";
 import publicRoutes from "@/routes/public.route.js";
 import reviewsRoutes from "@/routes/review.route.js";
 import ridesRoutes from "@/routes/ride.route.js";
+import userPrivateRoutes from "@/routes/user.route.js";
 import vehiclesRoutes from "@/routes/vehicle.route.js";
 import AppError from "@/utils/AppError.js";
 
@@ -41,7 +42,7 @@ app.use(express.urlencoded({ extended: true }));
 
 app.use(cookieParser());
 app.use(sanitizeAll);
-//app.use(globalLimiter);
+app.use(globalLimiter);
 app.use(cors(config.cors));
 app.use(helmet({ contentSecurityPolicy: false }));
 

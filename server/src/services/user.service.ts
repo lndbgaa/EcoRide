@@ -1,7 +1,7 @@
 import dayjs from "dayjs";
 import { Op } from "sequelize";
 
-import { sequelize } from "@/config/mysql.config";
+import { sequelize } from "@/config/mysql.config.js";
 import { Booking, Review, Ride, User } from "@/models/mysql/index.js";
 import UploadService from "@/services/upload.service.js";
 import AppError from "@/utils/AppError.js";

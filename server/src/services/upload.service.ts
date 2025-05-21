@@ -1,6 +1,6 @@
-import cloudinary from "@/config/cloudinary.config";
-import AppError from "@/utils/AppError";
-import dataUriFromFile from "@/utils/dataUriFromFile";
+import cloudinary from "@/config/cloudinary.config.js";
+import AppError from "@/utils/AppError.js";
+import dataUriFromFile from "@/utils/dataUriFromFile.js";
 
 class UploadService {
   private static readonly allowedMimeTypes = ["image/jpeg", "image/png", "image/webp"];

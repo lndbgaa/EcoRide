@@ -1,4 +1,4 @@
-import { Booking } from "@/models/mysql";
+import { Booking } from "@/models/mysql/index.js";
 import BookingService from "@/services/booking.service.js";
 import IncidentService from "@/services/incident.service.js";
 import catchAsync from "@/utils/catchAsync.js";

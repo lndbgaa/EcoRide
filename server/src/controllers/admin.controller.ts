@@ -1,4 +1,4 @@
-import AccountService from "@/services/account.service";
+import AccountService from "@/services/account.service.js";
 import AdminService from "@/services/admin.service.js";
 import catchAsync from "@/utils/catchAsync.js";
 

@@ -1,4 +1,4 @@
-import { Booking, Ride, User } from "@/models/mysql/";
+import { Booking, Ride, User } from "@/models/mysql/index.js";
 import PreferenceService from "@/services/preference.service.js";
 import UserService from "@/services/user.service.js";
 import VehicleService from "@/services/vehicle.service.js";
@@ -7,7 +7,7 @@ import catchAsync from "@/utils/catchAsync.js";
 
 import type { BookingPublicDTO } from "@/models/mysql/Booking.model.js";
 import type { RidePublicDTO } from "@/models/mysql/Ride.model.js";
-import type { MulterRequest } from "@/types/express.js";
+import type { MulterRequest } from "@/types/express.d.js";
 import type { Request, Response } from "express";
 
 /**

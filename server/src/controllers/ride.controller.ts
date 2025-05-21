@@ -1,4 +1,4 @@
-import { Ride } from "@/models/mysql";
+import { Ride } from "@/models/mysql/index.js";
 import RideService from "@/services/ride.service.js";
 import catchAsync from "@/utils/catchAsync.js";
 import parsePagination from "@/utils/parsePagination.js";

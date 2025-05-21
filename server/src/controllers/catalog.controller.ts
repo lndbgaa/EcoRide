@@ -1,4 +1,4 @@
-import VehicleService from "@/services/vehicle.service";
+import VehicleService from "@/services/vehicle.service.js";
 import catchAsync from "@/utils/catchAsync.js";
 
 import type { Request, Response } from "express";

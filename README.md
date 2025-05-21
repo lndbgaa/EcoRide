@@ -1,7 +1,7 @@
 # EcoRide - Full Stack Project
 
 ![Project Status](https://img.shields.io/badge/Project%20Status-In%20Progress-orange?style=flat-square)
-[![CodeFactor](https://www.codefactor.io/repository/github/lndbgaa/ecoride/badge)](https://www.codefactor.io/repository/github/lndbgaa/ecoride)
+[![CodeFactor](https://www.codefactor.io/repository/github/lndbgaa/ecoride/badge?style=flat-square)](https://www.codefactor.io/repository/github/lndbgaa/ecoride)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue?style=flat-square)](LICENSE)
 
 **EcoRide** est une application web de covoiturage écoresponsable, conçue pour mettre en relation passagers et conducteurs souhaitant partager des trajets. Elle propose une expérience fluide, sécurisée et orientée vers la mobilité durable.

@@ -1,6 +1,6 @@
 import { DEFAULT_PREFERENCES } from "@/constants/index.js";
 
-import { Preference } from "@/models/mysql";
+import { Preference } from "@/models/mysql/index.js";
 import UserService from "@/services/user.service.js";
 import AppError from "@/utils/AppError.js";
 
@@ -11,10 +11,7 @@ class PreferenceService {
    * @param preferenceId - L'id de la préférence
    * @returns La préférence trouvée
    */
-  public static async findOwnedPreferenceOrThrow(
-    userId: string,
-    preferenceId: string
-  ): Promise<Preference> {
+  public static async findOwnedPreferenceOrThrow(userId: string, preferenceId: string): Promise<Preference> {
     const preference: Preference | null = await Preference.findOne({
       where: { id: preferenceId },
     });
@@ -74,10 +71,7 @@ class PreferenceService {
    * @param data - Les données de la préférence (label, value)
    * @returns La préférence créée
    */
-  public static async createPreference(
-    userId: string,
-    data: { label: string; value: boolean }
-  ): Promise<Preference> {
+  public static async createPreference(userId: string, data: { label: string; value: boolean }): Promise<Preference> {
     await UserService.assertUserIsDriverOrThrow(userId);
 
     const { label, value } = data;
@@ -98,10 +92,7 @@ class PreferenceService {
    * @param preferenceId - L'id de la préférence
    * @returns La préférence mise à jour
    */
-  public static async togglePreferenceValue(
-    userId: string,
-    preferenceId: string
-  ): Promise<Preference> {
+  public static async togglePreferenceValue(userId: string, preferenceId: string): Promise<Preference> {
     await UserService.assertUserIsDriverOrThrow(userId);
 
     const preference: Preference = await this.findOwnedPreferenceOrThrow(userId, preferenceId);

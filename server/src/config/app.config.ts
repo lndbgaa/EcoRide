@@ -1,7 +1,13 @@
 import dotenv from "dotenv";
-dotenv.config();
+import path from "path";
 
-import AppError from "@/utils/AppError";
+dotenv.config({ path: path.resolve(process.cwd(), ".env") });
+
+const env = process.env.NODE_ENV ?? "development";
+const envPath = path.resolve(process.cwd(), `.env.${env}`);
+dotenv.config({ path: envPath });
+
+import AppError from "@/utils/AppError.js";
 
 import type { StringValue } from "ms";
 
@@ -18,7 +24,6 @@ function getEnvVar(name: string): string {
   return value;
 }
 
-const env = process.env.NODE_ENV ?? "development";
 const serverUrl = env === "production" ? getEnvVar("SERVER_URL") : "http://localhost:8080";
 const clientUrl = env === "production" ? getEnvVar("CLIENT_URL") : "http://localhost:5173";
 

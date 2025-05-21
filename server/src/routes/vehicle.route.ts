@@ -1,13 +1,13 @@
 import { Router } from "express";
 
 import { ACCOUNT_ROLES_LABEL } from "@/constants/index.js";
-import { addVehicle, deleteVehicle, getVehicle, updateVehicle } from "@/controllers/vehicle.controller";
-import requireAuth from "@/middlewares/requireAuth";
-import requireRole from "@/middlewares/requireRole";
-import validate from "@/middlewares/validateAll";
+import { addVehicle, deleteVehicle, getVehicle, updateVehicle } from "@/controllers/vehicle.controller.js";
+import requireAuth from "@/middlewares/requireAuth.js";
+import requireRole from "@/middlewares/requireRole.js";
+import validate from "@/middlewares/validateAll.js";
 
-import { idParamSchema } from "@/validators/common.validator";
-import { addVehicleSchema, updateVehicleSchema } from "@/validators/vehicle.validator";
+import { idParamSchema } from "@/validators/common.validator.js";
+import { addVehicleSchema, updateVehicleSchema } from "@/validators/vehicle.validator.js";
 
 const router = Router();
 

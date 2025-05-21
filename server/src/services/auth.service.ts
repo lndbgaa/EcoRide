@@ -5,7 +5,7 @@ import { nanoid } from "nanoid";
 import config from "@/config/app.config.js";
 import { sequelize } from "@/config/mysql.config.js";
 import { ACCOUNT_ROLES_LABEL } from "@/constants/index.js";
-import { Employee, RefreshToken, User } from "@/models/mysql";
+import { Employee, RefreshToken, User } from "@/models/mysql/index.js";
 import AccountService from "@/services/account.service.js";
 import AppError from "@/utils/AppError.js";
 import { generateToken } from "@/utils/jwt.utils.js";

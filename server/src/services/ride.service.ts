@@ -1,9 +1,10 @@
 import dayjs from "dayjs";
 import { Op, Sequelize } from "sequelize";
 
+import config from "@/config/app.config.js";
 import { sequelize } from "@/config/mysql.config.js";
 import { VEHICLE_ASSOCIATIONS } from "@/constants/index.js";
-import { Booking, Preference, Ride, User, Vehicle } from "@/models/mysql";
+import { Booking, Preference, Ride, User, Vehicle } from "@/models/mysql/index.js";
 import BookingService from "@/services/booking.service.js";
 import EmailService from "@/services/email.service.js";
 import PreferenceService from "@/services/preference.service.js";
@@ -41,6 +42,8 @@ interface RideDetails {
   bookings: Booking[];
   preferences: string[];
 }
+
+const { clientUrl } = config;
 
 class RideService {
   /**
@@ -337,6 +340,7 @@ class RideService {
               arrivalLocation: ride.arrival_location,
               driver: ride.driver?.getFirstName() ?? "Inconnu",
               rideId: ride.getId(),
+              reviewUrl: `${clientUrl}/ride/${ride.getId()}/evaluate`,
             },
           })),
           "Valide ton trajet EcoRide",
@@ -399,6 +403,7 @@ class RideService {
               departureDate: toDateOnly(ride.departure_datetime),
               departureTime: toTimeOnly(ride.departure_datetime),
               driver: ride.driver?.getFirstName() ?? "Inconnu",
+              searchUrl: `${clientUrl}/search`,
             },
           })),
           "Ta réservation a été annulée",

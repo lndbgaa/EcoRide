@@ -1,6 +1,6 @@
 import { sequelize } from "@/config/mysql.config.js";
 import { PLATFORM_CREDITS_PER_SEAT } from "@/constants/index.js";
-import { Booking, Ride, User } from "@/models/mysql";
+import { Booking, Ride, User } from "@/models/mysql/index.js";
 import RideService from "@/services/ride.service.js";
 import UserService from "@/services/user.service.js";
 import AppError from "@/utils/AppError.js";

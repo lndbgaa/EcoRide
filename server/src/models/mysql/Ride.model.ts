@@ -2,7 +2,7 @@ import { DataTypes, Model } from "sequelize";
 
 import { sequelize } from "@/config/mysql.config.js";
 import { RIDE_STATUSES } from "@/constants/index.js";
-import { User, Vehicle } from "@/models/mysql";
+import { User, Vehicle } from "@/models/mysql/index.js";
 import AppError from "@/utils/AppError.js";
 import { getDuration, toDateOnly, toTimeOnly } from "@/utils/date.utils.js";
 

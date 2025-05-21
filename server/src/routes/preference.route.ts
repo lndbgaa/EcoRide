@@ -1,13 +1,13 @@
 import { Router } from "express";
 
 import { ACCOUNT_ROLES_LABEL } from "@/constants/index.js";
-import requireAuth from "@/middlewares/requireAuth";
-import requireRole from "@/middlewares/requireRole";
-import validate from "@/middlewares/validateAll";
+import requireAuth from "@/middlewares/requireAuth.js";
+import requireRole from "@/middlewares/requireRole.js";
+import validate from "@/middlewares/validateAll.js";
 
-import { addPreference, deletePreference, updatePreference } from "@/controllers/preference.controller";
-import { idParamSchema } from "@/validators/common.validator";
-import { addPreferenceSchema } from "@/validators/preference.validator";
+import { addPreference, deletePreference, updatePreference } from "@/controllers/preference.controller.js";
+import { idParamSchema } from "@/validators/common.validator.js";
+import { addPreferenceSchema } from "@/validators/preference.validator.js";
 
 const router = Router();
 

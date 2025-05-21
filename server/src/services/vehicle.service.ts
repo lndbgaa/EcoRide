@@ -2,7 +2,7 @@ import dayjs from "dayjs";
 
 import { sequelize } from "@/config/mysql.config.js";
 import { VEHICLE_ASSOCIATIONS } from "@/constants/index.js";
-import { Vehicle, VehicleBrand, VehicleColor, VehicleEnergy } from "@/models/mysql";
+import { Vehicle, VehicleBrand, VehicleColor, VehicleEnergy } from "@/models/mysql/index.js";
 import UserService from "@/services/user.service.js";
 import AppError from "@/utils/AppError.js";
 

@@ -1,16 +1,14 @@
 import { col, fn, literal, Op } from "sequelize";
 
 import { PLATFORM_CREDITS_PER_SEAT } from "@/constants/index.js";
-import { Booking, Ride } from "@/models/mysql";
+import { Booking, Ride } from "@/models/mysql/index.js";
 
 class StatisticsService {
   /**
    * Récupère le nombre de trajets prévus par jour
    * @returns Un tableau de dates et de nombres de trajets prévus
    */
-  public static async getDailyRides(): Promise<
-    { date: string; count: number }[]
-  > {
+  public static async getDailyRides(): Promise<{ date: string; count: number }[]> {
     const rows = (await Ride.findAll({
       attributes: [
         [fn("DATE", col("departure_datetime")), "date"],
@@ -34,16 +32,11 @@ class StatisticsService {
    *
    * @returns Un tableau de dates et de nombres de crédits générés par la plateforme
    */
-  public static async getDailyCredits(): Promise<
-    { date: string; credits: number }[]
-  > {
+  public static async getDailyCredits(): Promise<{ date: string; credits: number }[]> {
     const rows = (await Booking.findAll({
       attributes: [
         [fn("DATE", col("ride.departure_datetime")), "date"],
-        [
-          literal(`SUM(seats_booked * ${PLATFORM_CREDITS_PER_SEAT})`),
-          "credits",
-        ],
+        [literal(`SUM(seats_booked * ${PLATFORM_CREDITS_PER_SEAT})`), "credits"],
       ],
       include: [{ association: "ride", attributes: [], required: true }],
       where: {
