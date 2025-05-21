@@ -1,8 +1,13 @@
 import dotenv from "dotenv";
-dotenv.config();
-
 import fs from "fs";
 import mysql from "mysql2/promise";
+import path from "path";
+
+dotenv.config({ path: path.resolve(process.cwd(), ".env") });
+
+const env = process.env.NODE_ENV ?? "development";
+const envPath = path.resolve(process.cwd(), `.env.${env}`);
+dotenv.config({ path: envPath });
 
 const runSQLFile = async (filePath) => {
   if (!fs.existsSync(filePath)) {
@@ -13,6 +18,7 @@ const runSQLFile = async (filePath) => {
     host: process.env.MYSQL_DB_HOST,
     user: process.env.MYSQL_DB_USER,
     password: process.env.MYSQL_DB_PWD,
+    database: process.env.MYSQL_DB_NAME,
     multipleStatements: true,
   });
 
