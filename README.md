@@ -6,6 +6,8 @@
 
 **EcoRide** est une application web de covoiturage écoresponsable, conçue pour mettre en relation passagers et conducteurs souhaitant partager des trajets. Elle propose une expérience fluide, sécurisée et orientée vers la mobilité durable.
 
+[Live Demo](https://eco-ride-kappa.vercel.app)
+
 ## Tech Stack
 
 - **Frontend**: React, TypeScript, CSS
