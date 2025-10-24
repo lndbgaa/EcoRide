@@ -1,0 +1,28 @@
+services:
+  client:
+    build:
+      context: ./client
+      target: prod
+    ports:
+      - "80:80"
+    env_file:
+      - ./client/.env.production
+    restart: always
+
+  server:
+    build:
+      context: ./server
+      target: prod
+    env_file:
+      - ./server/.env.production
+    restart: always
+
+  mysql:
+    env_file:
+      - ./.env.production
+    restart: always
+
+  mongodb:
+    env_file:
+      - ./.env.production
+    restart: always

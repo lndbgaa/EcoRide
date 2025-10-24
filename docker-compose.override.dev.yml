@@ -1,0 +1,54 @@
+services:
+  client:
+    build:
+      context: ./client
+      target: dev
+    ports:
+      - "3000:3000"
+    volumes:
+      - type: bind
+        source: ./client
+        target: /usr/src/app
+      - type: volume
+        source: client_node_modules
+        target: /usr/src/app/node_modules
+    env_file:
+      - ./client/.env.development
+    restart: unless-stopped
+
+  server:
+    build:
+      context: ./server
+      target: dev
+    ports:
+      - "8080:8080"
+    volumes:
+      - type: bind
+        source: ./server
+        target: /usr/src/app
+      - type: volume
+        source: server_node_modules
+        target: /usr/src/app/node_modules
+    env_file:
+      - ./server/.env.development
+    restart: unless-stopped
+
+  mysql:
+    ports:
+      - "${MYSQL_PORT}:3306"
+    env_file:
+      - ./.env.development
+    restart: unless-stopped
+
+  mongodb:
+    ports:
+      - "${MONGO_PORT}:27017"
+    env_file:
+      - ./.env.development
+    volumes:
+      - ./init-mongo.js:/docker-entrypoint-initdb.d/init-mongo.js:ro
+    restart: unless-stopped
+
+volumes:
+  client_node_modules:
+  server_node_modules:

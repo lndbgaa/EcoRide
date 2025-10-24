@@ -1,0 +1,22 @@
+{
+  "name": "ecoride",
+  "version": "1.0.0",
+  "description": "",
+  "scripts": {
+    "dev:docker:up": "docker-compose -f docker-compose.yml -f docker-compose.override.dev.yml up -d",
+    "dev:docker:up:build": "docker-compose -f docker-compose.yml -f docker-compose.override.dev.yml up --build -d",
+    "dev:docker:logs": "docker-compose -f docker-compose.yml -f docker-compose.override.dev.yml logs -f",
+    "dev:docker:stop": "docker-compose -f docker-compose.yml -f docker-compose.override.dev.yml down"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/lndbgaa/EcoRide.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/lndbgaa/EcoRide/issues"
+  },
+  "homepage": "https://github.com/lndbgaa/EcoRide#readme"
+}
