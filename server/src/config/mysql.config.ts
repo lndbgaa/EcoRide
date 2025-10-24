@@ -1,6 +1,7 @@
 import { Sequelize } from "sequelize";
 
 import appConfig from "@/config/app.config.js";
+import logger from "@/utils/logger.js";
 
 const { env, mysql } = appConfig;
 const { port, host, user, password, database } = mysql;
@@ -15,7 +16,7 @@ const sequelize = new Sequelize(database, user, password, {
 const connectMySQL = async () => {
   try {
     await sequelize.authenticate();
-    console.log("✅ MySQL: Connection successful");
+    logger.info("✅ MySQL: Connection successful");
   } catch (err) {
     throw new Error(`❌ Failed to connect to MySQL: ${(err as Error).message}`);
   }

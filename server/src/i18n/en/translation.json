@@ -1,0 +1,14 @@
+{
+  "app": {
+    "name": "API EcoRide",
+    "welcome": "Welcome to the EcoRide API!"
+  },
+
+  "errors": {
+    "common": {
+      "internal_server_error": "An unexpected error occurred.",
+      "resource_not_found": "The requested resource was not found.",
+      "validation_error": "The provided data is invalid."
+    }
+  }
+}

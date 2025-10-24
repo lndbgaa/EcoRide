@@ -15,11 +15,18 @@
   "dependencies": {
     "dotenv": "^17.2.3",
     "express": "^5.1.0",
+    "http-status-codes": "^2.3.0",
+    "i18next": "^25.6.0",
+    "i18next-fs-backend": "^2.6.0",
+    "i18next-http-middleware": "^3.8.1",
+    "joi": "^18.0.1",
     "mongodb": "^6.20.0",
     "mongoose": "^8.19.2",
     "mysql2": "^3.15.3",
     "sequelize": "^6.37.7",
-    "tsx": "^4.20.6"
+    "tsx": "^4.20.6",
+    "winston": "^3.18.3",
+    "winston-daily-rotate-file": "^5.0.0"
   },
   "devDependencies": {
     "@types/dotenv": "^6.1.1",
