@@ -2,7 +2,7 @@ import dayjs from "dayjs";
 import mongoose from "mongoose";
 import { v4 as uuid } from "uuid";
 
-import { INCIDENT_STATUSES } from "@/constants/incident.constants.js";
+import { INCIDENT_STATUSES } from "@/constants";
 
 import AppError from "@/utils/AppError.js";
 import { formatDateTime, toDateOnly, toTimeOnly } from "@/utils/date.utils.js";

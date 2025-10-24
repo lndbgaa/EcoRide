@@ -1,5 +1,5 @@
-import type { INCIDENT_STATUSES } from "@/constants/incident.constants.js";
-import type { DateTimeDTO } from "@/types/common.types.js";
+import type { INCIDENT_STATUSES } from "@/constants";
+import type { DateTimeDTO } from "@/types";
 import type { Document } from "mongoose";
 
 export type IncidentStatus = (typeof INCIDENT_STATUSES)[keyof typeof INCIDENT_STATUSES];

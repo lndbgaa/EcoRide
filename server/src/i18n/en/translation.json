@@ -6,9 +6,35 @@
 
   "errors": {
     "common": {
-      "internal_server_error": "An unexpected error occurred.",
-      "resource_not_found": "The requested resource was not found.",
-      "validation_error": "The provided data is invalid."
+      "internal_server_error": "An unexpected error occurred",
+      "resource_not_found": "The requested resource was not found",
+      "validation_error": "The provided data is invalid"
+    },
+
+    "user": {
+      "invalid_status_transition": "Invalid status transition for this user",
+      "invalid_credit_amount": "The credit amount must be a positive integer",
+      "insufficient_credits": "You do not have enough credits to perform this action"
+    },
+
+    "vehicle": {
+      "invalid_status_transition": "Invalid status transition for this vehicle"
+    },
+
+    "ride": {
+      "invalid_status_transition": "Invalid status transition for this ride",
+      "cannot_modify_seats": "Cannot modify the number of seats for this ride in its current state",
+      "invalid_seat_amount": "Number of seats must be a positive integer",
+      "exceeds_offered_seats": "Cannot add this number of seats: it would exceed the total offered seats",
+      "not_enough_available_seats": "Cannot remove this number of seats: not enough seats available"
+    },
+
+    "booking": {
+      "invalid_status_transition": "Invalid status transition for this booking"
+    },
+
+    "review": {
+      "invalid_status_transition": "Invalid status transition for this review"
     }
   }
 }

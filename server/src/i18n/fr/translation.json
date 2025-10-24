@@ -6,9 +6,35 @@
 
   "errors": {
     "common": {
-      "internal_server_error": "Une erreur inattendue s'est produite.",
-      "resource_not_found": "La ressource demandée est introuvable.",
-      "validation_error": "Les données fournies sont invalides."
+      "internal_server_error": "Une erreur inattendue s'est produite",
+      "resource_not_found": "La ressource demandée est introuvable",
+      "validation_error": "Les données fournies sont invalides"
+    },
+
+    "user": {
+      "invalid_status_transition": "Transition de statut invalide pour cet utilisateur",
+      "invalid_credit_amount": "Le montant des crédits doit être un entier positif",
+      "insufficient_credits": "Vous n'avez pas assez de crédits pour effectuer cette action"
+    },
+
+    "vehicle": {
+      "invalid_status_transition": "Transition de statut invalide pour ce véhicule"
+    },
+
+    "ride": {
+      "invalid_status_transition": "Transition de statut invalide pour ce trajet",
+      "cannot_modify_seats": "Impossible de modifier le nombre de places pour ce trajet dans son état actuel",
+      "invalid_seat_amount": "Le nombre de places doit être un entier positif",
+      "exceeds_offered_seats": "Impossible d'ajouter ce nombre de places : cela dépasserait le nombre total de places offertes",
+      "not_enough_available_seats": "Impossible de retirer ce nombre de places : il n'y a pas assez de places disponibles"
+    },
+
+    "booking": {
+      "invalid_status_transition": "Transition de statut invalide pour cette réservation"
+    },
+
+    "review": {
+      "invalid_status_transition": "Transition de statut invalide pour cet avis"
     }
   }
 }
