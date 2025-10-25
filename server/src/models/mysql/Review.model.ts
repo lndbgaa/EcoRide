@@ -1,7 +1,6 @@
 import { DataTypes, Model } from "sequelize";
 
 import { ERROR_MESSAGES, REVIEW_MAX_RATING, REVIEW_MIN_RATING, REVIEW_STATUSES } from "@/constants";
-
 import { AppError, formatDateTime } from "@/utils";
 
 import type { Ride, User } from "@/models/mysql";

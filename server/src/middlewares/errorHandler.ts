@@ -1,21 +1,13 @@
 import { getReasonPhrase } from "http-status-codes";
 import Joi from "joi";
 
-import appConfig from "@/config/app.config.js";
-
-import { ERROR_CODES, ERROR_MESSAGES } from "@/constants/error.constants.js";
-import AppError from "@/utils/AppError.js";
-import logger from "@/utils/logger.js";
-import parseJoiError from "@/utils/parseJoiError.js";
+import { appConfig } from "@/config";
+import { ERROR_CODES, ERROR_MESSAGES } from "@/constants";
+import { AppError, logger, parseJoiError } from "@/utils";
 
 import type { ErrorRequestHandler, NextFunction, Request, Response } from "express";
 
-const errorHandler: ErrorRequestHandler = (
-  err: unknown,
-  req: Request,
-  res: Response,
-  next: NextFunction
-) => {
+const errorHandler: ErrorRequestHandler = (err: unknown, req: Request, res: Response, next: NextFunction) => {
   const path = req.originalUrl;
   const method = req.method;
   const isDev = appConfig.env === "development";
@@ -100,4 +92,4 @@ const errorHandler: ErrorRequestHandler = (
   });
 };
 
-export default errorHandler;
+export { errorHandler };

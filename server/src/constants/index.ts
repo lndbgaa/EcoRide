@@ -4,5 +4,6 @@ export * from "./incident.constants.js";
 export * from "./regex.constants.js";
 export * from "./review.constants.js";
 export * from "./ride.constants.js";
+export * from "./success.constants.js";
 export * from "./user.constants.js";
 export * from "./vehicle.constants.js";

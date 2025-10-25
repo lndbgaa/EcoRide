@@ -8,7 +8,6 @@ import {
   VEHICLE_MIN_SEATS,
   VEHICLE_STATUSES,
 } from "@/constants";
-
 import { toDateOnly } from "@/utils";
 
 import type { User, VehicleBrand, VehicleColor, VehicleEnergy } from "@/models/mysql";

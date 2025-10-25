@@ -18,4 +18,4 @@ i18next
     preload: ["fr", "en"],
   });
 
-export default i18next;
+export { i18next };

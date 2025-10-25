@@ -10,7 +10,15 @@ export const ERROR_MESSAGES = {
     RESOURCE_NOT_FOUND: "errors.common.resource_not_found",
     VALIDATION_ERROR: "errors.common.validation_error",
   },
+  AUTH: {
+    EMAIL_ALREADY_EXISTS: "errors.auth.email_already_exists",
+    USERNAME_ALREADY_EXISTS: "errors.auth.username_already_exists",
+    EMAIL_ALREADY_VERIFIED: "errors.auth.email_already_verified",
+    EMAIL_VERIFICATION_TOKEN_INVALID: "errors.auth.email_verification_token_invalid",
+    EMAIL_VERIFICATION_SEND_FAILED: "errors.auth.email_verification_send_failed",
+  },
   USER: {
+    NOT_FOUND: "errors.user.not_found",
     INVALID_STATUS_TRANSITION: "errors.user.invalid_status_transition",
     INVALID_CREDIT_AMOUNT: "errors.user.invalid_credit_amount",
     INSUFFICIENT_CREDITS: "errors.user.insufficient_credits",

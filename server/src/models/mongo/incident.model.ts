@@ -3,9 +3,7 @@ import mongoose from "mongoose";
 import { v4 as uuid } from "uuid";
 
 import { INCIDENT_STATUSES } from "@/constants";
-
-import AppError from "@/utils/AppError.js";
-import { formatDateTime, toDateOnly, toTimeOnly } from "@/utils/date.utils.js";
+import { AppError, formatDateTime, toDateOnly, toTimeOnly } from "@/utils";
 
 import type {
   IncidentDetailedDTO,
@@ -15,7 +13,7 @@ import type {
   RideEmbedded,
   UserEmbedded,
   VehicleEmbedded,
-} from "@/types/incident.types.js";
+} from "@/types";
 
 const { PENDING, ASSIGNED, RESOLVED } = INCIDENT_STATUSES;
 
@@ -144,10 +142,7 @@ incidentSchema.methods.markAsAssigned = async function (
   await this.save();
 };
 
-incidentSchema.methods.markAsResolved = async function (
-  this: IncidentDocument,
-  note: string
-): Promise<void> {
+incidentSchema.methods.markAsResolved = async function (this: IncidentDocument, note: string): Promise<void> {
   if (this.status === RESOLVED) return;
 
   if (!canTransitionTo(this.status, RESOLVED)) {

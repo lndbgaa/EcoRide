@@ -1,4 +1,4 @@
-import type { ParsedJoiErrorItem } from "@/types/error.types.js";
+import type { ParsedJoiErrorItem } from "@/types";
 import type { ValidationError } from "joi";
 
 function parseJoiError(err: ValidationError): ParsedJoiErrorItem[] {

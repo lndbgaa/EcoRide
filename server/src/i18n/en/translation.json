@@ -4,11 +4,28 @@
     "welcome": "Welcome to the EcoRide API!"
   },
 
+  "success": {
+    "auth": {
+      "user_registered": "Account created successfully! A verification email has been sent.",
+      "email_verified": "Your email has been successfully verified. You can now sign in.",
+      "email_verification_sent": "If an account exists with this email, a verification link has been sent.",
+      "user_login": "Login successful."
+    }
+  },
+
   "errors": {
     "common": {
       "internal_server_error": "An unexpected error occurred",
       "resource_not_found": "The requested resource was not found",
       "validation_error": "The provided data is invalid"
+    },
+
+    "auth": {
+      "email_already_exists": "This email address is already in use.",
+      "username_already_exists": "This username is already taken.",
+      "email_already_verified": "Your email address is already verified.",
+      "email_verification_token_invalid": "The verification link is invalid or has expired.",
+      "email_verification_send_failed": "Unable to send verification email. Please try again later."
     },
 
     "user": {

@@ -1,4 +1,4 @@
-import { sequelize } from "@/config/mysql.config.js";
+import { sequelize } from "@/config";
 
 import Booking from "./Booking.model.js";
 import EmailVerificationToken from "./EmailVerificationToken.model.js";

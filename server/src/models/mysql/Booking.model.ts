@@ -1,7 +1,6 @@
 import { DataTypes, Model } from "sequelize";
 
 import { BOOKING_STATUSES, ERROR_MESSAGES } from "@/constants";
-
 import { AppError, formatDateTime } from "@/utils";
 
 import type { Ride, User } from "@/models/mysql";

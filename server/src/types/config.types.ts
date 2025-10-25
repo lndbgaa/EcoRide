@@ -1,8 +1,16 @@
+import type { StringValue } from "ms";
+
 export interface Config {
   env: string;
-  port: number;
   serverUrl: string;
   clientUrl: string;
+  port: number;
+
+  auth: {
+    refreshExpiration: StringValue;
+    accessSecret: string;
+    accessExpiration: StringValue;
+  };
   mysql: {
     host: string;
     port: number;
@@ -12,5 +20,9 @@ export interface Config {
   };
   mongodb: {
     uri: string;
+  };
+  gmail: {
+    user: string;
+    password: string;
   };
 }

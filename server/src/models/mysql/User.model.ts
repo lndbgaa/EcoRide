@@ -10,7 +10,6 @@ import {
   USER_ROLES_ID,
   USER_STATUSES,
 } from "@/constants";
-
 import { AppError, calculateAge, capitalize, formatDateTime, toDateOnly } from "@/utils";
 
 import type { Role } from "@/models/mysql";
@@ -411,8 +410,7 @@ export default class User extends Model {
 
             if (typeof user.phone === "string") user.phone = user.phone.trim();
             if (typeof user.address === "string") user.address = user.address.trim();
-            if (typeof user.profile_picture === "string")
-              user.profile_picture = user.profile_picture.trim();
+            if (typeof user.profile_picture === "string") user.profile_picture = user.profile_picture.trim();
           },
         },
       }

@@ -1,15 +1,11 @@
 import express from "express";
 import { handle } from "i18next-http-middleware";
 
-import appConfig from "@/config/app.config.js";
-import i18next from "@/config/i18next.config.js";
-import { connectMongoDB } from "@/config/mongo.config.js";
-import { connectMySQL } from "@/config/mysql.config.js";
-
-import { ERROR_CODES, ERROR_MESSAGES } from "@/constants/error.constants.js";
-import errorHandler from "@/middlewares/errorHandler.js";
-import AppError from "@/utils/AppError.js";
-import logger from "@/utils/logger.js";
+import { appConfig, connectMongoDB, connectMySQL, i18next } from "@/config";
+import { ERROR_CODES, ERROR_MESSAGES } from "@/constants";
+import { errorHandler } from "@/middlewares";
+import router from "@/routes";
+import { AppError, logger } from "@/utils";
 
 const app = express();
 const PORT = appConfig.port;
@@ -31,6 +27,8 @@ app.get("/", (req, res) => {
 app.get("/health", (req, res) => {
   res.status(200).json({ status: "ok" });
 });
+
+app.use("/api/v1", router);
 
 app.use((req, res, next) => {
   next(

@@ -1,8 +1,7 @@
 import mongoose from "mongoose";
 
-import appConfig from "@/config/app.config.js";
-
-import logger from "@/utils/logger.js";
+import { appConfig } from "@/config";
+import { logger } from "@/utils";
 
 const { mongodb } = appConfig;
 const { uri } = mongodb;

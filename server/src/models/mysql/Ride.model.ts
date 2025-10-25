@@ -1,9 +1,7 @@
 import { DataTypes, Model } from "sequelize";
 
-import { sequelize } from "@/config/mysql.config.js";
-
+import { sequelize } from "@/config";
 import { ERROR_MESSAGES, RIDE_MAX_PRICE, RIDE_MIN_PRICE, RIDE_STATUSES } from "@/constants";
-
 import { AppError, calculateDuration, formatDateTime, toDateOnly, toTimeOnly } from "@/utils";
 
 import type { User, Vehicle } from "@/models/mysql";

@@ -1,10 +1,9 @@
 import { getReasonPhrase } from "http-status-codes";
 
-import appConfig from "@/config/app.config.js";
+import { appConfig } from "@/config";
+import { ERROR_MESSAGES } from "@/constants";
 
-import { ERROR_MESSAGES } from "@/constants/error.constants.js";
-
-import type { AppErrorOptions } from "@/types/error.types.js";
+import type { AppErrorOptions } from "@/types";
 
 class AppError extends Error {
   public readonly statusCode: number;

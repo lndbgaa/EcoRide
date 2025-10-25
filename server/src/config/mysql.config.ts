@@ -1,7 +1,7 @@
 import { Sequelize } from "sequelize";
 
-import appConfig from "@/config/app.config.js";
-import logger from "@/utils/logger.js";
+import { appConfig } from "@/config";
+import { logger } from "@/utils";
 
 const { env, mysql } = appConfig;
 const { port, host, user, password, database } = mysql;
