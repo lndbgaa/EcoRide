@@ -1,12 +1,11 @@
 import { ERROR_MESSAGES } from "@/constants";
-import { AppError } from "@/utils";
-
 import { User } from "@/models/mysql";
+import { AppError } from "@/utils";
 
 import type { FindOptions } from "sequelize";
 
 class UserService {
-  public static async findUserById(id: string, options?: FindOptions): Promise<User> {
+  public static async findById(id: string, options?: FindOptions): Promise<User> {
     const user = await User.findOne({ where: { id }, ...options });
 
     if (!user) {

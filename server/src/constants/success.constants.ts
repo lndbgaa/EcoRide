@@ -1,8 +1,10 @@
 export const SUCCESS_MESSAGES = {
   AUTH: {
-    USER_REGISTERED: "success.auth.user_registered",
-    EMAIL_VERIFIED: "success.auth.email_verified",
+    REGISTRATION_SUCCESS: "success.auth.registration_success",
+    EMAIL_VERIFICATION_SUCCESS: "success.auth.email_verification_success",
     EMAIL_VERIFICATION_SENT: "success.auth.email_verification_sent",
-    USER_LOGIN: "success.auth.user_login",
+    LOGIN_SUCCESS: "success.auth.login_success",
+    REFRESH_SUCCESS: "success.auth.refresh_success",
+    LOGOUT_SUCCESS: "success.auth.logout_success",
   },
 } as const;

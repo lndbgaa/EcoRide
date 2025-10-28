@@ -4,7 +4,6 @@ import { nanoid } from "nanoid";
 import { appConfig, sequelize, transporter } from "@/config";
 import { ERROR_MESSAGES } from "@/constants";
 import { EmailVerificationToken, User } from "@/models/mysql";
-import { UserService } from "@/services";
 import { AppError, logger, renderTemplate, sendEmail } from "@/utils";
 
 const { clientUrl, gmail } = appConfig;
@@ -76,10 +75,19 @@ class EmailVerificationService {
       throw new AppError({
         statusCode: 400,
         userMessage: ERROR_MESSAGES.AUTH.EMAIL_VERIFICATION_TOKEN_INVALID,
+        debugMessage: "Email verification token is invalid or has expired",
       });
     }
 
-    const user = await UserService.findUserById(tokenRecord.user_id);
+    const user = await User.findByPk(tokenRecord.user_id);
+
+    if (!user) {
+      throw new AppError({
+        statusCode: 400,
+        userMessage: ERROR_MESSAGES.AUTH.EMAIL_VERIFICATION_TOKEN_INVALID,
+        debugMessage: "User not found for email verification token",
+      });
+    }
 
     return sequelize.transaction(async (t): Promise<void> => {
       await tokenRecord.markAsUsed({ transaction: t });

@@ -13,7 +13,7 @@ export default class EmailVerificationToken extends Model {
   declare updated_at: Date;
 
   public isValid(): boolean {
-    return this.used_at === null && dayjs().isBefore(this.expires_at);
+    return this.used_at === null && dayjs(this.expires_at).isAfter(dayjs());
   }
 
   public async markAsUsed(options?: SaveOptions): Promise<void> {

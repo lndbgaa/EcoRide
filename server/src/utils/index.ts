@@ -7,4 +7,5 @@ export { default as sendEmail } from "./sendEmail.js";
 
 export * from "./date.utils.js";
 export * from "./env.utils.js";
+export * from "./jwt.utils.js";
 export * from "./string.utils.js";

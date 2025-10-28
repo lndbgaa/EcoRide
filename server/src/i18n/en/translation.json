@@ -6,10 +6,12 @@
 
   "success": {
     "auth": {
-      "user_registered": "Account created successfully! A verification email has been sent.",
-      "email_verified": "Your email has been successfully verified. You can now sign in.",
+      "registration_success": "Account created successfully! A verification email has been sent.",
+      "email_verification_success": "Your email has been successfully verified. You can now sign in.",
       "email_verification_sent": "If an account exists with this email, a verification link has been sent.",
-      "user_login": "Login successful."
+      "login_success": "Login successful.",
+      "refresh_success": "Your session has been successfully refreshed.",
+      "logout_success": "Logout successful."
     }
   },
 
@@ -21,11 +23,19 @@
     },
 
     "auth": {
-      "email_already_exists": "This email address is already in use.",
-      "username_already_exists": "This username is already taken.",
-      "email_already_verified": "Your email address is already verified.",
-      "email_verification_token_invalid": "The verification link is invalid or has expired.",
-      "email_verification_send_failed": "Unable to send verification email. Please try again later."
+      "email_already_exists": "This email address is already in use",
+      "username_already_exists": "This username is already taken",
+
+      "email_not_verified": "Please verify your email address before logging in",
+      "email_already_verified": "Your email address is already verified",
+      "email_verification_token_invalid": "The verification link is invalid or has expired",
+      "email_verification_send_failed": "Unable to send verification email. Please try again",
+
+      "invalid_credentials": "Invalid credentials",
+      "account_suspended": "Your account has been suspended. Please contact support for more information",
+      "account_pending_deletion": "Your account is pending deletion",
+
+      "session_invalid": "Your session is no longer valid. Please log in again"
     },
 
     "user": {

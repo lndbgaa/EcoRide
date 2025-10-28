@@ -1,3 +1,4 @@
+import cookieParser from "cookie-parser";
 import express from "express";
 import { handle } from "i18next-http-middleware";
 
@@ -13,6 +14,7 @@ const PORT = appConfig.port;
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(handle(i18next));
+app.use(cookieParser());
 
 app.get("/", (req, res) => {
   res.json({
@@ -35,7 +37,7 @@ app.use((req, res, next) => {
     new AppError({
       statusCode: 404,
       userMessage: ERROR_MESSAGES.COMMON.RESOURCE_NOT_FOUND,
-      code: ERROR_CODES.RESOURCE_NOT_FOUND,
+      code: ERROR_CODES.COMMON.RESOURCE_NOT_FOUND,
     })
   );
 });

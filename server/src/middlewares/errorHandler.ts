@@ -42,7 +42,7 @@ const errorHandler: ErrorRequestHandler = (err: unknown, req: Request, res: Resp
     const statusCode = 400;
     const statusText = getReasonPhrase(statusCode);
     const message = req.t(ERROR_MESSAGES.COMMON.VALIDATION_ERROR);
-    const code = ERROR_CODES.VALIDATION_ERROR;
+    const code = ERROR_CODES.COMMON.VALIDATION_ERROR;
     const details = parseJoiError(err);
 
     logger.warn(message, {
@@ -68,7 +68,7 @@ const errorHandler: ErrorRequestHandler = (err: unknown, req: Request, res: Resp
   const statusCode = 500;
   const statusText = getReasonPhrase(statusCode);
   const message = req.t(ERROR_MESSAGES.COMMON.INTERNAL_SERVER_ERROR);
-  const code = ERROR_CODES.INTERNAL_ERROR;
+  const code = ERROR_CODES.COMMON.INTERNAL_ERROR;
   const debugMessage = err instanceof Error ? err.message : String(err);
   const stack = err instanceof Error ? err.stack : undefined;
 

@@ -1,9 +1,18 @@
-import { ERROR_MESSAGES, USER_ROLES_ID } from "@/constants";
-import { User } from "@/models/mysql";
-import { EmailVerificationService } from "@/services";
-import { AppError } from "@/utils";
+import bcrypt from "bcrypt";
+import dayjs from "dayjs";
+import ms from "ms";
+import { nanoid } from "nanoid";
 
-import type { RegisterUserPayload } from "@/types";
+import { appConfig, sequelize } from "@/config";
+import { ERROR_CODES, ERROR_MESSAGES, USER_ROLES_ID, USER_ROLES_KEY } from "@/constants";
+import { RefreshToken, User } from "@/models/mysql";
+import { EmailVerificationService } from "@/services";
+import { AppError, generateJwt } from "@/utils";
+
+import type { AuthResult, LoginUserPayload, RegisterUserPayload } from "@/types";
+
+const { auth } = appConfig;
+const { refreshExpiration, accessSecret, accessExpiration } = auth;
 
 class AuthService {
   public static async assertEmailIsUnique(email: string): Promise<void> {
@@ -50,6 +59,181 @@ class AuthService {
     await EmailVerificationService.sendVerificationLinkToUser(newUser);
 
     return newUser;
+  }
+
+  public static async loginUser(data: LoginUserPayload): Promise<AuthResult> {
+    const { email, password } = data;
+
+    const user = await User.findOne({
+      where: { email },
+      include: [{ association: "role" }],
+    });
+
+    if (!user) {
+      await bcrypt.hash(password, 10);
+      throw new AppError({
+        statusCode: 401,
+        userMessage: ERROR_MESSAGES.AUTH.INVALID_CREDENTIALS,
+      });
+    }
+
+    if (!(await user.checkPassword(password))) {
+      throw new AppError({
+        statusCode: 401,
+        userMessage: ERROR_MESSAGES.AUTH.INVALID_CREDENTIALS,
+      });
+    }
+
+    if (!user.is_verified) {
+      throw new AppError({
+        statusCode: 403,
+        userMessage: ERROR_MESSAGES.AUTH.EMAIL_NOT_VERIFIED,
+        code: ERROR_CODES.AUTH.EMAIL_NOT_VERIFIED,
+      });
+    }
+
+    if (user.isSuspended()) {
+      throw new AppError({
+        statusCode: 403,
+        userMessage: ERROR_MESSAGES.AUTH.ACCOUNT_SUSPENDED,
+        code: ERROR_CODES.AUTH.ACCOUNT_SUSPENDED,
+      });
+    }
+
+    if (user.isPendingDeletion()) {
+      throw new AppError({
+        statusCode: 403,
+        userMessage: ERROR_MESSAGES.AUTH.ACCOUNT_PENDING_DELETION,
+        code: ERROR_CODES.AUTH.ACCOUNT_PENDING_DELETION,
+      });
+    }
+
+    const userRole = user.role?.key ?? USER_ROLES_KEY.USER;
+
+    const refreshToken = await sequelize.transaction(async (t): Promise<string> => {
+      await RefreshToken.update(
+        { revoked_at: dayjs().toDate() },
+        { where: { user_id: user.id, revoked_at: null }, transaction: t }
+      );
+
+      const refreshTokenRecord = await RefreshToken.create(
+        {
+          token: nanoid(),
+          user_id: user.id,
+          expires_at: dayjs().add(ms(refreshExpiration), "ms").toDate(),
+        },
+        { transaction: t }
+      );
+
+      user.last_login = dayjs().toDate();
+      await user.save({ transaction: t, fields: ["last_login"] });
+
+      return refreshTokenRecord.token;
+    });
+
+    const accessToken = generateJwt({ id: user.id, role: userRole }, accessSecret, accessExpiration);
+
+    return { refreshToken, accessToken };
+  }
+
+  public static async refreshUserTokens(refreshToken: string): Promise<AuthResult> {
+    const refreshTokenRecord = await RefreshToken.findOne({ where: { token: refreshToken } });
+
+    if (!refreshTokenRecord) {
+      throw new AppError({
+        statusCode: 401,
+        userMessage: ERROR_MESSAGES.AUTH.SESSION_INVALID,
+        debugMessage: "Refresh token not found in database",
+        code: ERROR_CODES.AUTH.SESSION_INVALID,
+      });
+    }
+
+    if (refreshTokenRecord.isUsed()) {
+      await RefreshToken.update(
+        { revoked_at: dayjs().toDate() },
+        { where: { user_id: refreshTokenRecord.user_id, revoked_at: null } }
+      );
+
+      throw new AppError({
+        statusCode: 401,
+        userMessage: ERROR_MESSAGES.AUTH.SESSION_INVALID,
+        debugMessage: "Refresh token has already been used. All tokens have been revoked.",
+        code: ERROR_CODES.AUTH.SESSION_INVALID,
+      });
+    }
+
+    if (refreshTokenRecord.isRevoked()) {
+      throw new AppError({
+        statusCode: 403,
+        userMessage: ERROR_MESSAGES.AUTH.SESSION_INVALID,
+        debugMessage: "Refresh token has been revoked",
+        code: ERROR_CODES.AUTH.SESSION_INVALID,
+      });
+    }
+
+    if (refreshTokenRecord.isExpired()) {
+      throw new AppError({
+        statusCode: 401,
+        userMessage: ERROR_MESSAGES.AUTH.SESSION_INVALID,
+        debugMessage: "Refresh token has expired",
+        code: ERROR_CODES.AUTH.SESSION_INVALID,
+      });
+    }
+
+    const user = await User.findOne({ where: { id: refreshTokenRecord.user_id } });
+
+    if (!user) {
+      throw new AppError({
+        statusCode: 401,
+        userMessage: ERROR_MESSAGES.AUTH.SESSION_INVALID,
+        debugMessage: "User not found for refresh token",
+        code: ERROR_CODES.AUTH.SESSION_INVALID,
+      });
+    }
+
+    if (user.isSuspended()) {
+      throw new AppError({
+        statusCode: 403,
+        userMessage: ERROR_MESSAGES.AUTH.ACCOUNT_SUSPENDED,
+        code: ERROR_CODES.AUTH.ACCOUNT_SUSPENDED,
+      });
+    }
+
+    if (user.isPendingDeletion()) {
+      throw new AppError({
+        statusCode: 403,
+        userMessage: ERROR_MESSAGES.AUTH.ACCOUNT_PENDING_DELETION,
+        code: ERROR_CODES.AUTH.ACCOUNT_PENDING_DELETION,
+      });
+    }
+
+    const userRole = user.role?.key ?? USER_ROLES_KEY.USER;
+
+    const newRefreshToken = await sequelize.transaction(async (t): Promise<string> => {
+      await refreshTokenRecord.markAsUsed({ transaction: t });
+
+      const newRefreshTokenRecord = await RefreshToken.create(
+        {
+          token: nanoid(),
+          user_id: user.id,
+          expires_at: dayjs().add(ms(refreshExpiration), "ms").toDate(),
+        },
+        { transaction: t }
+      );
+
+      return newRefreshTokenRecord.token;
+    });
+
+    const newAccessToken = generateJwt({ id: user.id, role: userRole }, accessSecret, accessExpiration);
+
+    return { refreshToken: newRefreshToken, accessToken: newAccessToken };
+  }
+
+  public static async logoutUser(refreshToken: string): Promise<void> {
+    await RefreshToken.update(
+      { revoked_at: dayjs().toDate() },
+      { where: { token: refreshToken, revoked_at: null } }
+    );
   }
 }
 

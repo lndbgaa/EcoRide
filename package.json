@@ -18,5 +18,11 @@
   "bugs": {
     "url": "https://github.com/lndbgaa/EcoRide/issues"
   },
-  "homepage": "https://github.com/lndbgaa/EcoRide#readme"
+  "homepage": "https://github.com/lndbgaa/EcoRide#readme",
+  "dependencies": {
+    "cookie-parser": "^1.4.7"
+  },
+  "devDependencies": {
+    "@types/cookie-parser": "^1.4.10"
+  }
 }

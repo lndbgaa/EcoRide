@@ -24,6 +24,10 @@ export async function up(queryInterface, Sequelize) {
       type: Sequelize.DATE,
       allowNull: false,
     },
+    used_at: {
+      type: Sequelize.DATE,
+      allowNull: true,
+    },
     revoked_at: {
       type: Sequelize.DATE,
       allowNull: true,

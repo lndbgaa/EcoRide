@@ -6,10 +6,12 @@
 
   "success": {
     "auth": {
-      "user_registered": "Compte créé avec succès ! Un email de vérification t'a été envoyé.",
-      "email_verified": "Ton email a été vérifié avec succès. Tu peux maintenant te connecter.",
+      "registration_success": "Compte créé avec succès ! Un email de vérification t'a été envoyé.",
+      "email_verification_success": "Ton email a été vérifié avec succès. Tu peux maintenant te connecter.",
       "email_verification_sent": "Si un compte existe avec cet email, un lien de vérification lui a été envoyé.",
-      "user_login": "Connexion réussie."
+      "login_success": "Connexion réussie.",
+      "refresh_success": "Ta session a été renouvelée avec succès.",
+      "logout_success": "Déconnexion réussie."
     }
   },
 
@@ -21,11 +23,19 @@
     },
 
     "auth": {
-      "email_already_exists": "Cette adresse e-mail est déjà utilisée.",
-      "username_already_exists": "Ce nom d’utilisateur est déjà pris.",
-      "email_already_verified": "Ton adresse email est déjà vérifiée.",
-      "email_verification_token_invalid": "Le lien de vérification est invalide ou a expiré.",
-      "email_verification_send_failed": "Impossible d'envoyer l'email de vérification. Réessaye plus tard."
+      "email_already_exists": "Cette adresse e-mail est déjà utilisée",
+      "username_already_exists": "Ce nom d’utilisateur est déjà pris",
+
+      "email_not_verified": "Veuillez vérifier votre adresse email avant de vous connecter",
+      "email_already_verified": "Ton adresse email est déjà vérifiée",
+      "email_verification_token_invalid": "Le lien de vérification est invalide ou a expiré",
+      "email_verification_send_failed": "Impossible d'envoyer l'email de vérification. Veuillez réessayer",
+
+      "invalid_credentials": "Identifiants incorrects",
+      "account_suspended": "Votre compte a été suspendu. Contactez le support pour plus d'informations",
+      "account_pending_deletion": "Votre compte est en attente de suppression",
+
+      "session_invalid": "Votre session n'est plus valide. Veuillez vous reconnecter"
     },
 
     "user": {
