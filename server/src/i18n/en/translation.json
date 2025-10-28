@@ -6,12 +6,17 @@
 
   "success": {
     "auth": {
-      "registration_success": "Account created successfully! A verification email has been sent.",
-      "email_verification_success": "Your email has been successfully verified. You can now sign in.",
-      "email_verification_sent": "If an account exists with this email, a verification link has been sent.",
-      "login_success": "Login successful.",
-      "refresh_success": "Your session has been successfully refreshed.",
-      "logout_success": "Logout successful."
+      "registration_success": "Account created successfully! A verification email has been sent",
+      "login_success": "Login successful",
+      "refresh_success": "Your session has been successfully refreshed",
+      "logout_success": "Logout successful",
+
+      "email_verification_sent": "If an account exists with this email, a verification link has been sent",
+      "email_verification_success": "Your email has been successfully verified. You can now sign in",
+
+      "password_reset_sent": "If an account exists with this email, a password reset link has been sent",
+      "password_reset_token_valid": "The password reset link is valid",
+      "password_reset_success": "Your password has been successfully reset. You can now sign in"
     }
   },
 
@@ -30,6 +35,9 @@
       "email_already_verified": "Your email address is already verified",
       "email_verification_token_invalid": "The verification link is invalid or has expired",
       "email_verification_send_failed": "Unable to send verification email. Please try again",
+
+      "password_reset_token_invalid": "The password reset link is invalid or has expired",
+      "password_reset_send_failed": "Unable to send password reset email. Please try again",
 
       "invalid_credentials": "Invalid credentials",
       "account_suspended": "Your account has been suspended. Please contact support for more information",

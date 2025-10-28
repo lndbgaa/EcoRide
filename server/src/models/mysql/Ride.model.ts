@@ -257,7 +257,7 @@ export default class Ride extends Model {
   }
 
   // ----------------------------
-  // Model Init
+  // Model Initialisation
   // ----------------------------
 
   public static initModel(sequelize: Sequelize): void {

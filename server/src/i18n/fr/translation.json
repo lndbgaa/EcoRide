@@ -6,12 +6,17 @@
 
   "success": {
     "auth": {
-      "registration_success": "Compte créé avec succès ! Un email de vérification t'a été envoyé.",
-      "email_verification_success": "Ton email a été vérifié avec succès. Tu peux maintenant te connecter.",
-      "email_verification_sent": "Si un compte existe avec cet email, un lien de vérification lui a été envoyé.",
-      "login_success": "Connexion réussie.",
-      "refresh_success": "Ta session a été renouvelée avec succès.",
-      "logout_success": "Déconnexion réussie."
+      "registration_success": "Compte créé avec succès ! Un email de vérification t'a été envoyé",
+      "login_success": "Connexion réussie",
+      "refresh_success": "Ta session a été renouvelée avec succès",
+      "logout_success": "Déconnexion réussie",
+
+      "email_verification_sent": "Si un compte existe avec cet email, un lien de vérification lui a été envoyé",
+      "email_verification_success": "Ton email a été vérifié avec succès. Tu peux maintenant te connecter",
+
+      "password_reset_sent": "Si un compte existe avec cet email, un lien de réinitialisation de mot de passe lui a été envoyé",
+      "password_reset_token_valid": "Le lien de réinitialisation de mot de passe est valide",
+      "password_reset_success": "Ton mot de passe a été réinitialisé avec succès. Tu peux maintenant te connecter"
     }
   },
 
@@ -30,6 +35,9 @@
       "email_already_verified": "Ton adresse email est déjà vérifiée",
       "email_verification_token_invalid": "Le lien de vérification est invalide ou a expiré",
       "email_verification_send_failed": "Impossible d'envoyer l'email de vérification. Veuillez réessayer",
+
+      "password_reset_token_invalid": "Le lien de réinitialisation de mot de passe est invalide ou a expiré",
+      "password_reset_send_failed": "Impossible d'envoyer l'email de réinitialisation de mot de passe. Veuillez réessayer",
 
       "invalid_credentials": "Identifiants incorrects",
       "account_suspended": "Votre compte a été suspendu. Contactez le support pour plus d'informations",

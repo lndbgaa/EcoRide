@@ -18,7 +18,12 @@ export interface LoginUserPayload {
   password: string;
 }
 
-export interface AuthResult {
+export interface AuthResponse {
   accessToken: string;
   refreshToken: string;
+}
+
+export interface ResetPasswordPayload {
+  token: string;
+  newPassword: string;
 }

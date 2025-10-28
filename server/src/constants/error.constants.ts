@@ -21,13 +21,18 @@ export const ERROR_MESSAGES = {
   },
 
   AUTH: {
+    INVALID_CREDENTIALS: "errors.auth.invalid_credentials",
     EMAIL_ALREADY_EXISTS: "errors.auth.email_already_exists",
     USERNAME_ALREADY_EXISTS: "errors.auth.username_already_exists",
+
     EMAIL_NOT_VERIFIED: "errors.auth.email_not_verified",
     EMAIL_ALREADY_VERIFIED: "errors.auth.email_already_verified",
     EMAIL_VERIFICATION_TOKEN_INVALID: "errors.auth.email_verification_token_invalid",
     EMAIL_VERIFICATION_SEND_FAILED: "errors.auth.email_verification_send_failed",
-    INVALID_CREDENTIALS: "errors.auth.invalid_credentials",
+
+    PASSWORD_RESET_SEND_FAILED: "errors.auth.password_reset_send_failed",
+    PASSWORD_RESET_TOKEN_INVALID: "errors.auth.password_reset_token_invalid",
+
     ACCOUNT_SUSPENDED: "errors.auth.account_suspended",
     ACCOUNT_PENDING_DELETION: "errors.auth.account_pending_deletion",
 

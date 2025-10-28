@@ -9,12 +9,19 @@ import { RefreshToken, User } from "@/models/mysql";
 import { EmailVerificationService } from "@/services";
 import { AppError, generateJwt } from "@/utils";
 
-import type { AuthResult, LoginUserPayload, RegisterUserPayload } from "@/types";
+import type { AuthResponse, LoginUserPayload, RegisterUserPayload } from "@/types";
 
 const { auth } = appConfig;
 const { refreshExpiration, accessSecret, accessExpiration } = auth;
 
 class AuthService {
+  /**
+   * Checks if an email is already in use.
+   *
+   * @param {string} email - The email to check.
+   * @returns {Promise<void>}
+   * @throws {AppError} - If the email is already in use.
+   */
   public static async assertEmailIsUnique(email: string): Promise<void> {
     const cleanEmail = email.trim().toLowerCase();
 
@@ -28,6 +35,13 @@ class AuthService {
     }
   }
 
+  /**
+   * Checks if a username is already in use.
+   *
+   * @param {string} username - The username to check.
+   * @returns {Promise<void>}
+   * @throws {AppError} - If the username is already in use.
+   */
   public static async assertUsernameIsUnique(username: string): Promise<void> {
     const cleanUsername = username.trim().toLowerCase();
 
@@ -41,6 +55,13 @@ class AuthService {
     }
   }
 
+  /**
+   * Registers a new user.
+   *
+   * @param {RegisterUserPayload} data - The user data to register.
+   * @returns {Promise<User>} The registered user.
+   * @throws {AppError} - If email or username is already in use.
+   */
   public static async registerUser(data: RegisterUserPayload): Promise<User> {
     const { email, username, password, firstName, lastName } = data;
 
@@ -61,7 +82,15 @@ class AuthService {
     return newUser;
   }
 
-  public static async loginUser(data: LoginUserPayload): Promise<AuthResult> {
+  /**
+   * Logs in a user.
+   *
+   * @param {LoginUserPayload} data - The user data to log in.
+   * @returns {Promise<AuthResponse>} The authentication response.
+   * @throws {AppError} - If the user does not exist, the credentials are invalid, or the account
+   * is suspended, pending deletion, or not verified.
+   */
+  public static async loginUser(data: LoginUserPayload): Promise<AuthResponse> {
     const { email, password } = data;
 
     const user = await User.findOne({
@@ -136,7 +165,15 @@ class AuthService {
     return { refreshToken, accessToken };
   }
 
-  public static async refreshUserTokens(refreshToken: string): Promise<AuthResult> {
+  /**
+   * Refreshes a user's access token.
+   *
+   * @param {string} refreshToken - The refresh token to use for refreshing the access token.
+   * @returns {Promise<AuthResponse>} The authentication response.
+   * @throws {AppError} - If the refresh token is invalid, expired, or already used, or if the associated
+   * user does not exist, is suspended, or pending deletion.
+   */
+  public static async refreshUserToken(refreshToken: string): Promise<AuthResponse> {
     const refreshTokenRecord = await RefreshToken.findOne({ where: { token: refreshToken } });
 
     if (!refreshTokenRecord) {
@@ -229,11 +266,14 @@ class AuthService {
     return { refreshToken: newRefreshToken, accessToken: newAccessToken };
   }
 
+  /**
+   * Logs out a user by revoking their refresh token.
+   *
+   * @param {string} refreshToken - The refresh token to revoke.
+   * @returns {Promise<void>}
+   */
   public static async logoutUser(refreshToken: string): Promise<void> {
-    await RefreshToken.update(
-      { revoked_at: dayjs().toDate() },
-      { where: { token: refreshToken, revoked_at: null } }
-    );
+    await RefreshToken.update({ revoked_at: dayjs().toDate() }, { where: { token: refreshToken, revoked_at: null } });
   }
 }
 

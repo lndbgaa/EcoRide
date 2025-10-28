@@ -12,15 +12,27 @@ export default class EmailVerificationToken extends Model {
   declare created_at: Date;
   declare updated_at: Date;
 
+  // ----------------------------
+  // Status Checks
+  // ----------------------------
+
   public isValid(): boolean {
     return this.used_at === null && dayjs(this.expires_at).isAfter(dayjs());
   }
+
+  // ----------------------------
+  // Public Status Transitions
+  // ----------------------------
 
   public async markAsUsed(options?: SaveOptions): Promise<void> {
     if (this.used_at !== null) return;
     this.used_at = dayjs().toDate();
     await this.save({ ...options, fields: ["used_at"] });
   }
+
+  // ----------------------------
+  // Model Initialisation
+  // ----------------------------
 
   public static initModel(sequelize: Sequelize): void {
     this.init(
