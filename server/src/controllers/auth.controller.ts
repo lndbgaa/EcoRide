@@ -1,7 +1,7 @@
 import ms from "ms";
 
 import { appConfig } from "@/config";
-import { ERROR_CODES, ERROR_MESSAGES, SUCCESS_MESSAGES } from "@/constants";
+import { DEBUG_CODES, ERROR_CODES, ERROR_MESSAGES, SUCCESS_MESSAGES } from "@/constants";
 import { AuthService, EmailVerificationService, PasswordResetService } from "@/services";
 import { AppError, catchAsync } from "@/utils";
 
@@ -87,6 +87,7 @@ export const refreshToken = catchAsync(async (req: Request, res: Response): Prom
       userMessage: ERROR_MESSAGES.AUTH.SESSION_INVALID,
       debugMessage: "Refresh token not found in cookies",
       code: ERROR_CODES.AUTH.SESSION_INVALID,
+      debugCode: DEBUG_CODES.AUTH.REFRESH_TOKEN_MISSING,
     });
   }
 
@@ -111,16 +112,18 @@ export const refreshToken = catchAsync(async (req: Request, res: Response): Prom
 /**
  * Handles resending user email verification.
  */
-export const resendEmailVerificationLink = catchAsync(async (req: Request, res: Response): Promise<Response> => {
-  const email: string = req.body.email;
+export const resendEmailVerificationLink = catchAsync(
+  async (req: Request, res: Response): Promise<Response> => {
+    const email: string = req.body.email;
 
-  await EmailVerificationService.sendVerificationLinkByEmail(email);
+    await EmailVerificationService.sendVerificationLinkByEmail(email);
 
-  return res.status(200).json({
-    success: true,
-    message: req.t(SUCCESS_MESSAGES.AUTH.EMAIL_VERIFICATION.SENT),
-  });
-});
+    return res.status(200).json({
+      success: true,
+      message: req.t(SUCCESS_MESSAGES.AUTH.EMAIL_VERIFICATION.SENT),
+    });
+  }
+);
 
 /**
  * Handles user email verification.

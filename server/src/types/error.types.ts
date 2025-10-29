@@ -16,7 +16,7 @@ export interface AppErrorOptions {
   userMessage?: string;
   debugMessage?: string;
   code?: string;
-  details?: ErrorDetails;
+  debugCode?: string;
   isOperational?: boolean;
 }
 

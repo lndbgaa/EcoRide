@@ -1,9 +1,15 @@
 import dayjs from "dayjs";
 import { nanoid } from "nanoid";
-import { Op } from "sequelize";
+import { Op, Transaction } from "sequelize";
 
 import { appConfig, sequelize, transporter } from "@/config";
-import { ERROR_MESSAGES } from "@/constants";
+import {
+  DEBUG_CODES,
+  EMAIL_VERIFICATION_TOKEN_EXPIRY_DAYS,
+  EMAIL_VERIFICATION_TOKEN_LENGTH,
+  ERROR_CODES,
+  ERROR_MESSAGES,
+} from "@/constants";
 import { EmailVerificationToken, User } from "@/models/mysql";
 import { AppError, renderTemplate, sendEmail } from "@/utils";
 
@@ -21,31 +27,11 @@ class EmailVerificationService {
     if (user.is_verified) {
       throw new AppError({
         statusCode: 400,
-        userMessage: ERROR_MESSAGES.AUTH.EMAIL_ALREADY_VERIFIED,
+        userMessage: ERROR_MESSAGES.AUTH.ACCOUNT_EMAIL_ALREADY_VERIFIED,
       });
     }
 
-    const now = dayjs();
-    const nowDate = now.toDate();
-
-    const token = await sequelize.transaction(async (t): Promise<string> => {
-      await EmailVerificationToken.update(
-        { used_at: nowDate },
-        { where: { user_id: user.id, used_at: null, expires_at: { [Op.gt]: nowDate } }, transaction: t }
-      );
-
-      const tokenRecord = await EmailVerificationToken.create(
-        {
-          token: nanoid(32),
-          user_id: user.id,
-          expires_at: now.add(1, "day").toDate(),
-        },
-        { transaction: t }
-      );
-
-      return tokenRecord.token;
-    });
-
+    const token = await this.createVerificationToken(user.id);
     const link = `${clientUrl}/verify-email?token=${token}`;
     const content = await renderTemplate("emailVerification.html", {
       firstName: user.first_name || "",
@@ -64,6 +50,8 @@ class EmailVerificationService {
       throw new AppError({
         statusCode: 500,
         userMessage: ERROR_MESSAGES.AUTH.EMAIL_VERIFICATION_SEND_FAILED,
+        debugMessage: err instanceof Error ? err.message : String(err),
+        code: ERROR_CODES.AUTH.EMAIL_VERIFICATION_SEND_FAILED,
       });
     }
   }
@@ -89,32 +77,85 @@ class EmailVerificationService {
    *
    * @param {string} token - The token to verify.
    * @returns {Promise<void>}
-   * @throws {AppError} - If the token is invalid, expired, or the user does not exist.
+   * @throws {AppError} - If the token is invalid, expired, already used, or the user does not exist.
    */
   public static async verifyEmail(token: string): Promise<void> {
     const tokenRecord = await EmailVerificationToken.findOne({ where: { token } });
 
-    if (!tokenRecord || !tokenRecord.isValid()) {
+    if (!tokenRecord) {
       throw new AppError({
         statusCode: 400,
-        userMessage: ERROR_MESSAGES.AUTH.EMAIL_VERIFICATION_TOKEN_INVALID,
-        debugMessage: "Email verification token is invalid or has expired",
+        userMessage: ERROR_MESSAGES.AUTH.EMAIL_VERIFICATION_FAILED,
+        debugMessage: "Email verification token not found",
+        code: ERROR_CODES.AUTH.EMAIL_VERIFICATION_FAILED,
+        debugCode: DEBUG_CODES.AUTH.EMAIL_VERIFICATION_TOKEN_NOT_FOUND,
       });
     }
 
-    const user = await User.findByPk(tokenRecord.user_id);
-
-    if (!user) {
+    if (!tokenRecord.isValid()) {
       throw new AppError({
         statusCode: 400,
-        userMessage: ERROR_MESSAGES.AUTH.EMAIL_VERIFICATION_TOKEN_INVALID,
-        debugMessage: "User not found for email verification token",
+        userMessage: ERROR_MESSAGES.AUTH.EMAIL_VERIFICATION_FAILED,
+        debugMessage: tokenRecord.used_at
+          ? "Email verification token already used"
+          : "Email verification token expired",
+        code: ERROR_CODES.AUTH.EMAIL_VERIFICATION_FAILED,
+        debugCode: tokenRecord.used_at
+          ? DEBUG_CODES.AUTH.EMAIL_VERIFICATION_TOKEN_ALREADY_USED
+          : DEBUG_CODES.AUTH.EMAIL_VERIFICATION_TOKEN_EXPIRED,
       });
     }
 
-    return sequelize.transaction(async (t): Promise<void> => {
-      await tokenRecord.markAsUsed({ transaction: t });
-      await user.markAsVerified({ transaction: t });
+    await sequelize.transaction(async (t: Transaction): Promise<void> => {
+      const user = await User.findByPk(tokenRecord.user_id, {
+        transaction: t,
+        lock: true,
+      });
+
+      if (!user) {
+        throw new AppError({
+          statusCode: 400,
+          userMessage: ERROR_MESSAGES.AUTH.EMAIL_VERIFICATION_FAILED,
+          debugMessage: "User not found for valid email verification token",
+          code: ERROR_CODES.AUTH.EMAIL_VERIFICATION_FAILED,
+          debugCode: DEBUG_CODES.AUTH.USER_NOT_FOUND,
+        });
+      }
+
+      await Promise.all([
+        tokenRecord.markAsUsed({ transaction: t }),
+        user.markAsVerified({ transaction: t }),
+      ]);
+    });
+  }
+
+  /**
+   * Creates a new verification token for a user and invalidates existing valid tokens.
+   *
+   * @param {string} userId - The user ID to create the token for.
+   * @returns {Promise<string>} - The generated token string.
+   * @private
+   */
+  private static async createVerificationToken(userId: string): Promise<string> {
+    const now = dayjs();
+    const nowDate = now.toDate();
+
+    return sequelize.transaction(async (t: Transaction): Promise<string> => {
+      await EmailVerificationToken.update(
+        { used_at: nowDate },
+        { where: { user_id: userId, used_at: null, expires_at: { [Op.gt]: nowDate } }, transaction: t }
+      );
+
+      const tokenRecord = await EmailVerificationToken.create(
+        {
+          token: nanoid(EMAIL_VERIFICATION_TOKEN_LENGTH),
+          user_id: userId,
+          expires_at: now.add(EMAIL_VERIFICATION_TOKEN_EXPIRY_DAYS, "day").toDate(),
+        },
+        { transaction: t }
+      );
+
+      return tokenRecord.token;
     });
   }
 }

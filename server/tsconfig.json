@@ -38,6 +38,6 @@
     }
   },
 
-  "include": ["src/**/*"],
+  "include": ["src/**/*", "seeders"],
   "exclude": ["node_modules", "dist"]
 }

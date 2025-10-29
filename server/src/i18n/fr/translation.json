@@ -28,22 +28,24 @@
     },
 
     "auth": {
+      "authentication_required": "Vous devez être connecté pour accéder à cette ressource",
+      "invalid_credentials": "Identifiants incorrects",
+      "role_invalid": "Vous n’avez pas la permission d’accéder à cette ressource",
+      "session_invalid": "Votre session n'est plus valide. Veuillez vous reconnecter",
+
       "email_already_exists": "Cette adresse e-mail est déjà utilisée",
       "username_already_exists": "Ce nom d’utilisateur est déjà pris",
 
-      "email_not_verified": "Veuillez vérifier votre adresse email avant de vous connecter",
-      "email_already_verified": "Ton adresse email est déjà vérifiée",
       "email_verification_token_invalid": "Le lien de vérification est invalide ou a expiré",
       "email_verification_send_failed": "Impossible d'envoyer l'email de vérification. Veuillez réessayer",
 
       "password_reset_token_invalid": "Le lien de réinitialisation de mot de passe est invalide ou a expiré",
       "password_reset_send_failed": "Impossible d'envoyer l'email de réinitialisation de mot de passe. Veuillez réessayer",
 
-      "invalid_credentials": "Identifiants incorrects",
+      "account_email_already_verified": "Ton adresse email est déjà vérifiée",
+      "account_email_not_verified": "Veuillez vérifier votre adresse email avant de vous connecter",
       "account_suspended": "Votre compte a été suspendu. Contactez le support pour plus d'informations",
-      "account_pending_deletion": "Votre compte est en attente de suppression",
-
-      "session_invalid": "Votre session n'est plus valide. Veuillez vous reconnecter"
+      "account_pending_deletion": "Votre compte est en attente de suppression"
     },
 
     "user": {

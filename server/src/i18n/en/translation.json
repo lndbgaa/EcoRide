@@ -1,6 +1,6 @@
 {
   "app": {
-    "name": "API EcoRide",
+    "name": "EcoRide API",
     "welcome": "Welcome to the EcoRide API!"
   },
 
@@ -28,22 +28,24 @@
     },
 
     "auth": {
+      "authentication_required": "You must be logged in to access this resource",
+      "invalid_credentials": "Invalid credentials",
+      "role_invalid": "You do not have permission to access this resource",
+      "session_invalid": "Your session is no longer valid. Please log in again",
+
       "email_already_exists": "This email address is already in use",
       "username_already_exists": "This username is already taken",
 
-      "email_not_verified": "Please verify your email address before logging in",
-      "email_already_verified": "Your email address is already verified",
       "email_verification_token_invalid": "The verification link is invalid or has expired",
       "email_verification_send_failed": "Unable to send verification email. Please try again",
 
       "password_reset_token_invalid": "The password reset link is invalid or has expired",
       "password_reset_send_failed": "Unable to send password reset email. Please try again",
 
-      "invalid_credentials": "Invalid credentials",
+      "account_email_already_verified": "Your email address is already verified",
+      "account_email_not_verified": "Please verify your email address before logging in",
       "account_suspended": "Your account has been suspended. Please contact support for more information",
-      "account_pending_deletion": "Your account is pending deletion",
-
-      "session_invalid": "Your session is no longer valid. Please log in again"
+      "account_pending_deletion": "Your account is pending deletion"
     },
 
     "user": {

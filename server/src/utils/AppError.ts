@@ -1,6 +1,5 @@
 import { getReasonPhrase } from "http-status-codes";
 
-import { appConfig } from "@/config";
 import { ERROR_MESSAGES } from "@/constants";
 
 import type { AppErrorOptions } from "@/types";
@@ -11,13 +10,14 @@ class AppError extends Error {
   public readonly userMessage: string;
   public readonly debugMessage?: string;
   public readonly code?: string;
+  public readonly debugCode?: string;
   public readonly isOperational: boolean;
 
-  private static resolveStatusText(code: number): string {
+  private static resolveStatusText(statusCode: number): string {
     try {
-      return getReasonPhrase(code);
+      return getReasonPhrase(statusCode);
     } catch {
-      return code >= 500 ? "Server Error" : "Client Error";
+      return statusCode >= 500 ? "Internal Server Error" : "Bad Request";
     }
   }
 
@@ -27,9 +27,10 @@ class AppError extends Error {
     userMessage = ERROR_MESSAGES.COMMON.INTERNAL_SERVER_ERROR,
     debugMessage,
     code,
+    debugCode,
     isOperational = true,
   }: AppErrorOptions) {
-    super(appConfig.env === "development" ? debugMessage || userMessage : userMessage);
+    super(userMessage);
 
     this.name = "AppError";
     this.statusCode = statusCode;
@@ -37,6 +38,7 @@ class AppError extends Error {
     this.userMessage = userMessage;
     this.debugMessage = debugMessage;
     this.code = code;
+    this.debugCode = debugCode;
     this.isOperational = isOperational;
 
     Error.captureStackTrace(this, this.constructor);

@@ -1,13 +1,20 @@
 import dayjs from "dayjs";
 import { nanoid } from "nanoid";
-import { Op } from "sequelize";
+import { Op, Transaction } from "sequelize";
 
 import { appConfig, sequelize, transporter } from "@/config";
-import { ERROR_MESSAGES } from "@/constants";
+import {
+  DEBUG_CODES,
+  ERROR_CODES,
+  ERROR_MESSAGES,
+  PASSWORD_RESET_TOKEN_EXPIRY_HOURS,
+  PASSWORD_RESET_TOKEN_LENGTH,
+} from "@/constants";
 import { PasswordResetToken, User } from "@/models/mysql";
 import { AppError, renderTemplate, sendEmail } from "@/utils";
 
 import type { ResetPasswordPayload } from "@/types";
+import type { FindOptions } from "sequelize";
 
 const { clientUrl, gmail } = appConfig;
 
@@ -25,27 +32,7 @@ class PasswordResetService {
 
     if (!user) return;
 
-    const now = dayjs();
-    const nowDate = now.toDate();
-
-    const token = await sequelize.transaction(async (t): Promise<string> => {
-      await PasswordResetToken.update(
-        { used_at: nowDate },
-        { where: { user_id: user.id, used_at: null, expires_at: { [Op.gt]: nowDate } }, transaction: t }
-      );
-
-      const tokenRecord = await PasswordResetToken.create(
-        {
-          token: nanoid(32),
-          user_id: user.id,
-          expires_at: now.add(1, "hour").toDate(),
-        },
-        { transaction: t }
-      );
-
-      return tokenRecord.token;
-    });
-
+    const token = await this.createResetToken(user.id);
     const link = `${clientUrl}/reset-password?token=${token}`;
     const content = await renderTemplate("resetPassword.html", {
       firstName: user.first_name || "",
@@ -53,10 +40,16 @@ class PasswordResetService {
     });
 
     try {
-      await sendEmail(transporter, gmail.user, user.email, "Réinitialisation de ton mot de passe – EcoRide", content);
+      await sendEmail(
+        transporter,
+        gmail.user,
+        user.email,
+        "Réinitialisation de ton mot de passe – EcoRide",
+        content
+      );
       // TODO ajouter i18n pour l'email
       // FIXME mettre un retry automatique pour sendEmail
-    } catch (error) {
+    } catch (err) {
       // FIXME logging des erreurs
 
       await PasswordResetToken.destroy({ where: { token } });
@@ -64,6 +57,7 @@ class PasswordResetService {
       throw new AppError({
         statusCode: 500,
         userMessage: ERROR_MESSAGES.AUTH.PASSWORD_RESET_SEND_FAILED,
+        debugMessage: err instanceof Error ? err.message : String(err),
       });
     }
   }
@@ -75,14 +69,30 @@ class PasswordResetService {
    * @returns {Promise<PasswordResetToken>}
    * @throws {AppError} - If the token is invalid, expired, or already used
    */
-  public static async verifyResetToken(token: string): Promise<PasswordResetToken> {
-    const tokenRecord = await PasswordResetToken.findOne({ where: { token } });
+  public static async verifyResetToken(token: string, options?: FindOptions): Promise<PasswordResetToken> {
+    const tokenRecord = await PasswordResetToken.findOne({ where: { token }, ...options });
 
-    if (!tokenRecord || !tokenRecord.isValid()) {
+    if (!tokenRecord) {
       throw new AppError({
         statusCode: 400,
         userMessage: ERROR_MESSAGES.AUTH.PASSWORD_RESET_TOKEN_INVALID,
-        debugMessage: "Password reset token is invalid or has expired",
+        debugMessage: "Password reset token not found",
+        code: ERROR_CODES.AUTH.PASSWORD_RESET_TOKEN_INVALID,
+        debugCode: DEBUG_CODES.AUTH.PASSWORD_RESET_TOKEN_NOT_FOUND,
+      });
+    }
+
+    if (!tokenRecord.isValid()) {
+      throw new AppError({
+        statusCode: 400,
+        userMessage: ERROR_MESSAGES.AUTH.PASSWORD_RESET_TOKEN_INVALID,
+        debugMessage: tokenRecord.used_at
+          ? "Password reset token already used"
+          : "Password reset token expired",
+        code: ERROR_CODES.AUTH.PASSWORD_RESET_TOKEN_INVALID,
+        debugCode: tokenRecord.used_at
+          ? DEBUG_CODES.AUTH.PASSWORD_RESET_TOKEN_ALREADY_USED
+          : DEBUG_CODES.AUTH.PASSWORD_RESET_TOKEN_EXPIRED,
       });
     }
 
@@ -100,22 +110,64 @@ class PasswordResetService {
   public static async resetPassword(data: ResetPasswordPayload): Promise<void> {
     const { token, newPassword } = data;
 
-    const tokenRecord = await this.verifyResetToken(token);
+    await sequelize.transaction(async (t: Transaction): Promise<void> => {
+      const tokenRecord = await this.verifyResetToken(token, { transaction: t, lock: true });
 
-    const user = await User.findByPk(tokenRecord.user_id);
+      const user = await User.findByPk(tokenRecord.user_id, { transaction: t, lock: true });
 
-    if (!user) {
-      throw new AppError({
-        statusCode: 400,
-        userMessage: ERROR_MESSAGES.AUTH.PASSWORD_RESET_TOKEN_INVALID,
-        debugMessage: "User not found for password reset token",
-      });
-    }
+      if (!user) {
+        throw new AppError({
+          statusCode: 400,
+          userMessage: ERROR_MESSAGES.AUTH.PASSWORD_RESET_TOKEN_INVALID,
+          debugMessage: "User not found for valid password reset token",
+          code: ERROR_CODES.AUTH.PASSWORD_RESET_TOKEN_INVALID,
+          debugCode: DEBUG_CODES.AUTH.USER_NOT_FOUND,
+        });
+      }
 
-    return sequelize.transaction(async (t): Promise<void> => {
       user.password = newPassword;
-      await user.save({ transaction: t, fields: ["password"] });
-      await tokenRecord.markAsUsed({ transaction: t });
+
+      await Promise.all([
+        user.save({ transaction: t, fields: ["password"] }),
+        tokenRecord.markAsUsed({ transaction: t }),
+      ]);
+    });
+  }
+
+  /**
+   * Creates a new password reset token for a user and invalidates existing valid tokens.
+   *
+   * @param {string} userId - The user ID to create the token for.
+   * @returns {Promise<string>} - The generated token string.
+   * @private
+   */
+  private static async createResetToken(userId: string): Promise<string> {
+    const now = dayjs();
+    const nowDate = now.toDate();
+
+    return sequelize.transaction(async (t: Transaction): Promise<string> => {
+      await PasswordResetToken.update(
+        { used_at: nowDate },
+        {
+          where: {
+            user_id: userId,
+            used_at: null,
+            expires_at: { [Op.gt]: nowDate },
+          },
+          transaction: t,
+        }
+      );
+
+      const tokenRecord = await PasswordResetToken.create(
+        {
+          token: nanoid(PASSWORD_RESET_TOKEN_LENGTH),
+          user_id: userId,
+          expires_at: now.add(PASSWORD_RESET_TOKEN_EXPIRY_HOURS, "hour").toDate(),
+        },
+        { transaction: t }
+      );
+
+      return tokenRecord.token;
     });
   }
 }

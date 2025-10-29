@@ -4,7 +4,7 @@ import ms from "ms";
 import { nanoid } from "nanoid";
 
 import { appConfig, sequelize } from "@/config";
-import { ERROR_CODES, ERROR_MESSAGES, USER_ROLES_ID, USER_ROLES_KEY } from "@/constants";
+import { DEBUG_CODES, ERROR_CODES, ERROR_MESSAGES, USER_ROLES_ID, USER_ROLES_KEY } from "@/constants";
 import { RefreshToken, User } from "@/models/mysql";
 import { EmailVerificationService } from "@/services";
 import { AppError, generateJwt } from "@/utils";
@@ -116,8 +116,8 @@ class AuthService {
     if (!user.is_verified) {
       throw new AppError({
         statusCode: 403,
-        userMessage: ERROR_MESSAGES.AUTH.EMAIL_NOT_VERIFIED,
-        code: ERROR_CODES.AUTH.EMAIL_NOT_VERIFIED,
+        userMessage: ERROR_MESSAGES.AUTH.ACCOUNT_EMAIL_NOT_VERIFIED,
+        code: ERROR_CODES.AUTH.ACCOUNT_EMAIL_NOT_VERIFIED,
       });
     }
 
@@ -136,8 +136,6 @@ class AuthService {
         code: ERROR_CODES.AUTH.ACCOUNT_PENDING_DELETION,
       });
     }
-
-    const userRole = user.role?.key ?? USER_ROLES_KEY.USER;
 
     const refreshToken = await sequelize.transaction(async (t): Promise<string> => {
       await RefreshToken.update(
@@ -159,6 +157,8 @@ class AuthService {
 
       return refreshTokenRecord.token;
     });
+
+    const userRole = user.role?.key ?? USER_ROLES_KEY.USER;
 
     const accessToken = generateJwt({ id: user.id, role: userRole }, accessSecret, accessExpiration);
 
@@ -182,6 +182,7 @@ class AuthService {
         userMessage: ERROR_MESSAGES.AUTH.SESSION_INVALID,
         debugMessage: "Refresh token not found in database",
         code: ERROR_CODES.AUTH.SESSION_INVALID,
+        debugCode: DEBUG_CODES.AUTH.REFRESH_TOKEN_NOT_FOUND,
       });
     }
 
@@ -194,17 +195,19 @@ class AuthService {
       throw new AppError({
         statusCode: 401,
         userMessage: ERROR_MESSAGES.AUTH.SESSION_INVALID,
-        debugMessage: "Refresh token has already been used. All tokens have been revoked.",
+        debugMessage: "Refresh token has already been used",
         code: ERROR_CODES.AUTH.SESSION_INVALID,
+        debugCode: DEBUG_CODES.AUTH.REFRESH_TOKEN_REUSED,
       });
     }
 
     if (refreshTokenRecord.isRevoked()) {
       throw new AppError({
-        statusCode: 403,
+        statusCode: 401,
         userMessage: ERROR_MESSAGES.AUTH.SESSION_INVALID,
         debugMessage: "Refresh token has been revoked",
         code: ERROR_CODES.AUTH.SESSION_INVALID,
+        debugCode: DEBUG_CODES.AUTH.REFRESH_TOKEN_REVOKED,
       });
     }
 
@@ -214,6 +217,7 @@ class AuthService {
         userMessage: ERROR_MESSAGES.AUTH.SESSION_INVALID,
         debugMessage: "Refresh token has expired",
         code: ERROR_CODES.AUTH.SESSION_INVALID,
+        debugCode: DEBUG_CODES.AUTH.REFRESH_TOKEN_EXPIRED,
       });
     }
 
@@ -223,8 +227,9 @@ class AuthService {
       throw new AppError({
         statusCode: 401,
         userMessage: ERROR_MESSAGES.AUTH.SESSION_INVALID,
-        debugMessage: "User not found for refresh token",
+        debugMessage: "User not found for valid refresh token",
         code: ERROR_CODES.AUTH.SESSION_INVALID,
+        debugCode: DEBUG_CODES.AUTH.USER_NOT_FOUND,
       });
     }
 
@@ -244,8 +249,6 @@ class AuthService {
       });
     }
 
-    const userRole = user.role?.key ?? USER_ROLES_KEY.USER;
-
     const newRefreshToken = await sequelize.transaction(async (t): Promise<string> => {
       await refreshTokenRecord.markAsUsed({ transaction: t });
 
@@ -261,6 +264,8 @@ class AuthService {
       return newRefreshTokenRecord.token;
     });
 
+    const userRole = user.role?.key ?? USER_ROLES_KEY.USER;
+
     const newAccessToken = generateJwt({ id: user.id, role: userRole }, accessSecret, accessExpiration);
 
     return { refreshToken: newRefreshToken, accessToken: newAccessToken };
@@ -273,7 +278,10 @@ class AuthService {
    * @returns {Promise<void>}
    */
   public static async logoutUser(refreshToken: string): Promise<void> {
-    await RefreshToken.update({ revoked_at: dayjs().toDate() }, { where: { token: refreshToken, revoked_at: null } });
+    await RefreshToken.update(
+      { revoked_at: dayjs().toDate() },
+      { where: { token: refreshToken, revoked_at: null } }
+    );
   }
 }
 

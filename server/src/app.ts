@@ -3,7 +3,7 @@ import express from "express";
 import { handle } from "i18next-http-middleware";
 
 import { appConfig, connectMongoDB, connectMySQL, i18next } from "@/config";
-import { ERROR_CODES, ERROR_MESSAGES } from "@/constants";
+import { ERROR_MESSAGES } from "@/constants";
 import { errorHandler } from "@/middlewares";
 import router from "@/routes";
 import { AppError, logger } from "@/utils";
@@ -37,7 +37,6 @@ app.use((req, res, next) => {
     new AppError({
       statusCode: 404,
       userMessage: ERROR_MESSAGES.COMMON.RESOURCE_NOT_FOUND,
-      code: ERROR_CODES.COMMON.RESOURCE_NOT_FOUND,
     })
   );
 });
