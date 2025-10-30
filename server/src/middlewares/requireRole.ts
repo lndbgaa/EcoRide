@@ -12,7 +12,7 @@ const requireRole =
       return next(
         new AppError({
           statusCode: 403,
-          userMessage: ERROR_MESSAGES.AUTH.ROLE_INVALID,
+          userMessageKey: ERROR_MESSAGES.AUTH.ROLE_INVALID,
           debugMessage: `User role "${userRole}" is not allowed. Expected: [${allowedRoles.join(", ")}].`,
           code: ERROR_CODES.AUTH.ROLE_INVALID,
           debugCode: DEBUG_CODES.AUTH.ROLE_INVALID,

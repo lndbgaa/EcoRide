@@ -7,7 +7,7 @@ import type { AppErrorOptions } from "@/types";
 class AppError extends Error {
   public readonly statusCode: number;
   public readonly statusText: string;
-  public readonly userMessage: string;
+  public readonly userMessageKey: string;
   public readonly debugMessage?: string;
   public readonly code?: string;
   public readonly debugCode?: string;
@@ -24,18 +24,18 @@ class AppError extends Error {
   constructor({
     statusCode = 500,
     statusText,
-    userMessage = ERROR_MESSAGES.COMMON.INTERNAL_SERVER_ERROR,
+    userMessageKey = ERROR_MESSAGES.COMMON.INTERNAL_SERVER_ERROR,
     debugMessage,
     code,
     debugCode,
     isOperational = true,
   }: AppErrorOptions) {
-    super(userMessage);
+    super(userMessageKey);
 
     this.name = "AppError";
     this.statusCode = statusCode;
     this.statusText = statusText || AppError.resolveStatusText(statusCode);
-    this.userMessage = userMessage;
+    this.userMessageKey = userMessageKey;
     this.debugMessage = debugMessage;
     this.code = code;
     this.debugCode = debugCode;

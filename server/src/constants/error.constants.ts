@@ -25,6 +25,14 @@ export const ERROR_MESSAGES = {
     RESOURCE_NOT_FOUND: "errors.common.resource_not_found",
     VALIDATION_ERROR: "errors.common.validation_error",
   },
+
+  RATE_LIMIT: {
+    DEFAULT: "errors.rate_limit.default",
+    REGISTER: "errors.rate_limit.register",
+    LOGIN: "errors.rate_limit.login",
+    PASSWORD_RESET: "errors.rate_limit.password_reset",
+  },
+
   AUTH: {
     AUTHENTICATION_REQUIRED: "errors.auth.authentication_required",
     INVALID_CREDENTIALS: "errors.auth.invalid_credentials",

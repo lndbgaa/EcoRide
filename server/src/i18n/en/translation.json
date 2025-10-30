@@ -27,6 +27,13 @@
       "validation_error": "The provided data is invalid"
     },
 
+    "rate_limit": {
+      "default": "Too many requests. Please wait a moment before trying again",
+      "register": "Too many registration attempts. Please wait a few minutes before trying again",
+      "login": "Too many login attempts. Please wait a few minutes before trying again",
+      "password_reset": "Too many password reset requests. Please try again in one hour"
+    },
+
     "auth": {
       "authentication_required": "You must be logged in to access this resource",
       "invalid_credentials": "Invalid credentials",

@@ -2,14 +2,7 @@ import bcrypt from "bcrypt";
 import dayjs from "dayjs";
 import { DataTypes, Model, Op } from "sequelize";
 
-import {
-  ERROR_MESSAGES,
-  REGEX,
-  REVIEW_MAX_RATING,
-  REVIEW_MIN_RATING,
-  USER_ROLES_ID,
-  USER_STATUSES,
-} from "@/constants";
+import { ERROR_MESSAGES, REGEX, REVIEW_MAX_RATING, REVIEW_MIN_RATING, USER_ROLES_ID, USER_STATUSES } from "@/constants";
 import { AppError, calculateAge, capitalize, formatDateTime, toDateOnly } from "@/utils";
 
 import type { Role } from "@/models/mysql";
@@ -84,7 +77,7 @@ export default class User extends Model {
     if (!this.canTransitionTo(newStatus)) {
       throw new AppError({
         statusCode: 400,
-        userMessage: ERROR_MESSAGES.USER.INVALID_STATUS_TRANSITION,
+        userMessageKey: ERROR_MESSAGES.USER.INVALID_STATUS_TRANSITION,
         debugMessage: `User ${this.id} cannot transition from ${this.status} to ${newStatus}.`,
       });
     }
@@ -157,7 +150,7 @@ export default class User extends Model {
     if (!Number.isInteger(amount) || amount <= 0) {
       throw new AppError({
         statusCode: 400,
-        userMessage: ERROR_MESSAGES.USER.INVALID_CREDIT_AMOUNT,
+        userMessageKey: ERROR_MESSAGES.USER.INVALID_CREDIT_AMOUNT,
         debugMessage: `Invalid add amount: ${amount}. Must be a positive integer.`,
       });
     }
@@ -170,7 +163,7 @@ export default class User extends Model {
     if (!Number.isInteger(amount) || amount <= 0) {
       throw new AppError({
         statusCode: 400,
-        userMessage: ERROR_MESSAGES.USER.INVALID_CREDIT_AMOUNT,
+        userMessageKey: ERROR_MESSAGES.USER.INVALID_CREDIT_AMOUNT,
         debugMessage: `Invalid remove amount: ${amount}. Must be a positive integer.`,
       });
     }
@@ -178,7 +171,7 @@ export default class User extends Model {
     if (this.credits < amount) {
       throw new AppError({
         statusCode: 400,
-        userMessage: ERROR_MESSAGES.USER.INSUFFICIENT_CREDITS,
+        userMessageKey: ERROR_MESSAGES.USER.INSUFFICIENT_CREDITS,
         debugMessage: `Cannot remove credits: User ${this.id} has insufficient credits. Current: ${this.credits}, attempted removal: ${amount}.`,
       });
     }

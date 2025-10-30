@@ -1,19 +1,11 @@
-type DetailValue =
-  | string
-  | number
-  | boolean
-  | null
-  | string[]
-  | number[]
-  | boolean[]
-  | Record<string, string | number | boolean>;
+type DetailValue = string | number | boolean | null | string[] | number[] | boolean[] | Record<string, string | number | boolean>;
 
 export type ErrorDetails = Record<string, DetailValue>;
 
 export interface AppErrorOptions {
   statusCode?: number;
   statusText?: string;
-  userMessage?: string;
+  userMessageKey?: string;
   debugMessage?: string;
   code?: string;
   debugCode?: string;

@@ -27,7 +27,7 @@ class EmailVerificationService {
     if (user.is_verified) {
       throw new AppError({
         statusCode: 400,
-        userMessage: ERROR_MESSAGES.AUTH.ACCOUNT_EMAIL_ALREADY_VERIFIED,
+        userMessageKey: ERROR_MESSAGES.AUTH.ACCOUNT_EMAIL_ALREADY_VERIFIED,
       });
     }
 
@@ -49,7 +49,7 @@ class EmailVerificationService {
 
       throw new AppError({
         statusCode: 500,
-        userMessage: ERROR_MESSAGES.AUTH.EMAIL_VERIFICATION_SEND_FAILED,
+        userMessageKey: ERROR_MESSAGES.AUTH.EMAIL_VERIFICATION_SEND_FAILED,
         debugMessage: err instanceof Error ? err.message : String(err),
         code: ERROR_CODES.AUTH.EMAIL_VERIFICATION_SEND_FAILED,
       });
@@ -85,7 +85,7 @@ class EmailVerificationService {
     if (!tokenRecord) {
       throw new AppError({
         statusCode: 400,
-        userMessage: ERROR_MESSAGES.AUTH.EMAIL_VERIFICATION_FAILED,
+        userMessageKey: ERROR_MESSAGES.AUTH.EMAIL_VERIFICATION_FAILED,
         debugMessage: "Email verification token not found",
         code: ERROR_CODES.AUTH.EMAIL_VERIFICATION_FAILED,
         debugCode: DEBUG_CODES.AUTH.EMAIL_VERIFICATION_TOKEN_NOT_FOUND,
@@ -95,10 +95,8 @@ class EmailVerificationService {
     if (!tokenRecord.isValid()) {
       throw new AppError({
         statusCode: 400,
-        userMessage: ERROR_MESSAGES.AUTH.EMAIL_VERIFICATION_FAILED,
-        debugMessage: tokenRecord.used_at
-          ? "Email verification token already used"
-          : "Email verification token expired",
+        userMessageKey: ERROR_MESSAGES.AUTH.EMAIL_VERIFICATION_FAILED,
+        debugMessage: tokenRecord.used_at ? "Email verification token already used" : "Email verification token expired",
         code: ERROR_CODES.AUTH.EMAIL_VERIFICATION_FAILED,
         debugCode: tokenRecord.used_at
           ? DEBUG_CODES.AUTH.EMAIL_VERIFICATION_TOKEN_ALREADY_USED
@@ -115,17 +113,14 @@ class EmailVerificationService {
       if (!user) {
         throw new AppError({
           statusCode: 400,
-          userMessage: ERROR_MESSAGES.AUTH.EMAIL_VERIFICATION_FAILED,
+          userMessageKey: ERROR_MESSAGES.AUTH.EMAIL_VERIFICATION_FAILED,
           debugMessage: "User not found for valid email verification token",
           code: ERROR_CODES.AUTH.EMAIL_VERIFICATION_FAILED,
           debugCode: DEBUG_CODES.AUTH.USER_NOT_FOUND,
         });
       }
 
-      await Promise.all([
-        tokenRecord.markAsUsed({ transaction: t }),
-        user.markAsVerified({ transaction: t }),
-      ]);
+      await Promise.all([tokenRecord.markAsUsed({ transaction: t }), user.markAsVerified({ transaction: t })]);
     });
   }
 

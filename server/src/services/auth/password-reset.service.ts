@@ -40,13 +40,7 @@ class PasswordResetService {
     });
 
     try {
-      await sendEmail(
-        transporter,
-        gmail.user,
-        user.email,
-        "Réinitialisation de ton mot de passe – EcoRide",
-        content
-      );
+      await sendEmail(transporter, gmail.user, user.email, "Réinitialisation de ton mot de passe – EcoRide", content);
       // TODO ajouter i18n pour l'email
       // FIXME mettre un retry automatique pour sendEmail
     } catch (err) {
@@ -56,7 +50,7 @@ class PasswordResetService {
 
       throw new AppError({
         statusCode: 500,
-        userMessage: ERROR_MESSAGES.AUTH.PASSWORD_RESET_SEND_FAILED,
+        userMessageKey: ERROR_MESSAGES.AUTH.PASSWORD_RESET_SEND_FAILED,
         debugMessage: err instanceof Error ? err.message : String(err),
       });
     }
@@ -75,7 +69,7 @@ class PasswordResetService {
     if (!tokenRecord) {
       throw new AppError({
         statusCode: 400,
-        userMessage: ERROR_MESSAGES.AUTH.PASSWORD_RESET_TOKEN_INVALID,
+        userMessageKey: ERROR_MESSAGES.AUTH.PASSWORD_RESET_TOKEN_INVALID,
         debugMessage: "Password reset token not found",
         code: ERROR_CODES.AUTH.PASSWORD_RESET_TOKEN_INVALID,
         debugCode: DEBUG_CODES.AUTH.PASSWORD_RESET_TOKEN_NOT_FOUND,
@@ -85,10 +79,8 @@ class PasswordResetService {
     if (!tokenRecord.isValid()) {
       throw new AppError({
         statusCode: 400,
-        userMessage: ERROR_MESSAGES.AUTH.PASSWORD_RESET_TOKEN_INVALID,
-        debugMessage: tokenRecord.used_at
-          ? "Password reset token already used"
-          : "Password reset token expired",
+        userMessageKey: ERROR_MESSAGES.AUTH.PASSWORD_RESET_TOKEN_INVALID,
+        debugMessage: tokenRecord.used_at ? "Password reset token already used" : "Password reset token expired",
         code: ERROR_CODES.AUTH.PASSWORD_RESET_TOKEN_INVALID,
         debugCode: tokenRecord.used_at
           ? DEBUG_CODES.AUTH.PASSWORD_RESET_TOKEN_ALREADY_USED
@@ -118,7 +110,7 @@ class PasswordResetService {
       if (!user) {
         throw new AppError({
           statusCode: 400,
-          userMessage: ERROR_MESSAGES.AUTH.PASSWORD_RESET_TOKEN_INVALID,
+          userMessageKey: ERROR_MESSAGES.AUTH.PASSWORD_RESET_TOKEN_INVALID,
           debugMessage: "User not found for valid password reset token",
           code: ERROR_CODES.AUTH.PASSWORD_RESET_TOKEN_INVALID,
           debugCode: DEBUG_CODES.AUTH.USER_NOT_FOUND,
@@ -127,10 +119,7 @@ class PasswordResetService {
 
       user.password = newPassword;
 
-      await Promise.all([
-        user.save({ transaction: t, fields: ["password"] }),
-        tokenRecord.markAsUsed({ transaction: t }),
-      ]);
+      await Promise.all([user.save({ transaction: t, fields: ["password"] }), tokenRecord.markAsUsed({ transaction: t })]);
     });
   }
 

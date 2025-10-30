@@ -14,7 +14,7 @@ const requireAuth = (req: Request, res: Response, next: NextFunction): void => {
     return next(
       new AppError({
         statusCode: 401,
-        userMessage: ERROR_MESSAGES.AUTH.AUTHENTICATION_REQUIRED,
+        userMessageKey: ERROR_MESSAGES.AUTH.AUTHENTICATION_REQUIRED,
         debugMessage: "Missing or invalid authorization header",
         code: ERROR_CODES.AUTH.AUTHENTICATION_REQUIRED,
         debugCode: DEBUG_CODES.AUTH.HEADER_MISSING,
@@ -28,7 +28,7 @@ const requireAuth = (req: Request, res: Response, next: NextFunction): void => {
     return next(
       new AppError({
         statusCode: 401,
-        userMessage: ERROR_MESSAGES.AUTH.AUTHENTICATION_REQUIRED,
+        userMessageKey: ERROR_MESSAGES.AUTH.AUTHENTICATION_REQUIRED,
         debugMessage: "Missing authentication token",
         code: ERROR_CODES.AUTH.AUTHENTICATION_REQUIRED,
         debugCode: DEBUG_CODES.AUTH.ACCESS_TOKEN_MISSING,

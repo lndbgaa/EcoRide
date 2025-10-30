@@ -9,35 +9,48 @@ import type { StringValue } from "ms";
 
 dotenv.config({ path: path.resolve(process.cwd(), ".env") });
 
-const env = process.env.NODE_ENV ?? "development";
-const envPath = path.resolve(process.cwd(), `.env.${env}`);
+const nodeEnv = process.env.NODE_ENV ?? "development";
+const envSpecificPath = path.resolve(process.cwd(), `.env.${nodeEnv}`);
 
-if (fs.existsSync(envPath)) {
-  dotenv.config({ path: envPath });
-} else {
-  dotenv.config();
+if (fs.existsSync(envSpecificPath)) {
+  dotenv.config({ path: envSpecificPath });
 }
 
+const isProduction = nodeEnv === "production";
+const serverUrl = isProduction ? getEnvVar("SERVER_URL") : "http://localhost:8080";
+const clientUrl = isProduction ? getEnvVar("CLIENT_URL") : "http://localhost:3000";
+
 const appConfig: Config = {
-  env,
-  serverUrl: env === "production" ? getEnvVar("SERVER_URL") : "http://localhost:8080",
-  clientUrl: env === "production" ? getEnvVar("CLIENT_URL") : "http://localhost:3000",
+  env: nodeEnv,
+  serverUrl,
+  clientUrl,
   port: process.env.PORT ? Number(process.env.PORT) : 8080,
+
+  corsOptions: {
+    origin: clientUrl,
+    methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization", "Accept"],
+    credentials: true,
+  },
+
   auth: {
     accessSecret: getEnvVar("AUTH_ACCESS_SECRET"),
     accessExpiration: (process.env.AUTH_ACCESS_EXPIRATION as StringValue) ?? "10m",
     refreshExpiration: (process.env.AUTH_REFRESH_EXPIRATION as StringValue) ?? "7d",
   },
+
   mysql: {
     port: process.env.MYSQL_PORT ? Number(process.env.MYSQL_PORT) : 3306,
     host: getEnvVar("MYSQL_HOST"),
     user: getEnvVar("MYSQL_USER"),
-    password: getEnvVar("MYSQL_PWD"),
+    password: getEnvVar("MYSQL_PASSWORD"),
     database: getEnvVar("MYSQL_NAME"),
   },
+
   mongodb: {
     uri: getEnvVar("MONGODB_URI"),
   },
+
   gmail: {
     user: getEnvVar("GMAIL_USER"),
     password: getEnvVar("GMAIL_PASSWORD"),

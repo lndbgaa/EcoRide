@@ -30,7 +30,7 @@ class AuthService {
     if (exists) {
       throw new AppError({
         statusCode: 409,
-        userMessage: ERROR_MESSAGES.AUTH.EMAIL_ALREADY_EXISTS,
+        userMessageKey: ERROR_MESSAGES.AUTH.EMAIL_ALREADY_EXISTS,
       });
     }
   }
@@ -50,7 +50,7 @@ class AuthService {
     if (exists) {
       throw new AppError({
         statusCode: 409,
-        userMessage: ERROR_MESSAGES.AUTH.USERNAME_ALREADY_EXISTS,
+        userMessageKey: ERROR_MESSAGES.AUTH.USERNAME_ALREADY_EXISTS,
       });
     }
   }
@@ -102,21 +102,21 @@ class AuthService {
       await bcrypt.hash(password, 10);
       throw new AppError({
         statusCode: 401,
-        userMessage: ERROR_MESSAGES.AUTH.INVALID_CREDENTIALS,
+        userMessageKey: ERROR_MESSAGES.AUTH.INVALID_CREDENTIALS,
       });
     }
 
     if (!(await user.checkPassword(password))) {
       throw new AppError({
         statusCode: 401,
-        userMessage: ERROR_MESSAGES.AUTH.INVALID_CREDENTIALS,
+        userMessageKey: ERROR_MESSAGES.AUTH.INVALID_CREDENTIALS,
       });
     }
 
     if (!user.is_verified) {
       throw new AppError({
         statusCode: 403,
-        userMessage: ERROR_MESSAGES.AUTH.ACCOUNT_EMAIL_NOT_VERIFIED,
+        userMessageKey: ERROR_MESSAGES.AUTH.ACCOUNT_EMAIL_NOT_VERIFIED,
         code: ERROR_CODES.AUTH.ACCOUNT_EMAIL_NOT_VERIFIED,
       });
     }
@@ -124,7 +124,7 @@ class AuthService {
     if (user.isSuspended()) {
       throw new AppError({
         statusCode: 403,
-        userMessage: ERROR_MESSAGES.AUTH.ACCOUNT_SUSPENDED,
+        userMessageKey: ERROR_MESSAGES.AUTH.ACCOUNT_SUSPENDED,
         code: ERROR_CODES.AUTH.ACCOUNT_SUSPENDED,
       });
     }
@@ -132,7 +132,7 @@ class AuthService {
     if (user.isPendingDeletion()) {
       throw new AppError({
         statusCode: 403,
-        userMessage: ERROR_MESSAGES.AUTH.ACCOUNT_PENDING_DELETION,
+        userMessageKey: ERROR_MESSAGES.AUTH.ACCOUNT_PENDING_DELETION,
         code: ERROR_CODES.AUTH.ACCOUNT_PENDING_DELETION,
       });
     }
@@ -179,7 +179,7 @@ class AuthService {
     if (!refreshTokenRecord) {
       throw new AppError({
         statusCode: 401,
-        userMessage: ERROR_MESSAGES.AUTH.SESSION_INVALID,
+        userMessageKey: ERROR_MESSAGES.AUTH.SESSION_INVALID,
         debugMessage: "Refresh token not found in database",
         code: ERROR_CODES.AUTH.SESSION_INVALID,
         debugCode: DEBUG_CODES.AUTH.REFRESH_TOKEN_NOT_FOUND,
@@ -194,7 +194,7 @@ class AuthService {
 
       throw new AppError({
         statusCode: 401,
-        userMessage: ERROR_MESSAGES.AUTH.SESSION_INVALID,
+        userMessageKey: ERROR_MESSAGES.AUTH.SESSION_INVALID,
         debugMessage: "Refresh token has already been used",
         code: ERROR_CODES.AUTH.SESSION_INVALID,
         debugCode: DEBUG_CODES.AUTH.REFRESH_TOKEN_REUSED,
@@ -204,7 +204,7 @@ class AuthService {
     if (refreshTokenRecord.isRevoked()) {
       throw new AppError({
         statusCode: 401,
-        userMessage: ERROR_MESSAGES.AUTH.SESSION_INVALID,
+        userMessageKey: ERROR_MESSAGES.AUTH.SESSION_INVALID,
         debugMessage: "Refresh token has been revoked",
         code: ERROR_CODES.AUTH.SESSION_INVALID,
         debugCode: DEBUG_CODES.AUTH.REFRESH_TOKEN_REVOKED,
@@ -214,7 +214,7 @@ class AuthService {
     if (refreshTokenRecord.isExpired()) {
       throw new AppError({
         statusCode: 401,
-        userMessage: ERROR_MESSAGES.AUTH.SESSION_INVALID,
+        userMessageKey: ERROR_MESSAGES.AUTH.SESSION_INVALID,
         debugMessage: "Refresh token has expired",
         code: ERROR_CODES.AUTH.SESSION_INVALID,
         debugCode: DEBUG_CODES.AUTH.REFRESH_TOKEN_EXPIRED,
@@ -226,7 +226,7 @@ class AuthService {
     if (!user) {
       throw new AppError({
         statusCode: 401,
-        userMessage: ERROR_MESSAGES.AUTH.SESSION_INVALID,
+        userMessageKey: ERROR_MESSAGES.AUTH.SESSION_INVALID,
         debugMessage: "User not found for valid refresh token",
         code: ERROR_CODES.AUTH.SESSION_INVALID,
         debugCode: DEBUG_CODES.AUTH.USER_NOT_FOUND,
@@ -236,7 +236,7 @@ class AuthService {
     if (user.isSuspended()) {
       throw new AppError({
         statusCode: 403,
-        userMessage: ERROR_MESSAGES.AUTH.ACCOUNT_SUSPENDED,
+        userMessageKey: ERROR_MESSAGES.AUTH.ACCOUNT_SUSPENDED,
         code: ERROR_CODES.AUTH.ACCOUNT_SUSPENDED,
       });
     }
@@ -244,7 +244,7 @@ class AuthService {
     if (user.isPendingDeletion()) {
       throw new AppError({
         statusCode: 403,
-        userMessage: ERROR_MESSAGES.AUTH.ACCOUNT_PENDING_DELETION,
+        userMessageKey: ERROR_MESSAGES.AUTH.ACCOUNT_PENDING_DELETION,
         code: ERROR_CODES.AUTH.ACCOUNT_PENDING_DELETION,
       });
     }
@@ -278,10 +278,7 @@ class AuthService {
    * @returns {Promise<void>}
    */
   public static async logoutUser(refreshToken: string): Promise<void> {
-    await RefreshToken.update(
-      { revoked_at: dayjs().toDate() },
-      { where: { token: refreshToken, revoked_at: null } }
-    );
+    await RefreshToken.update({ revoked_at: dayjs().toDate() }, { where: { token: refreshToken, revoked_at: null } });
   }
 }
 

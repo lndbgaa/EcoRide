@@ -84,7 +84,7 @@ export const refreshToken = catchAsync(async (req: Request, res: Response): Prom
   if (!refreshToken) {
     throw new AppError({
       statusCode: 401,
-      userMessage: ERROR_MESSAGES.AUTH.SESSION_INVALID,
+      userMessageKey: ERROR_MESSAGES.AUTH.SESSION_INVALID,
       debugMessage: "Refresh token not found in cookies",
       code: ERROR_CODES.AUTH.SESSION_INVALID,
       debugCode: DEBUG_CODES.AUTH.REFRESH_TOKEN_MISSING,
@@ -92,9 +92,7 @@ export const refreshToken = catchAsync(async (req: Request, res: Response): Prom
   }
 
   try {
-    const { accessToken: newAccessToken, refreshToken: newRefreshToken } = await AuthService.refreshUserToken(
-      refreshToken
-    );
+    const { accessToken: newAccessToken, refreshToken: newRefreshToken } = await AuthService.refreshUserToken(refreshToken);
 
     res.cookie("refreshToken", newRefreshToken, generateCookieOptions());
 
@@ -112,18 +110,16 @@ export const refreshToken = catchAsync(async (req: Request, res: Response): Prom
 /**
  * Handles resending user email verification.
  */
-export const resendEmailVerificationLink = catchAsync(
-  async (req: Request, res: Response): Promise<Response> => {
-    const email: string = req.body.email;
+export const resendEmailVerificationLink = catchAsync(async (req: Request, res: Response): Promise<Response> => {
+  const email: string = req.body.email;
 
-    await EmailVerificationService.sendVerificationLinkByEmail(email);
+  await EmailVerificationService.sendVerificationLinkByEmail(email);
 
-    return res.status(200).json({
-      success: true,
-      message: req.t(SUCCESS_MESSAGES.AUTH.EMAIL_VERIFICATION.SENT),
-    });
-  }
-);
+  return res.status(200).json({
+    success: true,
+    message: req.t(SUCCESS_MESSAGES.AUTH.EMAIL_VERIFICATION.SENT),
+  });
+});
 
 /**
  * Handles user email verification.

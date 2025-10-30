@@ -23,8 +23,7 @@ export const registerSchema = Joi.object({
     "string.empty": "Username must be a non-empty string.",
     "string.min": "Username must be at least 3 characters long.",
     "string.max": "Username must not exceed 20 characters.",
-    "string.pattern.base":
-      "Username must start with a letter and contain only letters, numbers, dashes, and underscores.",
+    "string.pattern.base": "Username must start with a letter and contain only letters, numbers, dashes, and underscores.",
   }),
   password: strongPasswordField,
   firstName: Joi.string().trim().min(2).max(50).pattern(REGEX.firstName).required().messages({
@@ -32,16 +31,14 @@ export const registerSchema = Joi.object({
     "string.empty": "First name must be a non-empty string.",
     "string.min": "First name must be at least 2 characters long.",
     "string.max": "First name must not exceed 50 characters.",
-    "string.pattern.base":
-      "First name must start with a letter and contain only letters, spaces, apostrophes, or dashes.",
+    "string.pattern.base": "First name must start with a letter and contain only letters, spaces, apostrophes, or dashes.",
   }),
   lastName: Joi.string().trim().min(2).max(50).pattern(REGEX.lastName).required().messages({
     "any.required": "Last name is required.",
     "string.empty": "Last name must be a non-empty string.",
     "string.min": "Last name must be at least 2 characters long.",
     "string.max": "Last name must not exceed 50 characters.",
-    "string.pattern.base":
-      "Last name must start with a letter and contain only letters, spaces, apostrophes, or dashes.",
+    "string.pattern.base": "Last name must start with a letter and contain only letters, spaces, apostrophes, or dashes.",
   }),
 });
 

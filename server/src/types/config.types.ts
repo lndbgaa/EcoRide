@@ -1,3 +1,4 @@
+import type { CorsOptions } from "cors";
 import type { StringValue } from "ms";
 
 export interface Config {
@@ -5,7 +6,7 @@ export interface Config {
   serverUrl: string;
   clientUrl: string;
   port: number;
-
+  corsOptions: CorsOptions;
   auth: {
     refreshExpiration: StringValue;
     accessSecret: string;
