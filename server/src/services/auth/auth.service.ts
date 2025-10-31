@@ -4,7 +4,13 @@ import ms from "ms";
 import { nanoid } from "nanoid";
 
 import { appConfig, sequelize } from "@/config";
-import { DEBUG_CODES, ERROR_CODES, ERROR_MESSAGES, USER_ROLES_ID, USER_ROLES_KEY } from "@/constants";
+import {
+  AUTH_ERROR_CODES,
+  AUTH_ERROR_MESSAGES,
+  DEBUG_CODES,
+  USER_ROLES_ID,
+  USER_ROLES_KEY,
+} from "@/constants";
 import { RefreshToken, User } from "@/models/mysql";
 import { EmailVerificationService } from "@/services";
 import { AppError, generateJwt } from "@/utils";
@@ -30,7 +36,7 @@ class AuthService {
     if (exists) {
       throw new AppError({
         statusCode: 409,
-        userMessageKey: ERROR_MESSAGES.AUTH.EMAIL_ALREADY_EXISTS,
+        userMessageKey: AUTH_ERROR_MESSAGES.EMAIL_ALREADY_EXISTS,
       });
     }
   }
@@ -50,7 +56,7 @@ class AuthService {
     if (exists) {
       throw new AppError({
         statusCode: 409,
-        userMessageKey: ERROR_MESSAGES.AUTH.USERNAME_ALREADY_EXISTS,
+        userMessageKey: AUTH_ERROR_MESSAGES.USERNAME_ALREADY_EXISTS,
       });
     }
   }
@@ -60,7 +66,7 @@ class AuthService {
    *
    * @param {RegisterUserPayload} data - The user data to register.
    * @returns {Promise<User>} The registered user.
-   * @throws {AppError} - If email or username is already in use.
+   * @throws {AppError} - If the email or username is already in use, or if ending the verification email fails.
    */
   public static async registerUser(data: RegisterUserPayload): Promise<User> {
     const { email, username, password, firstName, lastName } = data;
@@ -87,8 +93,12 @@ class AuthService {
    *
    * @param {LoginUserPayload} data - The user data to log in.
    * @returns {Promise<AuthResponse>} The authentication response.
-   * @throws {AppError} - If the user does not exist, the credentials are invalid, or the account
-   * is suspended, pending deletion, or not verified.
+   * @throws {AppError} - If:
+   *   - The user does not exist
+   *   - The password is invalid
+   *   - The account is not verified
+   *   - The account is suspended
+   *   - The account is pending deletion
    */
   public static async loginUser(data: LoginUserPayload): Promise<AuthResponse> {
     const { email, password } = data;
@@ -102,38 +112,38 @@ class AuthService {
       await bcrypt.hash(password, 10);
       throw new AppError({
         statusCode: 401,
-        userMessageKey: ERROR_MESSAGES.AUTH.INVALID_CREDENTIALS,
+        userMessageKey: AUTH_ERROR_MESSAGES.INVALID_CREDENTIALS,
       });
     }
 
     if (!(await user.checkPassword(password))) {
       throw new AppError({
         statusCode: 401,
-        userMessageKey: ERROR_MESSAGES.AUTH.INVALID_CREDENTIALS,
+        userMessageKey: AUTH_ERROR_MESSAGES.INVALID_CREDENTIALS,
       });
     }
 
     if (!user.is_verified) {
       throw new AppError({
         statusCode: 403,
-        userMessageKey: ERROR_MESSAGES.AUTH.ACCOUNT_EMAIL_NOT_VERIFIED,
-        code: ERROR_CODES.AUTH.ACCOUNT_EMAIL_NOT_VERIFIED,
+        userMessageKey: AUTH_ERROR_MESSAGES.ACCOUNT_EMAIL_NOT_VERIFIED,
+        code: AUTH_ERROR_CODES.ACCOUNT_EMAIL_NOT_VERIFIED,
       });
     }
 
     if (user.isSuspended()) {
       throw new AppError({
         statusCode: 403,
-        userMessageKey: ERROR_MESSAGES.AUTH.ACCOUNT_SUSPENDED,
-        code: ERROR_CODES.AUTH.ACCOUNT_SUSPENDED,
+        userMessageKey: AUTH_ERROR_MESSAGES.ACCOUNT_SUSPENDED,
+        code: AUTH_ERROR_CODES.ACCOUNT_SUSPENDED,
       });
     }
 
     if (user.isPendingDeletion()) {
       throw new AppError({
         statusCode: 403,
-        userMessageKey: ERROR_MESSAGES.AUTH.ACCOUNT_PENDING_DELETION,
-        code: ERROR_CODES.AUTH.ACCOUNT_PENDING_DELETION,
+        userMessageKey: AUTH_ERROR_MESSAGES.ACCOUNT_PENDING_DELETION,
+        code: AUTH_ERROR_CODES.ACCOUNT_PENDING_DELETION,
       });
     }
 
@@ -170,8 +180,10 @@ class AuthService {
    *
    * @param {string} refreshToken - The refresh token to use for refreshing the access token.
    * @returns {Promise<AuthResponse>} The authentication response.
-   * @throws {AppError} - If the refresh token is invalid, expired, or already used, or if the associated
-   * user does not exist, is suspended, or pending deletion.
+   * @throws {AppError} - If:
+   *   - The token is not found, expired, revoked, or already used
+   *   - The associated user does not exist
+   *   - The user account is suspended or pending deletion
    */
   public static async refreshUserToken(refreshToken: string): Promise<AuthResponse> {
     const refreshTokenRecord = await RefreshToken.findOne({ where: { token: refreshToken } });
@@ -179,9 +191,9 @@ class AuthService {
     if (!refreshTokenRecord) {
       throw new AppError({
         statusCode: 401,
-        userMessageKey: ERROR_MESSAGES.AUTH.SESSION_INVALID,
+        userMessageKey: AUTH_ERROR_MESSAGES.SESSION_INVALID,
         debugMessage: "Refresh token not found in database",
-        code: ERROR_CODES.AUTH.SESSION_INVALID,
+        code: AUTH_ERROR_CODES.SESSION_INVALID,
         debugCode: DEBUG_CODES.AUTH.REFRESH_TOKEN_NOT_FOUND,
       });
     }
@@ -194,9 +206,9 @@ class AuthService {
 
       throw new AppError({
         statusCode: 401,
-        userMessageKey: ERROR_MESSAGES.AUTH.SESSION_INVALID,
+        userMessageKey: AUTH_ERROR_MESSAGES.SESSION_INVALID,
         debugMessage: "Refresh token has already been used",
-        code: ERROR_CODES.AUTH.SESSION_INVALID,
+        code: AUTH_ERROR_CODES.SESSION_INVALID,
         debugCode: DEBUG_CODES.AUTH.REFRESH_TOKEN_REUSED,
       });
     }
@@ -204,9 +216,9 @@ class AuthService {
     if (refreshTokenRecord.isRevoked()) {
       throw new AppError({
         statusCode: 401,
-        userMessageKey: ERROR_MESSAGES.AUTH.SESSION_INVALID,
+        userMessageKey: AUTH_ERROR_MESSAGES.SESSION_INVALID,
         debugMessage: "Refresh token has been revoked",
-        code: ERROR_CODES.AUTH.SESSION_INVALID,
+        code: AUTH_ERROR_CODES.SESSION_INVALID,
         debugCode: DEBUG_CODES.AUTH.REFRESH_TOKEN_REVOKED,
       });
     }
@@ -214,9 +226,9 @@ class AuthService {
     if (refreshTokenRecord.isExpired()) {
       throw new AppError({
         statusCode: 401,
-        userMessageKey: ERROR_MESSAGES.AUTH.SESSION_INVALID,
+        userMessageKey: AUTH_ERROR_MESSAGES.SESSION_INVALID,
         debugMessage: "Refresh token has expired",
-        code: ERROR_CODES.AUTH.SESSION_INVALID,
+        code: AUTH_ERROR_CODES.SESSION_INVALID,
         debugCode: DEBUG_CODES.AUTH.REFRESH_TOKEN_EXPIRED,
       });
     }
@@ -226,26 +238,26 @@ class AuthService {
     if (!user) {
       throw new AppError({
         statusCode: 401,
-        userMessageKey: ERROR_MESSAGES.AUTH.SESSION_INVALID,
+        userMessageKey: AUTH_ERROR_MESSAGES.SESSION_INVALID,
         debugMessage: "User not found for valid refresh token",
-        code: ERROR_CODES.AUTH.SESSION_INVALID,
-        debugCode: DEBUG_CODES.AUTH.USER_NOT_FOUND,
+        code: AUTH_ERROR_CODES.SESSION_INVALID,
+        debugCode: DEBUG_CODES.USER.NOT_FOUND,
       });
     }
 
     if (user.isSuspended()) {
       throw new AppError({
         statusCode: 403,
-        userMessageKey: ERROR_MESSAGES.AUTH.ACCOUNT_SUSPENDED,
-        code: ERROR_CODES.AUTH.ACCOUNT_SUSPENDED,
+        userMessageKey: AUTH_ERROR_MESSAGES.ACCOUNT_SUSPENDED,
+        code: AUTH_ERROR_CODES.ACCOUNT_SUSPENDED,
       });
     }
 
     if (user.isPendingDeletion()) {
       throw new AppError({
         statusCode: 403,
-        userMessageKey: ERROR_MESSAGES.AUTH.ACCOUNT_PENDING_DELETION,
-        code: ERROR_CODES.AUTH.ACCOUNT_PENDING_DELETION,
+        userMessageKey: AUTH_ERROR_MESSAGES.ACCOUNT_PENDING_DELETION,
+        code: AUTH_ERROR_CODES.ACCOUNT_PENDING_DELETION,
       });
     }
 
@@ -278,7 +290,10 @@ class AuthService {
    * @returns {Promise<void>}
    */
   public static async logoutUser(refreshToken: string): Promise<void> {
-    await RefreshToken.update({ revoked_at: dayjs().toDate() }, { where: { token: refreshToken, revoked_at: null } });
+    await RefreshToken.update(
+      { revoked_at: dayjs().toDate() },
+      { where: { token: refreshToken, revoked_at: null } }
+    );
   }
 }
 

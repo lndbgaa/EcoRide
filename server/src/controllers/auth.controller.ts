@@ -1,10 +1,11 @@
 import ms from "ms";
 
 import { appConfig } from "@/config";
-import { DEBUG_CODES, ERROR_CODES, ERROR_MESSAGES, SUCCESS_MESSAGES } from "@/constants";
+import { DEBUG_CODES, SUCCESS_MESSAGES } from "@/constants";
 import { AuthService, EmailVerificationService, PasswordResetService } from "@/services";
 import { AppError, catchAsync } from "@/utils";
 
+import { AUTH_ERROR_MESSAGES } from "@/constants/errors";
 import type { LoginUserPayload, RegisterUserPayload, ResetPasswordPayload } from "@/types";
 import type { CookieOptions, Request, Response } from "express";
 
@@ -22,7 +23,7 @@ function generateCookieOptions(): CookieOptions {
 }
 
 /**
- * Handles user registration.
+ * Handle user registration.
  */
 export const register = catchAsync(async (req: Request, res: Response): Promise<Response> => {
   const data: RegisterUserPayload = req.body;
@@ -31,12 +32,12 @@ export const register = catchAsync(async (req: Request, res: Response): Promise<
 
   return res.status(201).json({
     success: true,
-    message: req.t(SUCCESS_MESSAGES.AUTH.REGISTRATION_SUCCESS),
+    message: req.t(SUCCESS_MESSAGES.AUTH.REGISTERED),
   });
 });
 
 /**
- * Handles user login.
+ * Handle user login.
  */
 export const login = catchAsync(async (req: Request, res: Response): Promise<Response> => {
   const data: LoginUserPayload = req.body;
@@ -47,13 +48,13 @@ export const login = catchAsync(async (req: Request, res: Response): Promise<Res
 
   return res.status(200).json({
     success: true,
-    message: req.t(SUCCESS_MESSAGES.AUTH.LOGIN_SUCCESS),
+    message: req.t(SUCCESS_MESSAGES.AUTH.LOGGED_IN),
     data: { accessToken },
   });
 });
 
 /**
- * Handles user logout.
+ * Handle user logout.
  */
 export const logout = catchAsync(async (req: Request, res: Response): Promise<Response> => {
   const refreshToken: string | undefined = req.cookies.refreshToken;
@@ -61,7 +62,7 @@ export const logout = catchAsync(async (req: Request, res: Response): Promise<Re
   if (!refreshToken) {
     return res.status(200).json({
       success: true,
-      message: req.t(SUCCESS_MESSAGES.AUTH.LOGOUT_SUCCESS),
+      message: req.t(SUCCESS_MESSAGES.AUTH.LOGGED_OUT),
     });
   }
 
@@ -71,12 +72,12 @@ export const logout = catchAsync(async (req: Request, res: Response): Promise<Re
 
   return res.status(200).json({
     success: true,
-    message: req.t(SUCCESS_MESSAGES.AUTH.LOGOUT_SUCCESS),
+    message: req.t(SUCCESS_MESSAGES.AUTH.LOGGED_OUT),
   });
 });
 
 /**
- * Handles user token refresh.
+ * Handle user token refresh.
  */
 export const refreshToken = catchAsync(async (req: Request, res: Response): Promise<Response> => {
   const refreshToken: string | undefined = req.cookies.refreshToken;
@@ -84,21 +85,23 @@ export const refreshToken = catchAsync(async (req: Request, res: Response): Prom
   if (!refreshToken) {
     throw new AppError({
       statusCode: 401,
-      userMessageKey: ERROR_MESSAGES.AUTH.SESSION_INVALID,
+      userMessageKey: AUTH_ERROR_MESSAGES.SESSION_INVALID,
       debugMessage: "Refresh token not found in cookies",
-      code: ERROR_CODES.AUTH.SESSION_INVALID,
+      code: AUTH_ERROR_MESSAGES.SESSION_INVALID,
       debugCode: DEBUG_CODES.AUTH.REFRESH_TOKEN_MISSING,
     });
   }
 
   try {
-    const { accessToken: newAccessToken, refreshToken: newRefreshToken } = await AuthService.refreshUserToken(refreshToken);
+    const { accessToken: newAccessToken, refreshToken: newRefreshToken } = await AuthService.refreshUserToken(
+      refreshToken
+    );
 
     res.cookie("refreshToken", newRefreshToken, generateCookieOptions());
 
     return res.status(200).json({
       success: true,
-      message: req.t(SUCCESS_MESSAGES.AUTH.REFRESH_SUCCESS),
+      message: req.t(SUCCESS_MESSAGES.AUTH.REFRESHED),
       data: { accessToken: newAccessToken },
     });
   } catch (error) {
@@ -108,21 +111,23 @@ export const refreshToken = catchAsync(async (req: Request, res: Response): Prom
 });
 
 /**
- * Handles resending user email verification.
+ * Handle resending user email verification.
  */
-export const resendEmailVerificationLink = catchAsync(async (req: Request, res: Response): Promise<Response> => {
-  const email: string = req.body.email;
+export const resendEmailVerificationLink = catchAsync(
+  async (req: Request, res: Response): Promise<Response> => {
+    const email: string = req.body.email;
 
-  await EmailVerificationService.sendVerificationLinkByEmail(email);
+    await EmailVerificationService.sendVerificationLinkByEmail(email);
 
-  return res.status(200).json({
-    success: true,
-    message: req.t(SUCCESS_MESSAGES.AUTH.EMAIL_VERIFICATION.SENT),
-  });
-});
+    return res.status(200).json({
+      success: true,
+      message: req.t(SUCCESS_MESSAGES.AUTH.EMAIL_VERIFICATION_SENT),
+    });
+  }
+);
 
 /**
- * Handles user email verification.
+ * Handle user email verification.
  */
 export const verifyEmail = catchAsync(async (req: Request, res: Response): Promise<Response> => {
   const token: string = req.body.token;
@@ -131,12 +136,12 @@ export const verifyEmail = catchAsync(async (req: Request, res: Response): Promi
 
   return res.status(200).json({
     success: true,
-    message: req.t(SUCCESS_MESSAGES.AUTH.EMAIL_VERIFICATION.SUCCESS),
+    message: req.t(SUCCESS_MESSAGES.AUTH.EMAIL_VERIFIED),
   });
 });
 
 /**
- * Handles password reset request.
+ * Handle password reset request.
  */
 export const requestPasswordReset = catchAsync(async (req: Request, res: Response): Promise<Response> => {
   const email: string = req.body.email;
@@ -145,12 +150,12 @@ export const requestPasswordReset = catchAsync(async (req: Request, res: Respons
 
   return res.status(200).json({
     success: true,
-    message: req.t(SUCCESS_MESSAGES.AUTH.PASSWORD_RESET.SENT),
+    message: req.t(SUCCESS_MESSAGES.AUTH.PASSWORD_RESET_SENT),
   });
 });
 
 /**
- * Handles password reset token verification.
+ * Handle password reset token verification.
  */
 export const verifyPasswordResetToken = catchAsync(async (req: Request, res: Response): Promise<Response> => {
   const token: string = req.body.token;
@@ -159,12 +164,12 @@ export const verifyPasswordResetToken = catchAsync(async (req: Request, res: Res
 
   return res.status(200).json({
     success: true,
-    message: req.t(SUCCESS_MESSAGES.AUTH.PASSWORD_RESET.TOKEN_VALID),
+    message: req.t(SUCCESS_MESSAGES.AUTH.PASSWORD_RESET_TOKEN_VALID),
   });
 });
 
 /**
- * Handles password reset.
+ * Handle password reset.
  */
 export const resetPassword = catchAsync(async (req: Request, res: Response): Promise<Response> => {
   const data: ResetPasswordPayload = req.body;
@@ -173,6 +178,6 @@ export const resetPassword = catchAsync(async (req: Request, res: Response): Pro
 
   return res.status(200).json({
     success: true,
-    message: req.t(SUCCESS_MESSAGES.AUTH.PASSWORD_RESET.SUCCESS),
+    message: req.t(SUCCESS_MESSAGES.AUTH.PASSWORD_RESET_COMPLETED),
   });
 });

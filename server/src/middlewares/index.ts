@@ -1,4 +1,5 @@
 export * from "./errorHandler.js";
+export * from "./upload.middlewares.js";
 export * from "./optionalAuth.js";
 export * from "./rate-limiter.middlewares.js";
 export * from "./requireAuth.js";

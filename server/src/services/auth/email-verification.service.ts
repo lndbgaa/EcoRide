@@ -4,11 +4,11 @@ import { Op, Transaction } from "sequelize";
 
 import { appConfig, sequelize, transporter } from "@/config";
 import {
+  AUTH_ERROR_CODES,
+  AUTH_ERROR_MESSAGES,
   DEBUG_CODES,
   EMAIL_VERIFICATION_TOKEN_EXPIRY_DAYS,
   EMAIL_VERIFICATION_TOKEN_LENGTH,
-  ERROR_CODES,
-  ERROR_MESSAGES,
 } from "@/constants";
 import { EmailVerificationToken, User } from "@/models/mysql";
 import { AppError, renderTemplate, sendEmail } from "@/utils";
@@ -27,7 +27,7 @@ class EmailVerificationService {
     if (user.is_verified) {
       throw new AppError({
         statusCode: 400,
-        userMessageKey: ERROR_MESSAGES.AUTH.ACCOUNT_EMAIL_ALREADY_VERIFIED,
+        userMessageKey: AUTH_ERROR_MESSAGES.ACCOUNT_EMAIL_ALREADY_VERIFIED,
       });
     }
 
@@ -49,9 +49,9 @@ class EmailVerificationService {
 
       throw new AppError({
         statusCode: 500,
-        userMessageKey: ERROR_MESSAGES.AUTH.EMAIL_VERIFICATION_SEND_FAILED,
+        userMessageKey: AUTH_ERROR_MESSAGES.EMAIL_VERIFICATION_SEND_FAILED,
         debugMessage: err instanceof Error ? err.message : String(err),
-        code: ERROR_CODES.AUTH.EMAIL_VERIFICATION_SEND_FAILED,
+        code: AUTH_ERROR_CODES.EMAIL_VERIFICATION_SEND_FAILED,
       });
     }
   }
@@ -77,7 +77,9 @@ class EmailVerificationService {
    *
    * @param {string} token - The token to verify.
    * @returns {Promise<void>}
-   * @throws {AppError} - If the token is invalid, expired, already used, or the user does not exist.
+   * @throws {AppError} - If:
+   *   - The token is not found, expired, or already used
+   *   - The associated user does not exist
    */
   public static async verifyEmail(token: string): Promise<void> {
     const tokenRecord = await EmailVerificationToken.findOne({ where: { token } });
@@ -85,9 +87,9 @@ class EmailVerificationService {
     if (!tokenRecord) {
       throw new AppError({
         statusCode: 400,
-        userMessageKey: ERROR_MESSAGES.AUTH.EMAIL_VERIFICATION_FAILED,
+        userMessageKey: AUTH_ERROR_MESSAGES.EMAIL_VERIFICATION_FAILED,
         debugMessage: "Email verification token not found",
-        code: ERROR_CODES.AUTH.EMAIL_VERIFICATION_FAILED,
+        code: AUTH_ERROR_CODES.EMAIL_VERIFICATION_FAILED,
         debugCode: DEBUG_CODES.AUTH.EMAIL_VERIFICATION_TOKEN_NOT_FOUND,
       });
     }
@@ -95,9 +97,11 @@ class EmailVerificationService {
     if (!tokenRecord.isValid()) {
       throw new AppError({
         statusCode: 400,
-        userMessageKey: ERROR_MESSAGES.AUTH.EMAIL_VERIFICATION_FAILED,
-        debugMessage: tokenRecord.used_at ? "Email verification token already used" : "Email verification token expired",
-        code: ERROR_CODES.AUTH.EMAIL_VERIFICATION_FAILED,
+        userMessageKey: AUTH_ERROR_MESSAGES.EMAIL_VERIFICATION_FAILED,
+        debugMessage: tokenRecord.used_at
+          ? "Email verification token already used"
+          : "Email verification token expired",
+        code: AUTH_ERROR_CODES.EMAIL_VERIFICATION_FAILED,
         debugCode: tokenRecord.used_at
           ? DEBUG_CODES.AUTH.EMAIL_VERIFICATION_TOKEN_ALREADY_USED
           : DEBUG_CODES.AUTH.EMAIL_VERIFICATION_TOKEN_EXPIRED,
@@ -112,15 +116,18 @@ class EmailVerificationService {
 
       if (!user) {
         throw new AppError({
-          statusCode: 400,
-          userMessageKey: ERROR_MESSAGES.AUTH.EMAIL_VERIFICATION_FAILED,
+          statusCode: 500,
+          userMessageKey: AUTH_ERROR_MESSAGES.EMAIL_VERIFICATION_FAILED,
           debugMessage: "User not found for valid email verification token",
-          code: ERROR_CODES.AUTH.EMAIL_VERIFICATION_FAILED,
-          debugCode: DEBUG_CODES.AUTH.USER_NOT_FOUND,
+          code: AUTH_ERROR_CODES.EMAIL_VERIFICATION_FAILED,
+          debugCode: DEBUG_CODES.USER.NOT_FOUND,
         });
       }
 
-      await Promise.all([tokenRecord.markAsUsed({ transaction: t }), user.markAsVerified({ transaction: t })]);
+      await Promise.all([
+        tokenRecord.markAsUsed({ transaction: t }),
+        user.markAsVerified({ transaction: t }),
+      ]);
     });
   }
 

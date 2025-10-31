@@ -25,5 +25,5 @@ export interface AuthResponse {
 
 export interface ResetPasswordPayload {
   token: string;
-  newPassword: string;
+  password: string;
 }

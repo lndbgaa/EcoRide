@@ -1,5 +1,5 @@
 import { appConfig } from "@/config";
-import { ERROR_CODES } from "@/constants";
+import { AUTH_ERROR_CODES } from "@/constants";
 import { validateJwt } from "@/utils";
 
 import type { NextFunction, Request, Response } from "express";
@@ -22,7 +22,7 @@ const optionalAuth = (req: Request, res: Response, next: NextFunction): void => 
 
     return next();
   } catch (err: any) {
-    if (err.code === ERROR_CODES.AUTH.ACCESS_TOKEN_EXPIRED) {
+    if (err.code === AUTH_ERROR_CODES.ACCESS_TOKEN_EXPIRED) {
       return next(err);
     }
 

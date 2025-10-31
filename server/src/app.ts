@@ -1,3 +1,11 @@
+import dayjs from "dayjs";
+import customParseFormat from "dayjs/plugin/customParseFormat.js";
+import timezone from "dayjs/plugin/timezone.js";
+import utc from "dayjs/plugin/utc.js";
+dayjs.extend(timezone);
+dayjs.extend(utc);
+dayjs.extend(customParseFormat);
+
 import cookieParser from "cookie-parser";
 import cors from "cors";
 import express from "express";
@@ -5,7 +13,7 @@ import helmet from "helmet";
 import { handle } from "i18next-http-middleware";
 
 import { appConfig, connectMongoDB, connectMySQL, i18next } from "@/config";
-import { ERROR_MESSAGES } from "@/constants";
+import { COMMON_ERROR_MESSAGES } from "@/constants";
 import { defaultLimiter, errorHandler, sanitizeAll } from "@/middlewares";
 import router from "@/routes";
 import { AppError, logger } from "@/utils";
@@ -49,7 +57,7 @@ app.use((req, res, next) => {
   next(
     new AppError({
       statusCode: 404,
-      userMessageKey: ERROR_MESSAGES.COMMON.RESOURCE_NOT_FOUND,
+      userMessageKey: COMMON_ERROR_MESSAGES.RESOURCE_NOT_FOUND,
     })
   );
 });

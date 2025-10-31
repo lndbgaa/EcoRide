@@ -1,5 +1,5 @@
 import { appConfig } from "@/config";
-import { DEBUG_CODES, ERROR_CODES, ERROR_MESSAGES } from "@/constants";
+import { AUTH_ERROR_CODES, AUTH_ERROR_MESSAGES, DEBUG_CODES } from "@/constants";
 import { AppError, validateJwt } from "@/utils";
 
 import type { NextFunction, Request, Response } from "express";
@@ -14,9 +14,9 @@ const requireAuth = (req: Request, res: Response, next: NextFunction): void => {
     return next(
       new AppError({
         statusCode: 401,
-        userMessageKey: ERROR_MESSAGES.AUTH.AUTHENTICATION_REQUIRED,
+        userMessageKey: AUTH_ERROR_MESSAGES.AUTHENTICATION_REQUIRED,
         debugMessage: "Missing or invalid authorization header",
-        code: ERROR_CODES.AUTH.AUTHENTICATION_REQUIRED,
+        code: AUTH_ERROR_CODES.AUTHENTICATION_REQUIRED,
         debugCode: DEBUG_CODES.AUTH.HEADER_MISSING,
       })
     );
@@ -28,9 +28,9 @@ const requireAuth = (req: Request, res: Response, next: NextFunction): void => {
     return next(
       new AppError({
         statusCode: 401,
-        userMessageKey: ERROR_MESSAGES.AUTH.AUTHENTICATION_REQUIRED,
+        userMessageKey: AUTH_ERROR_MESSAGES.AUTHENTICATION_REQUIRED,
         debugMessage: "Missing authentication token",
-        code: ERROR_CODES.AUTH.AUTHENTICATION_REQUIRED,
+        code: AUTH_ERROR_CODES.AUTHENTICATION_REQUIRED,
         debugCode: DEBUG_CODES.AUTH.ACCESS_TOKEN_MISSING,
       })
     );

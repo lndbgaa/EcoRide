@@ -1,4 +1,4 @@
-import { DEBUG_CODES, ERROR_CODES, ERROR_MESSAGES } from "@/constants";
+import { AUTH_ERROR_CODES, AUTH_ERROR_MESSAGES, DEBUG_CODES } from "@/constants";
 import { AppError } from "@/utils";
 
 import type { NextFunction, Request, Response } from "express";
@@ -12,9 +12,9 @@ const requireRole =
       return next(
         new AppError({
           statusCode: 403,
-          userMessageKey: ERROR_MESSAGES.AUTH.ROLE_INVALID,
+          userMessageKey: AUTH_ERROR_MESSAGES.ROLE_INVALID,
           debugMessage: `User role "${userRole}" is not allowed. Expected: [${allowedRoles.join(", ")}].`,
-          code: ERROR_CODES.AUTH.ROLE_INVALID,
+          code: AUTH_ERROR_CODES.ROLE_INVALID,
           debugCode: DEBUG_CODES.AUTH.ROLE_INVALID,
         })
       );

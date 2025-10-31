@@ -1,6 +1,6 @@
 import { rateLimit } from "express-rate-limit";
 
-import { ERROR_MESSAGES } from "@/constants";
+import { COMMON_ERROR_MESSAGES } from "@/constants";
 import { AppError } from "@/utils";
 
 import type { NextFunction, Request, Response } from "express";
@@ -25,7 +25,22 @@ const createRateLimiter = (windowMs: number, limit: number, messageKey: string):
   });
 };
 
-export const defaultLimiter = createRateLimiter(15 * 60 * 1000, 500, ERROR_MESSAGES.RATE_LIMIT.DEFAULT);
-export const registerLimiter = createRateLimiter(10 * 60 * 1000, 5, ERROR_MESSAGES.RATE_LIMIT.REGISTER);
-export const loginLimiter = createRateLimiter(10 * 60 * 1000, 5, ERROR_MESSAGES.RATE_LIMIT.LOGIN);
-export const passwordResetLimiter = createRateLimiter(60 * 60 * 1000, 5, ERROR_MESSAGES.RATE_LIMIT.PASSWORD_RESET);
+export const defaultLimiter = createRateLimiter(
+  15 * 60 * 1000,
+  500,
+  COMMON_ERROR_MESSAGES.RATE_LIMIT.DEFAULT
+);
+
+export const registerLimiter = createRateLimiter(
+  10 * 60 * 1000,
+  5,
+  COMMON_ERROR_MESSAGES.RATE_LIMIT.REGISTER
+);
+
+export const loginLimiter = createRateLimiter(10 * 60 * 1000, 5, COMMON_ERROR_MESSAGES.RATE_LIMIT.LOGIN);
+
+export const passwordResetLimiter = createRateLimiter(
+  60 * 60 * 1000,
+  5,
+  COMMON_ERROR_MESSAGES.RATE_LIMIT.PASSWORD_RESET
+);

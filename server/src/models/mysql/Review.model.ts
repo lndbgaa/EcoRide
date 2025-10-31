@@ -1,10 +1,16 @@
 import { DataTypes, Model } from "sequelize";
 
-import { ERROR_MESSAGES, REVIEW_MAX_RATING, REVIEW_MIN_RATING, REVIEW_STATUSES } from "@/constants";
+import { REVIEW_ERROR_MESSAGES, REVIEW_MAX_RATING, REVIEW_MIN_RATING, REVIEW_STATUSES } from "@/constants";
 import { AppError, formatDateTime } from "@/utils";
 
 import type { Ride, User } from "@/models/mysql";
-import type { ReviewAdminDTO, ReviewAuthorDTO, ReviewPublicDTO, ReviewStatus, ReviewTargetDTO } from "@/types";
+import type {
+  ReviewAdminDTO,
+  ReviewAuthorDTO,
+  ReviewPublicDTO,
+  ReviewStatus,
+  ReviewTargetDTO,
+} from "@/types";
 import type { SaveOptions, Sequelize } from "sequelize";
 
 const { PENDING, APPROVED, REJECTED } = REVIEW_STATUSES;
@@ -62,7 +68,7 @@ export default class Review extends Model {
     if (!this.canTransitionTo(newStatus)) {
       throw new AppError({
         statusCode: 400,
-        userMessageKey: ERROR_MESSAGES.REVIEW.INVALID_STATUS_TRANSITION,
+        userMessageKey: REVIEW_ERROR_MESSAGES.INVALID_STATUS_TRANSITION,
         debugMessage: `Review ${this.id} cannot transition from ${this.status} to ${newStatus}.`,
       });
     }

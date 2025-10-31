@@ -51,6 +51,12 @@ const appConfig: Config = {
     uri: getEnvVar("MONGODB_URI"),
   },
 
+  cloudinary: {
+    cloudName: getEnvVar("CLOUDINARY_CLOUD_NAME"),
+    apiKey: getEnvVar("CLOUDINARY_KEY"),
+    apiSecret: getEnvVar("CLOUDINARY_SECRET"),
+  },
+
   gmail: {
     user: getEnvVar("GMAIL_USER"),
     password: getEnvVar("GMAIL_PASSWORD"),

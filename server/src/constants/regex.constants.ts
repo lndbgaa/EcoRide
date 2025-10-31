@@ -1,5 +1,5 @@
 export const REGEX = {
-  username: /^[a-zA-Z0-9_-]{3,20}$/,
+  username: /^[a-zA-Z][a-zA-Z0-9_-]*$/,
   password: /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])\S+$/,
   firstName: /^[a-zA-ZÀ-ÖØ-öø-ÿ][a-zA-ZÀ-ÖØ-öø-ÿ\s'’-]*$/,
   lastName: /^[a-zA-ZÀ-ÖØ-öø-ÿ][a-zA-ZÀ-ÖØ-öø-ÿ\s'’-]*$/,

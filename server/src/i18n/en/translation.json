@@ -6,17 +6,21 @@
 
   "success": {
     "auth": {
-      "registration_success": "Account created successfully! A verification email has been sent",
-      "login_success": "Login successful",
-      "refresh_success": "Your session has been successfully refreshed",
-      "logout_success": "Logout successful",
-
+      "registered": "Account created successfully! A verification email has been sent",
+      "logged_in": "Login successful",
+      "refreshed": "Your session has been successfully refreshed",
+      "logged_out": "Logout successful",
       "email_verification_sent": "If an account exists with this email, a verification link has been sent",
-      "email_verification_success": "Your email has been successfully verified. You can now sign in",
-
+      "email_verified": "Your email has been successfully verified. You can now sign in",
       "password_reset_sent": "If an account exists with this email, a password reset link has been sent",
       "password_reset_token_valid": "The password reset link is valid",
-      "password_reset_success": "Your password has been successfully reset. You can now sign in"
+      "password_reset_completed": "Your password has been successfully reset. You can now sign in"
+    },
+    "user": {
+      "personal_data_retrieved": "Your information has been successfully retrieved",
+      "profile_updated": "Your profile has been updated successfully",
+      "password_updated": "Your password has been updated successfully",
+      "picture_updated": "Your profile picture has been updated successfully"
     }
   },
 
@@ -26,45 +30,50 @@
       "resource_not_found": "The requested resource was not found",
       "validation_error": "The provided data is invalid"
     },
-
     "rate_limit": {
       "default": "Too many requests. Please wait a moment before trying again",
       "register": "Too many registration attempts. Please wait a few minutes before trying again",
       "login": "Too many login attempts. Please wait a few minutes before trying again",
       "password_reset": "Too many password reset requests. Please try again in one hour"
     },
-
+    "upload": {
+      "image": {
+        "file_missing": "No image file was provided. Please select a file to upload",
+        "upload_failed": "Failed to upload image. Please try again"
+      }
+    },
     "auth": {
       "authentication_required": "You must be logged in to access this resource",
-      "invalid_credentials": "Invalid credentials",
-      "role_invalid": "You do not have permission to access this resource",
       "session_invalid": "Your session is no longer valid. Please log in again",
-
+      "role_invalid": "You do not have permission to access this resource",
+      "invalid_credentials": "Invalid credentials",
       "email_already_exists": "This email address is already in use",
       "username_already_exists": "This username is already taken",
-
       "email_verification_token_invalid": "The verification link is invalid or has expired",
       "email_verification_send_failed": "Unable to send verification email. Please try again",
-
       "password_reset_token_invalid": "The password reset link is invalid or has expired",
       "password_reset_send_failed": "Unable to send password reset email. Please try again",
-
       "account_email_already_verified": "Your email address is already verified",
       "account_email_not_verified": "Please verify your email address before logging in",
       "account_suspended": "Your account has been suspended. Please contact support for more information",
       "account_pending_deletion": "Your account is pending deletion"
     },
-
     "user": {
+      "update_no_changes": "No changes detected",
+      "birthdate_cannot_be_nullified": "Your birth date cannot be removed once it has been set",
+      "phone_cannot_be_nullified": "Your phone number cannot be removed once it has been set",
+      "current_password_incorrect": "Current password is incorrect",
+      "new_password_same_as_old": "New password must be different from the old password",
+      "profile_picture_invalid_file_type": "Invalid image type. Allowed types: JPEG, PNG, WebP",
+      "profile_picture_file_too_large": "Image file is too large. Maximum size: 5 MB",
+
       "invalid_status_transition": "Invalid status transition for this user",
       "invalid_credit_amount": "The credit amount must be a positive integer",
       "insufficient_credits": "You do not have enough credits to perform this action"
     },
-
     "vehicle": {
       "invalid_status_transition": "Invalid status transition for this vehicle"
     },
-
     "ride": {
       "invalid_status_transition": "Invalid status transition for this ride",
       "cannot_modify_seats": "Cannot modify the number of seats for this ride in its current state",
@@ -72,13 +81,99 @@
       "exceeds_offered_seats": "Cannot add this number of seats: it would exceed the total offered seats",
       "not_enough_available_seats": "Cannot remove this number of seats: not enough seats available"
     },
-
     "booking": {
       "invalid_status_transition": "Invalid status transition for this booking"
     },
-
     "review": {
       "invalid_status_transition": "Invalid status transition for this review"
+    },
+    "incident": {}
+  },
+
+  "validation": {
+    "auth": {
+      "email_required": "Email is required",
+      "email_base": "Email must be a string",
+      "email_empty": "Email cannot be empty",
+      "email_invalid": "Email must be a valid email address",
+
+      "password_required": "Password is required",
+      "password_base": "Password must be a string",
+      "password_empty": "Password cannot be empty",
+      "password_min": "Password must be at least 8 characters long",
+      "password_pattern": "Password must contain at least one uppercase letter, one lowercase letter, one number, one special character, and no spaces",
+
+      "username_required": "Username is required",
+      "username_base": "Username must be a string",
+      "username_empty": "Username cannot be empty",
+      "username_min": "Username must be at least 3 characters long",
+      "username_max": "Username must not exceed 20 characters",
+      "username_pattern": "Username must start with a letter and contain only letters, numbers, dashes, or underscores",
+
+      "first_name_required": "First name is required",
+      "first_name_base": "First name must be a string",
+      "first_name_empty": "First name cannot be empty",
+      "first_name_min": "First name must be at least 2 characters long",
+      "first_name_max": "First name must not exceed 50 characters",
+      "first_name_pattern": "First name can only contain letters, spaces, apostrophes, or dashes",
+
+      "last_name_required": "Last name is required",
+      "last_name_base": "Last name must be a string",
+      "last_name_empty": "Last name cannot be empty",
+      "last_name_min": "Last name must be at least 2 characters long",
+      "last_name_max": "Last name must not exceed 50 characters",
+      "last_name_pattern": "Last name can only contain letters, spaces, apostrophes, or dashes",
+
+      "email_verification_token_required": "Email verification token is required",
+      "email_verification_token_base": "Email verification token must be a string",
+      "email_verification_token_empty": "Email verification token cannot be empty",
+
+      "password_reset_token_required": "Password reset token is required",
+      "password_reset_token_base": "Password reset token must be a string",
+      "password_reset_token_empty": "Password reset token cannot be empty"
+    },
+
+    "user": {
+      "username_base": "The username must be a string",
+      "username_empty": "The username cannot be empty",
+      "username_min": "The username must be at least 3 characters long",
+      "username_max": "The username must not exceed 20 characters",
+      "username_invalid": "The username must start with a letter and contain only letters, numbers, hyphens, or underscores",
+
+      "first_name_base": "The first name must be a string",
+      "first_name_empty": "The first name cannot be empty",
+      "first_name_min": "The first name must be at least 2 characters long",
+      "first_name_max": "The first name must not exceed 50 characters",
+      "first_name_invalid": "The first name can only contain letters, spaces, apostrophes, or hyphens",
+
+      "last_name_base": "The last name must be a string",
+      "last_name_empty": "The last name cannot be empty",
+      "last_name_min": "The last name must be at least 2 characters long",
+      "last_name_max": "The last name must not exceed 50 characters",
+      "last_name_invalid": "The last name can only contain letters, spaces, apostrophes, or hyphens",
+
+      "phone_base": "The phone number must be a string",
+      "phone_empty": "The phone number cannot be empty",
+      "phone_invalid": "The phone number is invalid. Example: 06 XX XX XX XX or +33 6 XX XX XX XX",
+
+      "address_base": "The address must be a string",
+      "address_empty": "The address cannot be empty",
+      "address_min": "The address must be at least 5 characters long",
+      "address_max": "The address must not exceed 150 characters",
+
+      "birthdate_base": "The birthdate must be a valid date",
+      "birthdate_empty": "The birthdate cannot be empty",
+      "birthdate_invalid": "The birthdate must be valid and earlier than today",
+
+      "current_password_required": "The current password is required",
+      "current_password_base": "The current password must be a string",
+      "current_password_empty": "The current password cannot be empty",
+
+      "new_password_required": "The new password is required",
+      "new_password_base": "The new password must be a string",
+      "new_password_empty": "The new password cannot be empty",
+      "new_password_min": "The new password must be at least 8 characters long",
+      "new_password_invalid": "The new password must include at least one uppercase letter, one lowercase letter, one number, and one special character"
     }
   }
 }

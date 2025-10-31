@@ -4,9 +4,9 @@ import { Op, Transaction } from "sequelize";
 
 import { appConfig, sequelize, transporter } from "@/config";
 import {
+  AUTH_ERROR_CODES,
+  AUTH_ERROR_MESSAGES,
   DEBUG_CODES,
-  ERROR_CODES,
-  ERROR_MESSAGES,
   PASSWORD_RESET_TOKEN_EXPIRY_HOURS,
   PASSWORD_RESET_TOKEN_LENGTH,
 } from "@/constants";
@@ -40,7 +40,13 @@ class PasswordResetService {
     });
 
     try {
-      await sendEmail(transporter, gmail.user, user.email, "Réinitialisation de ton mot de passe – EcoRide", content);
+      await sendEmail(
+        transporter,
+        gmail.user,
+        user.email,
+        "Réinitialisation de ton mot de passe – EcoRide",
+        content
+      );
       // TODO ajouter i18n pour l'email
       // FIXME mettre un retry automatique pour sendEmail
     } catch (err) {
@@ -50,7 +56,7 @@ class PasswordResetService {
 
       throw new AppError({
         statusCode: 500,
-        userMessageKey: ERROR_MESSAGES.AUTH.PASSWORD_RESET_SEND_FAILED,
+        userMessageKey: AUTH_ERROR_MESSAGES.PASSWORD_RESET_SEND_FAILED,
         debugMessage: err instanceof Error ? err.message : String(err),
       });
     }
@@ -61,7 +67,7 @@ class PasswordResetService {
    
    * @param {string} token - The token to verify.
    * @returns {Promise<PasswordResetToken>}
-   * @throws {AppError} - If the token is invalid, expired, or already used
+   * @throws {AppError} - If the token is not found, expired, or already used
    */
   public static async verifyResetToken(token: string, options?: FindOptions): Promise<PasswordResetToken> {
     const tokenRecord = await PasswordResetToken.findOne({ where: { token }, ...options });
@@ -69,9 +75,9 @@ class PasswordResetService {
     if (!tokenRecord) {
       throw new AppError({
         statusCode: 400,
-        userMessageKey: ERROR_MESSAGES.AUTH.PASSWORD_RESET_TOKEN_INVALID,
+        userMessageKey: AUTH_ERROR_MESSAGES.PASSWORD_RESET_TOKEN_INVALID,
         debugMessage: "Password reset token not found",
-        code: ERROR_CODES.AUTH.PASSWORD_RESET_TOKEN_INVALID,
+        code: AUTH_ERROR_CODES.PASSWORD_RESET_TOKEN_INVALID,
         debugCode: DEBUG_CODES.AUTH.PASSWORD_RESET_TOKEN_NOT_FOUND,
       });
     }
@@ -79,9 +85,11 @@ class PasswordResetService {
     if (!tokenRecord.isValid()) {
       throw new AppError({
         statusCode: 400,
-        userMessageKey: ERROR_MESSAGES.AUTH.PASSWORD_RESET_TOKEN_INVALID,
-        debugMessage: tokenRecord.used_at ? "Password reset token already used" : "Password reset token expired",
-        code: ERROR_CODES.AUTH.PASSWORD_RESET_TOKEN_INVALID,
+        userMessageKey: AUTH_ERROR_MESSAGES.PASSWORD_RESET_TOKEN_INVALID,
+        debugMessage: tokenRecord.used_at
+          ? "Password reset token already used"
+          : "Password reset token expired",
+        code: AUTH_ERROR_CODES.PASSWORD_RESET_TOKEN_INVALID,
         debugCode: tokenRecord.used_at
           ? DEBUG_CODES.AUTH.PASSWORD_RESET_TOKEN_ALREADY_USED
           : DEBUG_CODES.AUTH.PASSWORD_RESET_TOKEN_EXPIRED,
@@ -96,11 +104,13 @@ class PasswordResetService {
    
    * @param {ResetPasswordPayload} data - The data to reset the password.
    * @returns {Promise<void>}
-   * @throws {AppError} - If the token is invalid, expired, already used or the user does not exist.
+   * @throws {AppError} - If:
+   *   - The token is not found, expired, or already used
+   *   - The associated user does not exist
    * @note The password is hashed automatically before being saved via a Sequelize hook.
    */
   public static async resetPassword(data: ResetPasswordPayload): Promise<void> {
-    const { token, newPassword } = data;
+    const { token, password } = data;
 
     await sequelize.transaction(async (t: Transaction): Promise<void> => {
       const tokenRecord = await this.verifyResetToken(token, { transaction: t, lock: true });
@@ -109,17 +119,20 @@ class PasswordResetService {
 
       if (!user) {
         throw new AppError({
-          statusCode: 400,
-          userMessageKey: ERROR_MESSAGES.AUTH.PASSWORD_RESET_TOKEN_INVALID,
+          statusCode: 500,
+          userMessageKey: AUTH_ERROR_MESSAGES.PASSWORD_RESET_TOKEN_INVALID,
           debugMessage: "User not found for valid password reset token",
-          code: ERROR_CODES.AUTH.PASSWORD_RESET_TOKEN_INVALID,
-          debugCode: DEBUG_CODES.AUTH.USER_NOT_FOUND,
+          code: AUTH_ERROR_CODES.PASSWORD_RESET_TOKEN_INVALID,
+          debugCode: DEBUG_CODES.USER.NOT_FOUND,
         });
       }
 
-      user.password = newPassword;
+      user.password = password;
 
-      await Promise.all([user.save({ transaction: t, fields: ["password"] }), tokenRecord.markAsUsed({ transaction: t })]);
+      await Promise.all([
+        user.save({ transaction: t, fields: ["password"] }),
+        tokenRecord.markAsUsed({ transaction: t }),
+      ]);
     });
   }
 

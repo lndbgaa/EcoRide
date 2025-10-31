@@ -1,10 +1,16 @@
 import { DataTypes, Model } from "sequelize";
 
-import { BOOKING_STATUSES, ERROR_MESSAGES } from "@/constants";
+import { BOOKING_ERROR_MESSAGES, BOOKING_STATUSES } from "@/constants";
 import { AppError, formatDateTime } from "@/utils";
 
 import type { Ride, User } from "@/models/mysql";
-import type { BookingAdminDTO, BookingDriverDTO, BookingPassengerDTO, BookingPublicDTO, BookingStatus } from "@/types";
+import type {
+  BookingAdminDTO,
+  BookingDriverDTO,
+  BookingPassengerDTO,
+  BookingPublicDTO,
+  BookingStatus,
+} from "@/types";
 import type { SaveOptions, Sequelize } from "sequelize";
 
 const { CONFIRMED, AWAITING_FEEDBACK, COMPLETED, CANCELLED } = BOOKING_STATUSES;
@@ -62,7 +68,7 @@ export default class Booking extends Model {
     if (!this.canTransitionTo(newStatus)) {
       throw new AppError({
         statusCode: 400,
-        userMessageKey: ERROR_MESSAGES.BOOKING.INVALID_STATUS_TRANSITION,
+        userMessageKey: BOOKING_ERROR_MESSAGES.INVALID_STATUS_TRANSITION,
         debugMessage: `Booking ${this.id} cannot transition from ${this.status} to ${newStatus}`,
       });
     }

@@ -1,10 +1,18 @@
 import type { USER_ROLES_DISPLAY, USER_ROLES_ID, USER_ROLES_KEY, USER_STATUSES } from "@/constants";
 import type { DateTimeDTO } from "@/types";
 
+// ===========================
+//    Constants-based Types
+// =========================== */
+
 export type UserRoleId = (typeof USER_ROLES_ID)[keyof typeof USER_ROLES_ID];
 export type UserRoleKey = (typeof USER_ROLES_KEY)[keyof typeof USER_ROLES_ID];
 export type UserRoleDisplay = (typeof USER_ROLES_DISPLAY)[keyof typeof USER_ROLES_ID];
 export type UserStatus = (typeof USER_STATUSES)[keyof typeof USER_STATUSES];
+
+// ===========================
+//           DTOs
+// =========================== */
 
 export interface UserPublicDTO {
   id: string;
@@ -33,4 +41,22 @@ export interface UserAdminDTO extends UserPrivateDTO {
   suspendedAt: DateTimeDTO;
   pendingDeletionAt: DateTimeDTO;
   deletedAt: DateTimeDTO;
+}
+
+// ===========================
+//     Payloads & Results
+// =========================== */
+
+export interface UpdateUserInfoPayload {
+  username?: string;
+  firstName?: string;
+  lastName?: string;
+  address?: string;
+  birthDate?: string;
+  phone?: string;
+}
+
+export interface UpdateUserPasswordPayload {
+  currentPassword: string;
+  newPassword: string;
 }

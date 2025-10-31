@@ -16,7 +16,7 @@ export const devFormat = printf(
     code,
     debugCode,
     debugMessage,
-    details,
+    errors,
     stack,
     ...rest
   }) => {
@@ -35,9 +35,9 @@ export const devFormat = printf(
       log += `\n- Extra: ${JSON.stringify(rest, null, 2)}`;
     }
 
-    if (details && Array.isArray(details) && details.length > 0) {
-      const detailsString = details.map((d) => `   • ${d.field}: ${d.message}`).join("\n");
-      log += `\n- Validation details:\n${detailsString}`;
+    if (errors && Array.isArray(errors) && errors.length > 0) {
+      const detailsString = errors.map((e) => `   • ${e.field}: ${e.message}`).join("\n");
+      log += `\n- Validation errors:\n${detailsString}`;
     }
 
     if (stack) {

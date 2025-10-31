@@ -132,7 +132,7 @@ incidentSchema.methods.markAsAssigned = async function (
   if (!canTransitionTo(this.status, ASSIGNED)) {
     throw new AppError({
       statusCode: 400,
-      userMessage: "",
+      userMessageKey: "",
       debugMessage: `Incident ${this.id} cannot transition from ${this.status} to ${ASSIGNED}`,
     });
   }
@@ -148,7 +148,7 @@ incidentSchema.methods.markAsResolved = async function (this: IncidentDocument, 
   if (!canTransitionTo(this.status, RESOLVED)) {
     throw new AppError({
       statusCode: 400,
-      userMessage: "",
+      userMessageKey: "",
       debugMessage: `Incident${this.id} cannot transition from ${this.status} to ${RESOLVED}`,
     });
   }

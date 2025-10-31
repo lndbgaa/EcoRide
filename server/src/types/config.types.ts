@@ -22,6 +22,11 @@ export interface Config {
   mongodb: {
     uri: string;
   };
+  cloudinary: {
+    cloudName: string;
+    apiKey: string;
+    apiSecret: string;
+  };
   gmail: {
     user: string;
     password: string;

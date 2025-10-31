@@ -1,19 +1,22 @@
 export const SUCCESS_MESSAGES = {
   AUTH: {
-    REGISTRATION_SUCCESS: "success.auth.registration_success",
-    LOGIN_SUCCESS: "success.auth.login_success",
-    REFRESH_SUCCESS: "success.auth.refresh_success",
-    LOGOUT_SUCCESS: "success.auth.logout_success",
+    REGISTERED: "success.auth.registered",
+    LOGGED_IN: "success.auth.logged_in",
+    REFRESHED: "success.auth.refreshed",
+    LOGGED_OUT: "success.auth.logged_out",
 
-    EMAIL_VERIFICATION: {
-      SENT: "success.auth.email_verification_sent",
-      SUCCESS: "success.auth.email_verification_success",
-    },
+    EMAIL_VERIFICATION_SENT: "success.auth.email_verification_sent",
+    EMAIL_VERIFIED: "success.auth.email_verified",
 
-    PASSWORD_RESET: {
-      SENT: "success.auth.password_reset_sent",
-      TOKEN_VALID: "success.auth.password_reset_token_valid",
-      SUCCESS: "success.auth.password_reset_success",
-    },
+    PASSWORD_RESET_SENT: "success.auth.password_reset_sent",
+    PASSWORD_RESET_TOKEN_VALID: "success.auth.password_reset_token_valid",
+    PASSWORD_RESET_COMPLETED: "success.auth.password_reset_completed",
+  },
+
+  USER: {
+    PERSONAL_DATA_RETRIEVED: "success.user.personal_data_retrieved",
+    PROFILE_UPDATED: "success.user.profile_updated",
+    PASSWORD_UPDATED: "success.user.password_updated",
+    PICTURE_UPDATED: "success.user.picture_updated",
   },
 } as const;

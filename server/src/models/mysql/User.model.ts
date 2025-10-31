@@ -2,11 +2,25 @@ import bcrypt from "bcrypt";
 import dayjs from "dayjs";
 import { DataTypes, Model, Op } from "sequelize";
 
-import { ERROR_MESSAGES, REGEX, REVIEW_MAX_RATING, REVIEW_MIN_RATING, USER_ROLES_ID, USER_STATUSES } from "@/constants";
-import { AppError, calculateAge, capitalize, formatDateTime, toDateOnly } from "@/utils";
+import {
+  REGEX,
+  REVIEW_MAX_RATING,
+  REVIEW_MIN_RATING,
+  USER_ERROR_MESSAGES,
+  USER_ROLES_ID,
+  USER_STATUSES,
+} from "@/constants";
+import { AppError, calculateAge, capitalize, formatDateTime, setIfChanged, toDateOnly } from "@/utils";
 
 import type { Role } from "@/models/mysql";
-import type { UserAdminDTO, UserPrivateDTO, UserPublicDTO, UserRoleId, UserStatus } from "@/types";
+import type {
+  UpdateUserInfoPayload,
+  UserAdminDTO,
+  UserPrivateDTO,
+  UserPublicDTO,
+  UserRoleId,
+  UserStatus,
+} from "@/types";
 import type { SaveOptions, Sequelize } from "sequelize";
 
 const { ACTIVE, SUSPENDED, PENDING_DELETION, DELETED } = USER_STATUSES;
@@ -77,7 +91,7 @@ export default class User extends Model {
     if (!this.canTransitionTo(newStatus)) {
       throw new AppError({
         statusCode: 400,
-        userMessageKey: ERROR_MESSAGES.USER.INVALID_STATUS_TRANSITION,
+        userMessageKey: USER_ERROR_MESSAGES.INVALID_STATUS_TRANSITION,
         debugMessage: `User ${this.id} cannot transition from ${this.status} to ${newStatus}.`,
       });
     }
@@ -146,11 +160,57 @@ export default class User extends Model {
   // Business Logic
   // ------------------------------------
 
+  public async updateProfile(data: UpdateUserInfoPayload, options?: SaveOptions): Promise<User> {
+    const updatedFields: string[] = [];
+
+    if (setIfChanged(this, "username", data.username, false)) updatedFields.push("username");
+    if (setIfChanged(this, "first_name", data.firstName, false)) updatedFields.push("first_name");
+    if (setIfChanged(this, "last_name", data.lastName, false)) updatedFields.push("last_name");
+    if (setIfChanged(this, "address", data.address, true)) updatedFields.push("address");
+
+    let birthDateToSave: Date | null | undefined = undefined;
+
+    if (data.birthDate !== undefined) {
+      if (data.birthDate === null) {
+        if (this.birth_date !== null) {
+          throw new AppError({
+            statusCode: 400,
+            userMessageKey: USER_ERROR_MESSAGES.BIRTHDATE_CANNOT_BE_NULLIFIED,
+          });
+        }
+        birthDateToSave = null;
+      } else {
+        birthDateToSave = dayjs(data.birthDate, "YYYY-MM-DD").toDate();
+      }
+    }
+
+    if (setIfChanged(this, "birth_date", birthDateToSave, this.birth_date === null))
+      updatedFields.push("birth_date");
+
+    if (data.phone === null && this.phone !== null) {
+      throw new AppError({
+        statusCode: 400,
+        userMessageKey: USER_ERROR_MESSAGES.PHONE_CANNOT_BE_NULLIFIED,
+      });
+    }
+
+    if (setIfChanged(this, "phone", data.phone, this.phone === null)) updatedFields.push("phone");
+
+    if (updatedFields.length === 0) {
+      throw new AppError({
+        statusCode: 400,
+        userMessageKey: USER_ERROR_MESSAGES.UPDATE_NO_CHANGES,
+      });
+    }
+
+    return await this.save({ ...options, fields: updatedFields });
+  }
+
   public async addCredits(amount: number, options?: SaveOptions): Promise<void> {
     if (!Number.isInteger(amount) || amount <= 0) {
       throw new AppError({
         statusCode: 400,
-        userMessageKey: ERROR_MESSAGES.USER.INVALID_CREDIT_AMOUNT,
+        userMessageKey: USER_ERROR_MESSAGES.INVALID_CREDIT_AMOUNT,
         debugMessage: `Invalid add amount: ${amount}. Must be a positive integer.`,
       });
     }
@@ -163,7 +223,7 @@ export default class User extends Model {
     if (!Number.isInteger(amount) || amount <= 0) {
       throw new AppError({
         statusCode: 400,
-        userMessageKey: ERROR_MESSAGES.USER.INVALID_CREDIT_AMOUNT,
+        userMessageKey: USER_ERROR_MESSAGES.INVALID_CREDIT_AMOUNT,
         debugMessage: `Invalid remove amount: ${amount}. Must be a positive integer.`,
       });
     }
@@ -171,7 +231,7 @@ export default class User extends Model {
     if (this.credits < amount) {
       throw new AppError({
         statusCode: 400,
-        userMessageKey: ERROR_MESSAGES.USER.INSUFFICIENT_CREDITS,
+        userMessageKey: USER_ERROR_MESSAGES.INSUFFICIENT_CREDITS,
         debugMessage: `Cannot remove credits: User ${this.id} has insufficient credits. Current: ${this.credits}, attempted removal: ${amount}.`,
       });
     }

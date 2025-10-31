@@ -1,6 +1,6 @@
 import { getReasonPhrase } from "http-status-codes";
 
-import { ERROR_MESSAGES } from "@/constants";
+import { COMMON_ERROR_MESSAGES } from "@/constants";
 
 import type { AppErrorOptions } from "@/types";
 
@@ -24,7 +24,7 @@ class AppError extends Error {
   constructor({
     statusCode = 500,
     statusText,
-    userMessageKey = ERROR_MESSAGES.COMMON.INTERNAL_SERVER_ERROR,
+    userMessageKey = COMMON_ERROR_MESSAGES.INTERNAL_SERVER_ERROR,
     debugMessage,
     code,
     debugCode,

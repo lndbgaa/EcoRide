@@ -1,7 +1,7 @@
 import { DataTypes, Model } from "sequelize";
 
 import { sequelize } from "@/config";
-import { ERROR_MESSAGES, RIDE_MAX_PRICE, RIDE_MIN_PRICE, RIDE_STATUSES } from "@/constants";
+import { RIDE_ERROR_MESSAGES, RIDE_MAX_PRICE, RIDE_MIN_PRICE, RIDE_STATUSES } from "@/constants";
 import { AppError, calculateDuration, formatDateTime, toDateOnly, toTimeOnly } from "@/utils";
 
 import type { User, Vehicle } from "@/models/mysql";
@@ -86,7 +86,7 @@ export default class Ride extends Model {
     if (!this.canTransitionTo(newStatus)) {
       throw new AppError({
         statusCode: 400,
-        userMessageKey: ERROR_MESSAGES.RIDE.INVALID_STATUS_TRANSITION,
+        userMessageKey: RIDE_ERROR_MESSAGES.INVALID_STATUS_TRANSITION,
         debugMessage: `Ride ${this.id} cannot transition from ${this.status} to ${newStatus}`,
       });
     }
@@ -133,7 +133,7 @@ export default class Ride extends Model {
     if (!canAddSeats) {
       throw new AppError({
         statusCode: 400,
-        userMessageKey: ERROR_MESSAGES.RIDE.CANNOT_MODIFY_SEATS,
+        userMessageKey: RIDE_ERROR_MESSAGES.CANNOT_MODIFY_SEATS,
         debugMessage: `Cannot add seats: Ride status is "${this.status}". Only OPEN or FULL rides can have seats added.`,
       });
     }
@@ -141,7 +141,7 @@ export default class Ride extends Model {
     if (!Number.isInteger(amount) || amount <= 0) {
       throw new AppError({
         statusCode: 400,
-        userMessageKey: ERROR_MESSAGES.RIDE.INVALID_SEAT_AMOUNT,
+        userMessageKey: RIDE_ERROR_MESSAGES.INVALID_SEAT_AMOUNT,
         debugMessage: `Invalid add amount: ${amount}. Must be a positive integer.`,
       });
     }
@@ -152,7 +152,7 @@ export default class Ride extends Model {
       if (this.available_seats + amount > this.offered_seats) {
         throw new AppError({
           statusCode: 400,
-          userMessageKey: ERROR_MESSAGES.RIDE.EXCEEDS_OFFERED_SEATS,
+          userMessageKey: RIDE_ERROR_MESSAGES.EXCEEDS_OFFERED_SEATS,
           debugMessage: `Adding ${amount} seats would exceed offered seats. Available: ${this.available_seats}, Offered: ${this.offered_seats}.`,
         });
       }
@@ -177,7 +177,7 @@ export default class Ride extends Model {
     if (!canRemoveSeats) {
       throw new AppError({
         statusCode: 400,
-        userMessageKey: ERROR_MESSAGES.RIDE.CANNOT_MODIFY_SEATS,
+        userMessageKey: RIDE_ERROR_MESSAGES.CANNOT_MODIFY_SEATS,
         debugMessage: `Cannot remove seats: Ride ${this.id} status is "${this.status}". Only OPEN rides can have seats removed.`,
       });
     }
@@ -185,7 +185,7 @@ export default class Ride extends Model {
     if (!Number.isInteger(amount) || amount <= 0) {
       throw new AppError({
         statusCode: 400,
-        userMessageKey: ERROR_MESSAGES.RIDE.INVALID_SEAT_AMOUNT,
+        userMessageKey: RIDE_ERROR_MESSAGES.INVALID_SEAT_AMOUNT,
         debugMessage: `Invalid remove amount: ${amount}. Must be a positive integer.`,
       });
     }
@@ -196,7 +196,7 @@ export default class Ride extends Model {
       if (amount > this.available_seats) {
         throw new AppError({
           statusCode: 400,
-          userMessageKey: ERROR_MESSAGES.RIDE.NOT_ENOUGH_AVAILABLE_SEATS,
+          userMessageKey: RIDE_ERROR_MESSAGES.NOT_ENOUGH_AVAILABLE_SEATS,
           debugMessage: `Cannot remove ${amount} seats for ride ${this.id}. Only ${this.available_seats} seats are available.`,
         });
       }
