@@ -15,8 +15,12 @@ export const SUCCESS_MESSAGES = {
 
   USER: {
     PERSONAL_DATA_RETRIEVED: "success.user.personal_data_retrieved",
+
     PROFILE_UPDATED: "success.user.profile_updated",
     PASSWORD_UPDATED: "success.user.password_updated",
     PICTURE_UPDATED: "success.user.picture_updated",
+
+    DELETION_REQUESTED: "success.user.deletion_requested",
+    DELETION_CANCELLED: "success.user.deletion_cancelled",
   },
 } as const;

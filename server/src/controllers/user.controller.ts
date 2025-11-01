@@ -1,15 +1,15 @@
 import { COMMON_ERROR_MESSAGES, SUCCESS_MESSAGES } from "@/constants";
-import { UserProfileService, UserService } from "@/services";
+import { UserDeletionService, UserProfileService, UserService } from "@/services";
 import { AppError, catchAsync } from "@/utils";
 
 import type { MulterRequest } from "@/@types/express";
-import type { UpdateUserInfoPayload, UpdateUserPasswordPayload } from "@/types";
-import type { Response } from "express";
+import type { CancelUserDeletionPayload, UpdateUserInfoPayload, UpdateUserPasswordPayload } from "@/types";
+import type { Request, Response } from "express";
 
 /**
  * Handle the authenticated user's private information retrieve.
  */
-export const getMyInfo = catchAsync(async (req: MulterRequest, res: Response): Promise<Response> => {
+export const getMyInfo = catchAsync(async (req: Request, res: Response): Promise<Response> => {
   const userId = req.user!.id;
 
   const user = await UserService.findById(userId, 500);
@@ -24,7 +24,7 @@ export const getMyInfo = catchAsync(async (req: MulterRequest, res: Response): P
 /**
  * Handle the authenticated user's profile information update.
  */
-export const updateMyInfo = catchAsync(async (req: MulterRequest, res: Response): Promise<Response> => {
+export const updateMyInfo = catchAsync(async (req: Request, res: Response): Promise<Response> => {
   const userId = req.user!.id;
   const data: UpdateUserInfoPayload = req.body;
 
@@ -40,7 +40,7 @@ export const updateMyInfo = catchAsync(async (req: MulterRequest, res: Response)
 /**
  * Handle the authenticated user's password update.
  */
-export const updateMyPassword = catchAsync(async (req: MulterRequest, res: Response): Promise<Response> => {
+export const updateMyPassword = catchAsync(async (req: Request, res: Response): Promise<Response> => {
   const userId = req.user!.id;
   const data: UpdateUserPasswordPayload = req.body;
 
@@ -73,5 +73,33 @@ export const updateMyPicture = catchAsync(async (req: MulterRequest, res: Respon
     success: true,
     message: req.t(SUCCESS_MESSAGES.USER.PICTURE_UPDATED),
     data: { url },
+  });
+});
+
+/**
+ * Handle the authenticated user's account deletion request.
+ */
+export const requestAccountDeletion = catchAsync(async (req: Request, res: Response): Promise<Response> => {
+  const userId = req.user!.id;
+
+  await UserDeletionService.requestDeletion(userId);
+
+  return res.status(200).json({
+    success: true,
+    message: req.t(SUCCESS_MESSAGES.USER.DELETION_REQUESTED),
+  });
+});
+
+/**
+ * Handle the authenticated user's deletion request cancellation.
+ */
+export const cancelDeletionRequest = catchAsync(async (req: Request, res: Response): Promise<Response> => {
+  const data: CancelUserDeletionPayload = req.body;
+
+  await UserDeletionService.cancelDeletion(data);
+
+  return res.status(200).json({
+    success: true,
+    message: req.t(SUCCESS_MESSAGES.USER.DELETION_CANCELLED),
   });
 });

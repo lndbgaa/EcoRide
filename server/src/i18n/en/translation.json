@@ -20,7 +20,9 @@
       "personal_data_retrieved": "Your information has been successfully retrieved",
       "profile_updated": "Your profile has been updated successfully",
       "password_updated": "Your password has been updated successfully",
-      "picture_updated": "Your profile picture has been updated successfully"
+      "picture_updated": "Your profile picture has been updated successfully",
+      "deletion_requested": "Your account deletion request has been confirmed. Your account will be permanently deleted in 30 days unless you log in to cancel.",
+      "deletion_cancelled": "Your account has been successfully reactivated. Welcome back!"
     }
   },
 
@@ -66,6 +68,10 @@
       "new_password_same_as_old": "New password must be different from the old password",
       "profile_picture_invalid_file_type": "Invalid image type. Allowed types: JPEG, PNG, WebP",
       "profile_picture_file_too_large": "Image file is too large. Maximum size: 5 MB",
+
+      "deletion_already_requested": "A deletion request is already in progress for this account",
+      "no_deletion_requested": "No deletion request found. Your account is currently active",
+      "deletion_period_expired": "The 30-day reactivation period has expired. Your account has been permanently deleted",
 
       "invalid_status_transition": "Invalid status transition for this user",
       "invalid_credit_amount": "The credit amount must be a positive integer",

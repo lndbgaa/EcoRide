@@ -20,7 +20,9 @@
       "personal_data_retrieved": "Tes informations ont été récupérées avec succès",
       "profile_updated": "Ton profil a été mis à jour avec succès",
       "password_updated": "Ton mot de passe a été mis à jour avec succès",
-      "picture_updated": "Ta photo de profil a été mise à jour avec succès"
+      "picture_updated": "Ta photo de profil a été mise à jour avec succès",
+      "deletion_requested": "Ta demande de suppression de compte a été confirmée. Ton compte sera définitivement supprimé dans 30 jours sauf si tu te reconnectes pour annuler",
+      "deletion_cancelled": "Ton compte a été réactivé avec succès. Heureux de te revoir !"
     }
   },
 
@@ -66,6 +68,10 @@
       "new_password_same_as_old": "Le nouveau mot de passe doit être différent de l'ancien",
       "profile_picture_invalid_file_type": "Type d'image invalide. Types autorisés : JPEG, PNG, WebP",
       "profile_picture_file_too_large": "L'image est trop volumineuse. Taille maximale : 5 Mo",
+
+      "deletion_already_requested": "Une demande de suppression est déjà en cours pour ce compte",
+      "no_deletion_requested": "Aucune demande de suppression trouvée. Ton compte est actuellement actif",
+      "deletion_period_expired": "Le délai de réactivation de 30 jours est expiré. Ton compte a été définitivement supprimé",
 
       "invalid_status_transition": "Transition de statut invalide pour cet utilisateur",
       "invalid_credit_amount": "Le montant des crédits doit être un entier positif",

@@ -60,3 +60,8 @@ export interface UpdateUserPasswordPayload {
   currentPassword: string;
   newPassword: string;
 }
+
+export interface CancelUserDeletionPayload {
+  email: string;
+  password: string;
+}

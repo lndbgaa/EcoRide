@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Vérification de ton adresse email</title>
+    <title>Ton compte a été réactivé</title>
 
     <style>
       @media only screen and (max-width: 600px) {
@@ -42,21 +42,37 @@
           >
             <tr>
               <td align="center" style="padding-bottom: 20px">
-                <h2 style="color: #073b3a; font-size: 28px; margin: 0">Vérifie ton adresse email ✉️</h2>
+                <h2 style="color: #45a861; font-size: 28px; margin: 0">Ton compte a été réactivé ! 🎉</h2>
               </td>
             </tr>
 
             <tr>
               <td style="font-size: 18px; color: #555555; text-align: center; padding-bottom: 20px">
-                Bienvenue <strong style="color: #073b3a"><%= firstName %></strong> 👋,
+                Salut <strong style="color: #073b3a"><%= firstName %></strong>,
               </td>
             </tr>
 
             <tr>
               <td style="font-size: 16px; color: #555555; text-align: center; padding-bottom: 20px">
-                Merci pour ton inscription 💚 !<br /><br />
-                Avant d’utiliser nos services, nous devons vérifier ton adresse email.<br /><br />
-                Clique sur le bouton ci-dessous pour confirmer ton compte :
+                Bonne nouvelle ! 🥳<br /><br />
+                Ta demande de suppression de compte a été <strong>annulée</strong>.<br />
+                <br />
+                Ton compte <strong>EcoRide</strong> est de nouveau
+                <strong style="color: #45a861">actif</strong> !
+              </td>
+            </tr>
+
+            <tr>
+              <td
+                style="
+                  font-size: 16px;
+                  color: #555555;
+                  text-align: center;
+                  padding-bottom: 20px;
+                  line-height: 1.6;
+                "
+              >
+                Tu peux continuer à utiliser tous nos services normalement.<br />
               </td>
             </tr>
 
@@ -67,7 +83,7 @@
                     <td align="center" bgcolor="#45A861" style="border-radius: 8px">
                       <a
                         class="bigLink"
-                        href="<%= verificationLink %>"
+                        href="<%= loginLink %>"
                         target="_blank"
                         style="
                           display: inline-block;
@@ -78,25 +94,11 @@
                           text-decoration: none;
                         "
                       >
-                        Vérifier mon adresse email
+                        Accéder à mon compte
                       </a>
                     </td>
                   </tr>
                 </table>
-              </td>
-            </tr>
-
-            <tr>
-              <td
-                style="
-                  font-size: 14px;
-                  color: #555555;
-                  text-align: center;
-                  padding-bottom: 20px;
-                  line-height: 1.5;
-                "
-              >
-                Ce lien est valable pendant <strong>24 heures</strong>.<br />
               </td>
             </tr>
 
@@ -110,7 +112,9 @@
                   line-height: 1.5;
                 "
               >
-                Si tu n’es pas à l’origine de cette action, tu peux ignorer cet email.
+                Si tu n'es pas à l'origine de cette action ou si tu rencontres le moindre problème,<br />
+                n'hésite pas à nous
+                <a href="<%= contactLink %>" target="_blank" style="color: #073b3a">contacter</a>.
               </td>
             </tr>
 
