@@ -10,6 +10,7 @@ export const USER_ERROR_MESSAGES = {
   DELETION_ALREADY_REQUESTED: "errors.user.deletion_already_requested",
   NO_DELETION_REQUESTED: "errors.user.no_deletion_requested",
   DELETION_PERIOD_EXPIRED: "errors.user.deletion_period_expired",
+  HAS_ACTIVE_RIDES_OR_BOOKINGS: "errors.user.has_active_rides_or_bookings",
 
   INVALID_STATUS_TRANSITION: "errors.user.invalid_status_transition",
   INVALID_CREDIT_AMOUNT: "errors.user.invalid_credit_amount",

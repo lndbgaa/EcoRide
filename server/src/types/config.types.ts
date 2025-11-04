@@ -1,8 +1,10 @@
 import type { CorsOptions } from "cors";
 import type { StringValue } from "ms";
 
+export type Env = "production" | "development" | "test";
+
 export interface Config {
-  env: string;
+  env: Env;
   serverUrl: string;
   clientUrl: string;
   port: number;

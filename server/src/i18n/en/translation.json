@@ -72,6 +72,7 @@
       "deletion_already_requested": "A deletion request is already in progress for this account",
       "no_deletion_requested": "No deletion request found. Your account is currently active",
       "deletion_period_expired": "The 30-day reactivation period has expired. Your account has been permanently deleted",
+      "has_active_rides_or_bookings": "You have active rides or bookings; your account cannot be deleted at this time",
 
       "invalid_status_transition": "Invalid status transition for this user",
       "invalid_credit_amount": "The credit amount must be a positive integer",

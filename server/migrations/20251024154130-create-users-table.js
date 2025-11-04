@@ -31,11 +31,11 @@ export async function up(queryInterface, Sequelize) {
     },
     first_name: {
       type: Sequelize.STRING(50),
-      allowNull: false,
+      allowNull: true,
     },
     last_name: {
       type: Sequelize.STRING(50),
-      allowNull: false,
+      allowNull: true,
     },
     phone: {
       type: Sequelize.STRING(50),

@@ -330,7 +330,7 @@ export default class User extends Model {
         },
         first_name: {
           type: DataTypes.STRING(50),
-          allowNull: false,
+          allowNull: true,
           validate: {
             notEmpty: { msg: "First name is required." },
             is: {
@@ -341,7 +341,7 @@ export default class User extends Model {
         },
         last_name: {
           type: DataTypes.STRING(50),
-          allowNull: false,
+          allowNull: true,
           validate: {
             notEmpty: { msg: "Last name is required." },
             is: {

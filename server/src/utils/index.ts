@@ -5,6 +5,7 @@ export { default as parseJoiError } from "./parseJoiError.js";
 export { default as renderTemplate } from "./renderTemplate.js";
 export { default as sendEmail } from "./sendEmail.js";
 
+export * from "./cookie.utils.js";
 export * from "./dataUriFromBuffer.js";
 export * from "./date.utils.js";
 export * from "./env.utils.js";

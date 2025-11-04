@@ -1,10 +1,14 @@
+import { appConfig } from "@/config";
 import { COMMON_ERROR_MESSAGES, SUCCESS_MESSAGES } from "@/constants";
 import { UserDeletionService, UserProfileService, UserService } from "@/services";
-import { AppError, catchAsync } from "@/utils";
+import { AppError, catchAsync, generateRefreshTokenCookieOptions } from "@/utils";
 
 import type { MulterRequest } from "@/@types/express";
 import type { CancelUserDeletionPayload, UpdateUserInfoPayload, UpdateUserPasswordPayload } from "@/types";
 import type { Request, Response } from "express";
+
+const { env, auth } = appConfig;
+const { refreshExpiration } = auth;
 
 /**
  * Handle the authenticated user's private information retrieve.
@@ -83,6 +87,8 @@ export const requestAccountDeletion = catchAsync(async (req: Request, res: Respo
   const userId = req.user!.id;
 
   await UserDeletionService.requestDeletion(userId);
+
+  res.clearCookie("refreshToken", generateRefreshTokenCookieOptions(env, refreshExpiration));
 
   return res.status(200).json({
     success: true,

@@ -22,3 +22,5 @@ export const USER_STATUSES = {
   PENDING_DELETION: "pending_deletion",
   DELETED: "deleted",
 } as const;
+
+export const USER_ACCOUNT_DELETION_DELAY_DAYS = 30;

@@ -33,10 +33,10 @@ export async function up(queryInterface, Sequelize) {
     },
     vehicle_id: {
       type: Sequelize.UUID,
-      allowNull: false,
+      allowNull: null,
       references: { model: "vehicles", key: "id" },
       onUpdate: "CASCADE",
-      onDelete: "RESTRICT",
+      onDelete: "SET NULL",
     },
     price: {
       type: Sequelize.INTEGER,

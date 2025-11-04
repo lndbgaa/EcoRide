@@ -14,6 +14,7 @@ import { handle } from "i18next-http-middleware";
 
 import { appConfig, connectMongoDB, connectMySQL, i18next } from "@/config";
 import { COMMON_ERROR_MESSAGES } from "@/constants";
+import { scheduleAllJobs } from "@/jobs";
 import { defaultLimiter, errorHandler, sanitizeAll } from "@/middlewares";
 import router from "@/routes";
 import { AppError, logger } from "@/utils";
@@ -71,6 +72,9 @@ const start = async () => {
 
     app.listen(port, () => {
       logger.info(`✅ Server: Started successfully on port ${port}`);
+
+      scheduleAllJobs();
+      logger.info("⏱ Scheduled jobs started.");
     });
   } catch (err) {
     logger.error(`❌ Server startup error: ${(err as Error).message}`, {

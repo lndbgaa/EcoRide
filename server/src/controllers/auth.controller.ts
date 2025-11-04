@@ -1,26 +1,14 @@
-import ms from "ms";
-
 import { appConfig } from "@/config";
 import { DEBUG_CODES, SUCCESS_MESSAGES } from "@/constants";
 import { AuthService, EmailVerificationService, PasswordResetService } from "@/services";
-import { AppError, catchAsync } from "@/utils";
+import { AppError, catchAsync, generateRefreshTokenCookieOptions } from "@/utils";
 
 import { AUTH_ERROR_MESSAGES } from "@/constants/errors";
 import type { LoginUserPayload, RegisterUserPayload, ResetPasswordPayload } from "@/types";
-import type { CookieOptions, Request, Response } from "express";
+import type { Request, Response } from "express";
 
 const { env, auth } = appConfig;
 const { refreshExpiration } = auth;
-
-function generateCookieOptions(): CookieOptions {
-  return {
-    httpOnly: true,
-    secure: env === "production",
-    sameSite: env === "production" ? "none" : "lax",
-    path: "/",
-    maxAge: ms(refreshExpiration),
-  };
-}
 
 /**
  * Handle user registration.
@@ -44,7 +32,7 @@ export const login = catchAsync(async (req: Request, res: Response): Promise<Res
 
   const { refreshToken, accessToken } = await AuthService.loginUser(data);
 
-  res.cookie("refreshToken", refreshToken, generateCookieOptions());
+  res.cookie("refreshToken", refreshToken, generateRefreshTokenCookieOptions(env, refreshExpiration));
 
   return res.status(200).json({
     success: true,
@@ -68,7 +56,7 @@ export const logout = catchAsync(async (req: Request, res: Response): Promise<Re
 
   await AuthService.logoutUser(refreshToken);
 
-  res.clearCookie("refreshToken", generateCookieOptions());
+  res.clearCookie("refreshToken", generateRefreshTokenCookieOptions(env, refreshExpiration));
 
   return res.status(200).json({
     success: true,
@@ -97,7 +85,7 @@ export const refreshToken = catchAsync(async (req: Request, res: Response): Prom
       refreshToken
     );
 
-    res.cookie("refreshToken", newRefreshToken, generateCookieOptions());
+    res.cookie("refreshToken", newRefreshToken, generateRefreshTokenCookieOptions(env, refreshExpiration));
 
     return res.status(200).json({
       success: true,
@@ -105,7 +93,7 @@ export const refreshToken = catchAsync(async (req: Request, res: Response): Prom
       data: { accessToken: newAccessToken },
     });
   } catch (error) {
-    res.clearCookie("refreshToken", generateCookieOptions());
+    res.clearCookie("refreshToken", generateRefreshTokenCookieOptions(env, refreshExpiration));
     throw error;
   }
 });

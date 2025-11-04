@@ -129,6 +129,7 @@ Review.belongsTo(Ride, { foreignKey: "ride_id", as: "ride" });
 // ----------------------------
 
 export {
+  Booking,
   EmailVerificationToken,
   PasswordResetToken,
   Preference,

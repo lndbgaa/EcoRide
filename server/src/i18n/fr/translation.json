@@ -72,6 +72,7 @@
       "deletion_already_requested": "Une demande de suppression est déjà en cours pour ce compte",
       "no_deletion_requested": "Aucune demande de suppression trouvée. Ton compte est actuellement actif",
       "deletion_period_expired": "Le délai de réactivation de 30 jours est expiré. Ton compte a été définitivement supprimé",
+      "has_active_rides_or_bookings": "Vous avez des trajets ou réservations en cours, la suppression de votre compte est impossible pour le moment",
 
       "invalid_status_transition": "Transition de statut invalide pour cet utilisateur",
       "invalid_credit_amount": "Le montant des crédits doit être un entier positif",

@@ -4,12 +4,12 @@ import path from "path";
 
 import { getEnvVar } from "@/utils";
 
-import type { Config } from "@/types";
+import type { Config, Env } from "@/types";
 import type { StringValue } from "ms";
 
 dotenv.config({ path: path.resolve(process.cwd(), ".env") });
 
-const nodeEnv = process.env.NODE_ENV ?? "development";
+const nodeEnv = (process.env.NODE_ENV ?? "development") as Env;
 const envSpecificPath = path.resolve(process.cwd(), `.env.${nodeEnv}`);
 
 if (fs.existsSync(envSpecificPath)) {

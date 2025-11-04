@@ -295,10 +295,10 @@ export default class Ride extends Model {
         },
         vehicle_id: {
           type: DataTypes.UUID,
-          allowNull: false,
+          allowNull: true,
           references: { model: "vehicles", key: "id" },
           onUpdate: "CASCADE",
-          onDelete: "RESTRICT",
+          onDelete: "SET NULL",
         },
         price: {
           type: DataTypes.INTEGER,
