@@ -11,7 +11,7 @@ const { env, auth } = appConfig;
 const { refreshExpiration } = auth;
 
 /**
- * Handle the authenticated user's private information retrieve.
+ * Retrieve the authenticated user's private information.
  */
 export const getMyInfo = catchAsync(async (req: Request, res: Response): Promise<Response> => {
   const userId = req.user!.id;
@@ -26,7 +26,7 @@ export const getMyInfo = catchAsync(async (req: Request, res: Response): Promise
 });
 
 /**
- * Handle the authenticated user's profile information update.
+ * Update the authenticated user's profile information.
  */
 export const updateMyInfo = catchAsync(async (req: Request, res: Response): Promise<Response> => {
   const userId = req.user!.id;
@@ -42,7 +42,7 @@ export const updateMyInfo = catchAsync(async (req: Request, res: Response): Prom
 });
 
 /**
- * Handle the authenticated user's password update.
+ * Update the authenticated user's password.
  */
 export const updateMyPassword = catchAsync(async (req: Request, res: Response): Promise<Response> => {
   const userId = req.user!.id;
@@ -57,7 +57,7 @@ export const updateMyPassword = catchAsync(async (req: Request, res: Response): 
 });
 
 /**
- * Handle the authenticated user's profile picture update.
+ * Update the authenticated user's profile picture.
  */
 export const updateMyPicture = catchAsync(async (req: MulterRequest, res: Response): Promise<Response> => {
   const userId = req.user!.id;

@@ -2,13 +2,13 @@ import type { ValidationError } from "joi";
 
 function parseJoiError(err: ValidationError) {
   return err.details.map((d) => {
-    const [index, field] = d.path;
+    const field = d.path.join(".") || "root";
 
     return {
-      index: typeof index === "number" ? index : undefined,
-      field: typeof index === "number" ? String(field ?? "root") : String(index ?? "root"),
+      field,
       messageKey: d.message,
       type: d.type,
+      context: d.context,
     };
   });
 }

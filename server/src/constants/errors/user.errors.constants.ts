@@ -1,5 +1,4 @@
 export const USER_ERROR_MESSAGES = {
-  UPDATE_NO_CHANGES: "errors.user.update_no_changes",
   BIRTHDATE_CANNOT_BE_NULLIFIED: "errors.user.birthdate_cannot_be_nullified",
   PHONE_CANNOT_BE_NULLIFIED: "errors.user.phone_cannot_be_nullified",
   CURRENT_PASSWORD_INCORRECT: "errors.user.current_password_incorrect",

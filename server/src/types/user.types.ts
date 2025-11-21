@@ -17,17 +17,17 @@ export type UserStatus = (typeof USER_STATUSES)[keyof typeof USER_STATUSES];
 export interface UserPublicDTO {
   id: string;
   username: string;
-  firstName: string;
+  firstName: string | null;
   age: number | null;
   avatar: string | null;
   averageRating: number | null;
   memberSince: string | null;
-  isVerified: boolean;
+  emailIsVerified: boolean;
 }
 
 export interface UserPrivateDTO extends UserPublicDTO {
   email: string;
-  lastName: string;
+  lastName: string | null;
   phone: string | null;
   address: string | null;
   credits: number;

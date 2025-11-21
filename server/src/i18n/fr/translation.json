@@ -23,14 +23,23 @@
       "picture_updated": "Ta photo de profil a été mise à jour avec succès",
       "deletion_requested": "Ta demande de suppression de compte a été confirmée. Ton compte sera définitivement supprimé dans 30 jours sauf si tu te reconnectes pour annuler",
       "deletion_cancelled": "Ton compte a été réactivé avec succès. Heureux de te revoir !"
+    },
+    "vehicle": {
+      "retrieved_all": "Liste des véhicules récupérée",
+      "retrieved": "Véhicule récupéré avec succès",
+      "created": "Véhicule créé avec succès",
+      "updated": "Véhicule mis à jour avec succès"
     }
   },
 
   "errors": {
     "common": {
       "internal_server_error": "Une erreur inattendue s'est produite",
+      "validation_error": "Les données fournies sont invalides",
+      "forbidden_access": "Vous n'avez pas l'autorisation d'accéder à cette ressource",
       "resource_not_found": "La ressource demandée est introuvable",
-      "validation_error": "Les données fournies sont invalides"
+
+      "no_changes_detected": "Aucun changement détecté"
     },
     "rate_limit": {
       "default": "Trop de requêtes. Merci de patienter quelques instants avant de réessayer",
@@ -61,7 +70,6 @@
       "account_pending_deletion": "Ton compte est en attente de suppression"
     },
     "user": {
-      "update_no_changes": "Aucune modification détectée",
       "birthdate_cannot_be_nullified": "Ta date de naissance ne peut pas être supprimée une fois définie",
       "phone_cannot_be_nullified": "Ton numéro de téléphone ne peut pas être supprimé une fois définie",
       "current_password_incorrect": "Le mot de passe actuel est incorrect",
@@ -79,7 +87,11 @@
       "insufficient_credits": "Tu n'as pas assez de crédits pour effectuer cette action"
     },
     "vehicle": {
-      "invalid_status_transition": "Transition de statut invalide pour ce véhicule"
+      "license_plate_already_exists": "Cette plaque d'immatriculation est déjà enregistrée",
+      "brand_invalid": "La marque de véhicule spécifiée est invalide",
+      "color_invalid": "La couleur de véhicule spécifiée est invalide",
+      "energy_invalid": "Le type d'énergie de véhicule spécifié est invalide",
+      "vehicle_cannot_be_deleted": "Ce véhicule ne peut pas être supprimé car il a des trajets actifs"
     },
     "ride": {
       "invalid_status_transition": "Transition de statut invalide pour ce trajet",
@@ -98,89 +110,29 @@
   },
 
   "validation": {
-    "auth": {
-      "email_required": "L'email est obligatoire",
-      "email_base": "L'email doit être une chaîne de caractères",
-      "email_empty": "L'email ne peut pas être vide",
-      "email_invalid": "Veuillez saisir une adresse email valide",
+    "required": "Ce champ est requis",
 
-      "password_required": "Le mot de passe est obligatoire",
-      "password_base": "Le mot de passe doit être une chaîne de caractères",
-      "password_empty": "Le mot de passe ne peut pas être vide",
-      "password_min": "Le mot de passe doit contenir au moins 8 caractères",
-      "password_pattern": "Le mot de passe doit contenir au moins une lettre majuscule, une lettre minuscule, un chiffre, un caractère spécial, et ne pas contenir d'espaces",
+    "string_base": "Ce champ doit être une chaîne de caractères",
+    "string_empty": "Ce champ ne peut pas être vide",
+    "string_min": "Ce champ doit contenir au moins {{limit}} caractères",
+    "string_max": "Ce champ doit contenir au maximum {{limit}} caractères",
+    "string_email": "L'adresse e-mail doit être valide",
+    "string_uuid": "L'identifiant doit être un UUID valide",
 
-      "username_required": "Le nom d'utilisateur est obligatoire",
-      "username_base": "Le nom d'utilisateur doit être une chaîne de caractères",
-      "username_empty": "Le nom d'utilisateur ne peut pas être vide",
-      "username_min": "Le nom d'utilisateur doit comporter au moins 3 caractères",
-      "username_max": "Le nom d'utilisateur ne doit pas dépasser 20 caractères",
-      "username_pattern": "Le nom d'utilisateur doit commencer par une lettre et ne contenir que des lettres, chiffres, tirets ou underscores",
+    "number_base": "Ce champ doit être un nombre",
+    "number_integer": "Ce champ doit être un nombre entier",
+    "number_min": "La valeur doit être supérieure ou égale à {{limit}}",
+    "number_max": "La valeur doit être inférieure ou égale à {{limit}}",
 
-      "first_name_required": "Le prénom est obligatoire",
-      "first_name_base": "Le prénom doit être une chaîne de caractères",
-      "first_name_empty": "Le prénom ne peut pas être vide",
-      "first_name_min": "Le prénom doit comporter au moins 2 caractères",
-      "first_name_max": "Le prénom ne doit pas dépasser 50 caractères",
-      "first_name_pattern": "Le prénom ne peut contenir que des lettres, des espaces, des apostrophes ou des tirets",
+    "date_invalid": "La date fournie est invalide",
+    "date_before_now": "La date doit être antérieure à aujourd'hui",
+    "date_too_young": "Vous devez avoir au moins {{minAge}} ans pour continuer",
 
-      "last_name_required": "Le nom de famille est obligatoire",
-      "last_name_base": "Le nom de famille doit être une chaîne de caractères",
-      "last_name_empty": "Le nom de famille ne peut pas être vide",
-      "last_name_min": "Le nom de famille doit comporter au moins 2 caractères",
-      "last_name_max": "Le nom de famille ne doit pas dépasser 50 caractères",
-      "last_name_pattern": "Le nom de famille ne peut contenir que des lettres, des espaces, des apostrophes ou des tirets",
-
-      "email_verification_token_required": "Le token de vérification de l'email est obligatoire",
-      "email_verification_token_base": "Le token de vérification de l'email doit être une chaîne de caractères",
-      "email_verification_token_empty": "Le token de vérification de l'email ne peut pas être vide",
-
-      "password_reset_token_required": "Le token de réinitialisation du mot de passe est obligatoire",
-      "password_reset_token_base": "Le token de réinitialisation du mot de passe doit être une chaîne de caractères",
-      "password_reset_token_empty": "Le token de réinitialisation du mot de passe ne peut pas être vide"
-    },
-
-    "user": {
-      "username_base": "Le nom d'utilisateur doit être une chaîne de caractères",
-      "username_empty": "Le nom d'utilisateur ne peut pas être vide",
-      "username_min": "Le nom d'utilisateur doit comporter au moins 3 caractères",
-      "username_max": "Le nom d'utilisateur ne doit pas dépasser 20 caractères",
-      "username_invalid": "Le nom d'utilisateur doit commencer par une lettre et ne contenir que des lettres, chiffres, tirets ou underscores",
-
-      "first_name_base": "Le prénom doit être une chaîne de caractères",
-      "first_name_empty": "Le prénom ne peut pas être vide",
-      "first_name_min": "Le prénom doit comporter au moins 2 caractères",
-      "first_name_max": "Le prénom ne doit pas dépasser 50 caractères",
-      "first_name_invalid": "Le prénom ne peut contenir que des lettres, des espaces, des apostrophes ou des tirets",
-
-      "last_name_base": "Le nom de famille doit être une chaîne de caractères",
-      "last_name_empty": "Le nom de famille ne peut pas être vide",
-      "last_name_min": "Le nom de famille doit comporter au moins 2 caractères",
-      "last_name_max": "Le nom de famille ne doit pas dépasser 50 caractères",
-      "last_name_invalid": "Le nom de famille ne peut contenir que des lettres, des espaces, des apostrophes ou des tirets",
-
-      "phone_base": "Le numéro de téléphone doit être une chaîne de caractères",
-      "phone_empty": "Le numéro de téléphone ne peut pas être vide",
-      "phone_invalid": "Le numéro de téléphone est invalide. Exemple : 06 XX XX XX XX ou +33 6 XX XX XX XX",
-
-      "address_base": "L'adresse doit être une chaîne de caractères",
-      "address_empty": "L'adresse ne peut pas être vide",
-      "address_min": "L'adresse doit contenir au moins 5 caractères",
-      "address_max": "L'adresse ne doit pas dépasser 150 caractères",
-
-      "birthdate_base": "La date de naissance doit être une date valide",
-      "birthdate_empty": "La date de naissance ne peut pas être vide",
-      "birthdate_invalid": "La date de naissance doit être valide et antérieure à aujourd'hui",
-
-      "current_password_required": "Le mot de passe actuel est requis",
-      "current_password_base": "Le mot de passe actuel doit être une chaîne de caractères",
-      "current_password_empty": "Le mot de passe actuel ne peut pas être vide",
-
-      "new_password_required": "Le nouveau mot de passe est requis",
-      "new_password_base": "Le nouveau mot de passe doit être une chaîne de caractères",
-      "new_password_empty": "Le nouveau mot de passe ne peut pas être vide",
-      "new_password_min": "Le nouveau mot de passe doit comporter au moins 8 caractères",
-      "new_password_invalid": "Le nouveau mot de passe doit contenir au moins une lettre majuscule, une lettre minuscule, un chiffre et un caractère spécial"
-    }
+    "pattern_username": "Le nom d'utilisateur doit commencer par une lettre, et ne peut inclure que des lettres, chiffres, tirets ou underscores",
+    "pattern_password": "Le mot de passe doit contenir au moins une majuscule, une minuscule, un chiffre et un caractère spécial",
+    "pattern_first_name": "Le prénom ne peut contenir que des lettres et des tirets",
+    "pattern_last_name": "Le nom de famille ne peut contenir que des lettres et des tirets",
+    "pattern_phone": "Le numéro de téléphone doit être au format français valide (ex: 06XXXXXXXX ou +33XXXXXXXX)",
+    "pattern_license_plate": "La plaque d'immatriculation doit respecter le format AB-123-CD"
   }
 }

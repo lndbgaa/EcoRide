@@ -18,7 +18,7 @@ import type { FindOptions } from "sequelize";
 
 const { clientUrl, gmail } = appConfig;
 
-class PasswordResetService {
+export class PasswordResetService {
   /**
    * Sends a password reset link by email.
    
@@ -173,5 +173,3 @@ class PasswordResetService {
     });
   }
 }
-
-export { PasswordResetService };

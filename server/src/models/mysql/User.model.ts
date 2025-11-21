@@ -3,6 +3,7 @@ import dayjs from "dayjs";
 import { DataTypes, Model, Op } from "sequelize";
 
 import {
+  COMMON_ERROR_MESSAGES,
   REGEX,
   REVIEW_MAX_RATING,
   REVIEW_MIN_RATING,
@@ -13,14 +14,7 @@ import {
 import { AppError, calculateAge, capitalize, formatDateTime, setIfChanged, toDateOnly } from "@/utils";
 
 import type { Role } from "@/models/mysql";
-import type {
-  UpdateUserInfoPayload,
-  UserAdminDTO,
-  UserPrivateDTO,
-  UserPublicDTO,
-  UserRoleId,
-  UserStatus,
-} from "@/types";
+import type { UpdateUserInfoPayload, UserAdminDTO, UserPrivateDTO, UserPublicDTO, UserRoleId, UserStatus } from "@/types";
 import type { SaveOptions, Sequelize } from "sequelize";
 
 const { ACTIVE, SUSPENDED, PENDING_DELETION, DELETED } = USER_STATUSES;
@@ -31,22 +25,22 @@ export default class User extends Model {
   declare email: string;
   declare username: string;
   declare password: string;
-  declare first_name: string;
-  declare last_name: string;
+  declare first_name: string | null;
+  declare last_name: string | null;
+  declare birth_date: Date | null;
   declare phone: string | null;
   declare address: string | null;
-  declare birth_date: Date | null;
   declare profile_picture: string | null;
   declare average_rating: number | null;
   declare credits: number;
   declare status: UserStatus;
-  declare is_verified: boolean;
+  declare email_is_verified: boolean;
   declare last_login: Date | null;
-  declare created_at: Date;
-  declare updated_at: Date;
   declare suspended_at: Date | null;
   declare pending_deletion_at: Date | null;
   declare deleted_at: Date | null;
+  declare created_at: Date;
+  declare updated_at: Date;
 
   declare role?: Role;
 
@@ -150,62 +144,55 @@ export default class User extends Model {
     return await bcrypt.compare(password, this.password);
   }
 
-  public async markAsVerified(options?: SaveOptions): Promise<void> {
-    if (this.is_verified) return;
-    this.is_verified = true;
-    await this.save({ ...options, fields: ["is_verified"] });
+  public async markEmailAsVerified(options?: SaveOptions): Promise<void> {
+    if (this.email_is_verified) return;
+    this.email_is_verified = true;
+    await this.save({ ...options, fields: ["email_is_verified"] });
   }
 
   // ------------------------------------
   // Business Logic
   // ------------------------------------
 
+  /**
+   * Updates the profile information of the current user instance.
+   * Only saves fields that have actually changed based on the provided data.
+   *
+   * @param {UpdateUserInfoPayload} data - The object containing the new user information.
+   * @param {SaveOptions} [options] - Additional Sequelize save options.
+   * @returns {Promise<User>} - The updated user instance.
+   * @throws {AppError} - If:
+   *   - No changes were detected between the current instance and the provided data (HTTP 400).
+   */
   public async updateProfile(data: UpdateUserInfoPayload, options?: SaveOptions): Promise<User> {
     const updatedFields: string[] = [];
 
     if (setIfChanged(this, "username", data.username, false)) updatedFields.push("username");
     if (setIfChanged(this, "first_name", data.firstName, false)) updatedFields.push("first_name");
     if (setIfChanged(this, "last_name", data.lastName, false)) updatedFields.push("last_name");
+    if (setIfChanged(this, "birth_date", data.birthDate, false)) updatedFields.push("birth_date");
     if (setIfChanged(this, "address", data.address, true)) updatedFields.push("address");
-
-    let birthDateToSave: Date | null | undefined = undefined;
-
-    if (data.birthDate !== undefined) {
-      if (data.birthDate === null) {
-        if (this.birth_date !== null) {
-          throw new AppError({
-            statusCode: 400,
-            userMessageKey: USER_ERROR_MESSAGES.BIRTHDATE_CANNOT_BE_NULLIFIED,
-          });
-        }
-        birthDateToSave = null;
-      } else {
-        birthDateToSave = dayjs(data.birthDate, "YYYY-MM-DD").toDate();
-      }
-    }
-
-    if (setIfChanged(this, "birth_date", birthDateToSave, this.birth_date === null))
-      updatedFields.push("birth_date");
-
-    if (data.phone === null && this.phone !== null) {
-      throw new AppError({
-        statusCode: 400,
-        userMessageKey: USER_ERROR_MESSAGES.PHONE_CANNOT_BE_NULLIFIED,
-      });
-    }
-
-    if (setIfChanged(this, "phone", data.phone, this.phone === null)) updatedFields.push("phone");
+    if (setIfChanged(this, "phone", data.phone, true)) updatedFields.push("phone");
 
     if (updatedFields.length === 0) {
       throw new AppError({
         statusCode: 400,
-        userMessageKey: USER_ERROR_MESSAGES.UPDATE_NO_CHANGES,
+        userMessageKey: COMMON_ERROR_MESSAGES.NO_CHANGES_DETECTED,
       });
     }
 
     return await this.save({ ...options, fields: updatedFields });
   }
 
+  /**
+   * Adds a specified amount of credits to the user's current credit balance.
+   *
+   * @param {number} amount - The amount of credits to add.
+   * @param {SaveOptions} [options] - Additional Sequelize save options.
+   * @returns {Promise<void>}
+   * @throws {AppError} - If:
+   *   - The amount is not a positive integer (HTTP 400).
+   */
   public async addCredits(amount: number, options?: SaveOptions): Promise<void> {
     if (!Number.isInteger(amount) || amount <= 0) {
       throw new AppError({
@@ -219,6 +206,16 @@ export default class User extends Model {
     await this.save({ ...options, fields: ["credits"] });
   }
 
+  /**
+   * Removes a specified amount of credits to the user's current credit balance.
+   *
+   * @param {number} amount - The amount of credits to remove.
+   * @param {SaveOptions} [options] - Additional Sequelize save options.
+   * @returns {Promise<void>}
+   * @throws {AppError} - If:
+   *   - The amount is not a positive integer (HTTP 400).
+   *   - The user does not have enough credits for the removal (HTTP 400).
+   */
   public async removeCredits(amount: number, options?: SaveOptions): Promise<void> {
     if (!Number.isInteger(amount) || amount <= 0) {
       throw new AppError({
@@ -248,12 +245,12 @@ export default class User extends Model {
     return {
       id: this.id,
       username: this.username,
-      firstName: this.first_name,
+      firstName: this.first_name ? this.first_name : null,
       age: this.birth_date ? calculateAge(this.birth_date) : null,
       avatar: this.profile_picture,
       averageRating: this.average_rating,
       memberSince: toDateOnly(this.created_at),
-      isVerified: this.is_verified,
+      emailIsVerified: this.email_is_verified,
     };
   }
 
@@ -261,7 +258,7 @@ export default class User extends Model {
     return {
       ...this.toPublicDTO(),
       email: this.email,
-      lastName: this.last_name,
+      lastName: this.last_name ? this.last_name : null,
       phone: this.phone,
       address: this.address,
       credits: this.credits,
@@ -281,6 +278,10 @@ export default class User extends Model {
     };
   }
 
+  // ------------------------------------
+  // Model init
+  // ------------------------------------
+
   public static initModel(sequelize: Sequelize): void {
     User.init(
       {
@@ -298,7 +299,7 @@ export default class User extends Model {
           validate: {
             isIn: {
               args: [Object.values(USER_ROLES_ID)],
-              msg: "Invalid role. Role must be one of the predefined roles.",
+              msg: "Invalid role. Role must be one of the predefined roles",
             },
           },
         },
@@ -307,8 +308,8 @@ export default class User extends Model {
           allowNull: false,
           unique: true,
           validate: {
-            notEmpty: { msg: "Email is required." },
-            isEmail: { msg: "Email must be valid." },
+            notEmpty: { msg: "Email is required" },
+            isEmail: { msg: "Email must be valid" },
           },
         },
         username: {
@@ -316,26 +317,29 @@ export default class User extends Model {
           allowNull: false,
           unique: true,
           validate: {
-            notEmpty: { msg: "Username is required." },
+            notEmpty: { msg: "Username is required" },
+            len: {
+              args: [3, 20],
+              msg: "Username must be between 3 and 20 characters long",
+            },
             is: {
               args: REGEX.username,
-              msg: "Username must be 3–20 characters and contain only letters, numbers, hyphens or underscores.",
+              msg: "Username must start with a letter and contain only letters, numbers, hyphens or underscores",
             },
           },
         },
         password: {
           type: DataTypes.STRING(255),
           allowNull: false,
-          validate: { notEmpty: { msg: "Password is required." } },
+          validate: { notEmpty: { msg: "Password is required" } },
         },
         first_name: {
           type: DataTypes.STRING(50),
           allowNull: true,
           validate: {
-            notEmpty: { msg: "First name is required." },
             is: {
               args: REGEX.firstName,
-              msg: "First name contains invalid characters.",
+              msg: "First name contains invalid characters",
             },
           },
         },
@@ -343,10 +347,22 @@ export default class User extends Model {
           type: DataTypes.STRING(50),
           allowNull: true,
           validate: {
-            notEmpty: { msg: "Last name is required." },
             is: {
               args: REGEX.lastName,
-              msg: "Last name contains invalid characters.",
+              msg: "Last name contains invalid characters",
+            },
+          },
+        },
+        birth_date: {
+          type: DataTypes.DATEONLY,
+          allowNull: true,
+          validate: {
+            isDate: { args: true, msg: "Birth date must be a valid date" },
+            notInFuture(value: string) {
+              const now = dayjs();
+              if (value && dayjs(value).isAfter(now)) {
+                throw new Error("Birth date cannot be in the future");
+              }
             },
           },
         },
@@ -356,7 +372,7 @@ export default class User extends Model {
           validate: {
             isValidPhone(value: string | null) {
               if (value && !REGEX.phoneFR.test(value)) {
-                throw new Error("Phone number must be a valid French phone number.");
+                throw new Error("Phone number must be a valid French phone number");
               }
             },
           },
@@ -365,24 +381,11 @@ export default class User extends Model {
           type: DataTypes.STRING(255),
           allowNull: true,
         },
-        birth_date: {
-          type: DataTypes.DATEONLY,
-          allowNull: true,
-          validate: {
-            isDate: { args: true, msg: "Birth date must be a valid date." },
-            notInFuture(value: string) {
-              const now = dayjs();
-              if (value && dayjs(value).isAfter(now)) {
-                throw new Error("Birth date cannot be in the future.");
-              }
-            },
-          },
-        },
         profile_picture: {
           type: DataTypes.STRING(255),
           allowNull: true,
           validate: {
-            isUrl: { msg: "Profile picture must be a valid URL." },
+            isUrl: { msg: "Profile picture must be a valid URL" },
           },
         },
         average_rating: {
@@ -391,11 +394,11 @@ export default class User extends Model {
           validate: {
             min: {
               args: [REVIEW_MIN_RATING],
-              msg: `Average rating must be at least ${REVIEW_MIN_RATING}.`,
+              msg: `Average rating must be at least ${REVIEW_MIN_RATING}`,
             },
             max: {
               args: [REVIEW_MAX_RATING],
-              msg: `Average rating cannot exceed ${REVIEW_MAX_RATING}.`,
+              msg: `Average rating cannot exceed ${REVIEW_MAX_RATING}`,
             },
           },
         },
@@ -404,8 +407,8 @@ export default class User extends Model {
           allowNull: false,
           defaultValue: 0,
           validate: {
-            min: { args: [0], msg: "Credits cannot be negative." },
-            isInt: { msg: "Credits must be an integer." },
+            min: { args: [0], msg: "Credits cannot be negative" },
+            isInt: { msg: "Credits must be an integer" },
           },
         },
         status: {
@@ -413,7 +416,7 @@ export default class User extends Model {
           allowNull: false,
           defaultValue: ACTIVE,
         },
-        is_verified: {
+        email_is_verified: {
           type: DataTypes.BOOLEAN,
           allowNull: false,
           defaultValue: false,
@@ -445,6 +448,15 @@ export default class User extends Model {
         defaultScope: {
           where: {
             status: { [Op.ne]: DELETED },
+            deleted_at: null,
+          },
+        },
+        scopes: {
+          withDeleted: {
+            where: {},
+          },
+          onlyDeleted: {
+            where: { status: DELETED, deleted_at: { [Op.not]: null } },
           },
         },
         hooks: {
@@ -456,11 +468,11 @@ export default class User extends Model {
             }
           },
           beforeValidate: (user: User) => {
-            user.username = user.username.trim();
-            user.first_name = capitalize(user.first_name);
-            user.last_name = capitalize(user.last_name);
             user.email = user.email.trim().toLowerCase();
+            user.username = user.username.trim();
 
+            if (typeof user.first_name === "string") user.first_name = capitalize(user.first_name);
+            if (typeof user.last_name === "string") user.last_name = capitalize(user.last_name);
             if (typeof user.phone === "string") user.phone = user.phone.trim();
             if (typeof user.address === "string") user.address = user.address.trim();
             if (typeof user.profile_picture === "string") user.profile_picture = user.profile_picture.trim();

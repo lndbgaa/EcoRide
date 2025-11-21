@@ -23,14 +23,23 @@
       "picture_updated": "Your profile picture has been updated successfully",
       "deletion_requested": "Your account deletion request has been confirmed. Your account will be permanently deleted in 30 days unless you log in to cancel.",
       "deletion_cancelled": "Your account has been successfully reactivated. Welcome back!"
+    },
+    "vehicle": {
+      "retrieved_all": "Vehicle list retrieved",
+      "retrieved": "Vehicle retrieved successfully",
+      "created": "Vehicle created successfully",
+      "updated": "Vehicle updated successfully"
     }
   },
 
   "errors": {
     "common": {
       "internal_server_error": "An unexpected error occurred",
+      "validation_error": "The provided data is invalid",
+      "forbidden_access": "You do not have permission to access this resource",
       "resource_not_found": "The requested resource was not found",
-      "validation_error": "The provided data is invalid"
+
+      "no_changes_detected": "No changes detected"
     },
     "rate_limit": {
       "default": "Too many requests. Please wait a moment before trying again",
@@ -61,7 +70,6 @@
       "account_pending_deletion": "Your account is pending deletion"
     },
     "user": {
-      "update_no_changes": "No changes detected",
       "birthdate_cannot_be_nullified": "Your birth date cannot be removed once it has been set",
       "phone_cannot_be_nullified": "Your phone number cannot be removed once it has been set",
       "current_password_incorrect": "Current password is incorrect",
@@ -79,7 +87,11 @@
       "insufficient_credits": "You do not have enough credits to perform this action"
     },
     "vehicle": {
-      "invalid_status_transition": "Invalid status transition for this vehicle"
+      "license_plate_already_exists": "This license plate is already registered",
+      "brand_invalid": "The specified vehicle brand is invalid",
+      "color_invalid": "The specified vehicle color is invalid",
+      "energy_invalid": "The specified vehicle energy type is invalid",
+      "vehicle_cannot_be_deleted": "This vehicle cannot be deleted because it has active rides"
     },
     "ride": {
       "invalid_status_transition": "Invalid status transition for this ride",
@@ -98,89 +110,29 @@
   },
 
   "validation": {
-    "auth": {
-      "email_required": "Email is required",
-      "email_base": "Email must be a string",
-      "email_empty": "Email cannot be empty",
-      "email_invalid": "Email must be a valid email address",
+    "required": "This field is required",
 
-      "password_required": "Password is required",
-      "password_base": "Password must be a string",
-      "password_empty": "Password cannot be empty",
-      "password_min": "Password must be at least 8 characters long",
-      "password_pattern": "Password must contain at least one uppercase letter, one lowercase letter, one number, one special character, and no spaces",
+    "string_base": "This field must be a string",
+    "string_empty": "This field cannot be empty",
+    "string_min": "This field must be at least {{limit}} characters long",
+    "string_max": "This field must be at most {{limit}} characters long",
+    "string_email": "The email address must be valid",
+    "string_uuid": "The identifier must be a valid UUID",
 
-      "username_required": "Username is required",
-      "username_base": "Username must be a string",
-      "username_empty": "Username cannot be empty",
-      "username_min": "Username must be at least 3 characters long",
-      "username_max": "Username must not exceed 20 characters",
-      "username_pattern": "Username must start with a letter and contain only letters, numbers, dashes, or underscores",
+    "number_base": "This field must be a number",
+    "number_integer": "This field must be an integer",
+    "number_min": "The value must be greater than or equal to {{limit}}",
+    "number_max": "The value must be less than or equal to {{limit}}",
 
-      "first_name_required": "First name is required",
-      "first_name_base": "First name must be a string",
-      "first_name_empty": "First name cannot be empty",
-      "first_name_min": "First name must be at least 2 characters long",
-      "first_name_max": "First name must not exceed 50 characters",
-      "first_name_pattern": "First name can only contain letters, spaces, apostrophes, or dashes",
+    "date_invalid": "The provided date is invalid",
+    "date_before_now": "The date must be earlier than today",
+    "date_too_young": "You must be at least {{minAge}} years old to proceed",
 
-      "last_name_required": "Last name is required",
-      "last_name_base": "Last name must be a string",
-      "last_name_empty": "Last name cannot be empty",
-      "last_name_min": "Last name must be at least 2 characters long",
-      "last_name_max": "Last name must not exceed 50 characters",
-      "last_name_pattern": "Last name can only contain letters, spaces, apostrophes, or dashes",
-
-      "email_verification_token_required": "Email verification token is required",
-      "email_verification_token_base": "Email verification token must be a string",
-      "email_verification_token_empty": "Email verification token cannot be empty",
-
-      "password_reset_token_required": "Password reset token is required",
-      "password_reset_token_base": "Password reset token must be a string",
-      "password_reset_token_empty": "Password reset token cannot be empty"
-    },
-
-    "user": {
-      "username_base": "The username must be a string",
-      "username_empty": "The username cannot be empty",
-      "username_min": "The username must be at least 3 characters long",
-      "username_max": "The username must not exceed 20 characters",
-      "username_invalid": "The username must start with a letter and contain only letters, numbers, hyphens, or underscores",
-
-      "first_name_base": "The first name must be a string",
-      "first_name_empty": "The first name cannot be empty",
-      "first_name_min": "The first name must be at least 2 characters long",
-      "first_name_max": "The first name must not exceed 50 characters",
-      "first_name_invalid": "The first name can only contain letters, spaces, apostrophes, or hyphens",
-
-      "last_name_base": "The last name must be a string",
-      "last_name_empty": "The last name cannot be empty",
-      "last_name_min": "The last name must be at least 2 characters long",
-      "last_name_max": "The last name must not exceed 50 characters",
-      "last_name_invalid": "The last name can only contain letters, spaces, apostrophes, or hyphens",
-
-      "phone_base": "The phone number must be a string",
-      "phone_empty": "The phone number cannot be empty",
-      "phone_invalid": "The phone number is invalid. Example: 06 XX XX XX XX or +33 6 XX XX XX XX",
-
-      "address_base": "The address must be a string",
-      "address_empty": "The address cannot be empty",
-      "address_min": "The address must be at least 5 characters long",
-      "address_max": "The address must not exceed 150 characters",
-
-      "birthdate_base": "The birthdate must be a valid date",
-      "birthdate_empty": "The birthdate cannot be empty",
-      "birthdate_invalid": "The birthdate must be valid and earlier than today",
-
-      "current_password_required": "The current password is required",
-      "current_password_base": "The current password must be a string",
-      "current_password_empty": "The current password cannot be empty",
-
-      "new_password_required": "The new password is required",
-      "new_password_base": "The new password must be a string",
-      "new_password_empty": "The new password cannot be empty",
-      "new_password_min": "The new password must be at least 8 characters long",
-      "new_password_invalid": "The new password must include at least one uppercase letter, one lowercase letter, one number, and one special character"
-    }
+    "pattern_username": "The username must start with a letter, and can only contain letters, numbers, hyphens, or underscores",
+    "pattern_password": "The password must contain at least one uppercase letter, one lowercase letter, one number, and one special character",
+    "pattern_first_name": "The first name can only contain letters and hyphens",
+    "pattern_last_name": "The last name can only contain letters and hyphens",
+    "pattern_phone": "The phone number must be a valid French format (e.g., 06XXXXXXXX or +33XXXXXXXX)",
+    "pattern_license_plate": "The license plate must follow the format AB-123-CD"
   }
 }

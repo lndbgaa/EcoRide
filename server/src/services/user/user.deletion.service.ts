@@ -11,16 +11,7 @@ import {
   USER_ERROR_MESSAGES,
   USER_STATUSES,
 } from "@/constants";
-import {
-  Booking,
-  EmailVerificationToken,
-  PasswordResetToken,
-  Preference,
-  RefreshToken,
-  Ride,
-  User,
-  Vehicle,
-} from "@/models/mysql";
+import { Booking, EmailVerificationToken, PasswordResetToken, Preference, RefreshToken, Ride, User, Vehicle } from "@/models/mysql";
 import { UserService } from "@/services";
 import { AppError, logger, renderTemplate, sendEmail } from "@/utils";
 
@@ -75,29 +66,18 @@ export class UserDeletionService {
       await Promise.all([
         user.markAsPendingDeletion({ transaction: t }),
 
-        RefreshToken.update(
-          { revoked_at: dayjs().toDate() },
-          { where: { user_id: user.id, revoked_at: null }, transaction: t }
-        ),
+        RefreshToken.update({ revoked_at: dayjs().toDate() }, { where: { user_id: user.id, revoked_at: null }, transaction: t }),
       ]);
     });
 
     const content = await renderTemplate("deletionRequest.html", {
       firstName: user.first_name || "",
-      deletionDate: dayjs(user.pending_deletion_at)
-        .add(USER_ACCOUNT_DELETION_DELAY_DAYS, "days")
-        .format("DD/MM/YYYY"),
+      deletionDate: dayjs(user.pending_deletion_at).add(USER_ACCOUNT_DELETION_DELAY_DAYS, "days").format("DD/MM/YYYY"),
       loginLink: `${clientUrl}/login`,
     });
 
     try {
-      await sendEmail(
-        transporter,
-        gmail.user,
-        user.email,
-        "Confirmation de suppression de ton compte - EcoRide",
-        content
-      );
+      await sendEmail(transporter, gmail.user, user.email, "Confirmation de suppression de ton compte - EcoRide", content);
 
       // TODO ajouter i18n pour l'email
       // FIXME mettre un retry automatique pour sendEmail
@@ -200,14 +180,16 @@ export class UserDeletionService {
    * @returns {Promise<void>}
    */
   public static async deletePermanently(userId: string): Promise<void> {
-    await sequelize.transaction(async (t: Transaction) => {
+    await sequelize.transaction(async (t: Transaction): Promise<void> => {
       await Promise.all([
         RefreshToken.destroy({ where: { user_id: userId }, transaction: t }),
         EmailVerificationToken.destroy({ where: { user_id: userId }, transaction: t }),
         PasswordResetToken.destroy({ where: { user_id: userId }, transaction: t }),
-        Vehicle.destroy({ where: { owner_id: userId }, transaction: t }),
         Preference.destroy({ where: { user_id: userId }, transaction: t }),
       ]);
+
+      const vehicles = await Vehicle.findAll({ where: { owner_id: userId }, transaction: t });
+      await Promise.all(vehicles.map((v) => v.markAsDeleted({ transaction: t })));
 
       const hashedPassword = await bcrypt.hash(`deleted_${userId}`, 10);
 
@@ -225,7 +207,7 @@ export class UserDeletionService {
           average_rating: null,
           credits: 0,
           status: USER_STATUSES.DELETED,
-          is_verified: false,
+          email_is_verified: false,
           last_login: null,
           pending_deletion_at: null,
           deleted_at: dayjs().toDate(),

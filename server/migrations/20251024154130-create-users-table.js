@@ -67,7 +67,7 @@ export async function up(queryInterface, Sequelize) {
       allowNull: false,
       defaultValue: "active",
     },
-    is_verified: {
+    email_is_verified: {
       type: Sequelize.BOOLEAN,
       allowNull: false,
       defaultValue: false,

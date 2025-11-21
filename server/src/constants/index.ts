@@ -1,5 +1,4 @@
-export * from "./errors/index.js";
-export * from "./validation/index.js";
+export * from "./errors";
 
 export * from "./auth.constants.js";
 export * from "./booking.constants.js";
@@ -10,4 +9,5 @@ export * from "./review.constants.js";
 export * from "./ride.constants.js";
 export * from "./success.constants.js";
 export * from "./user.constants.js";
+export * from "./validation.constants.js";
 export * from "./vehicle.constants.js";

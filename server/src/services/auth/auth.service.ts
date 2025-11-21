@@ -4,13 +4,7 @@ import ms from "ms";
 import { nanoid } from "nanoid";
 
 import { appConfig, sequelize } from "@/config";
-import {
-  AUTH_ERROR_CODES,
-  AUTH_ERROR_MESSAGES,
-  DEBUG_CODES,
-  USER_ROLES_ID,
-  USER_ROLES_KEY,
-} from "@/constants";
+import { AUTH_ERROR_CODES, AUTH_ERROR_MESSAGES, DEBUG_CODES, USER_ROLES_ID, USER_ROLES_KEY } from "@/constants";
 import { RefreshToken, User } from "@/models/mysql";
 import { EmailVerificationService } from "@/services";
 import { AppError, generateJwt } from "@/utils";
@@ -20,7 +14,7 @@ import type { AuthResponse, LoginUserPayload, RegisterUserPayload } from "@/type
 const { auth } = appConfig;
 const { refreshExpiration, accessSecret, accessExpiration } = auth;
 
-class AuthService {
+export class AuthService {
   /**
    * Checks if an email is already in use.
    *
@@ -69,7 +63,7 @@ class AuthService {
    * @throws {AppError} - If the email or username is already in use, or if ending the verification email fails.
    */
   public static async registerUser(data: RegisterUserPayload): Promise<User> {
-    const { email, username, password, firstName, lastName } = data;
+    const { email, username, password, firstName, lastName, birthDate } = data;
 
     await this.assertEmailIsUnique(email);
     await this.assertUsernameIsUnique(username);
@@ -81,6 +75,7 @@ class AuthService {
       password,
       first_name: firstName,
       last_name: lastName,
+      birth_date: dayjs(birthDate).toDate(),
     });
 
     await EmailVerificationService.sendVerificationLinkToUser(newUser);
@@ -123,7 +118,7 @@ class AuthService {
       });
     }
 
-    if (!user.is_verified) {
+    if (!user.email_is_verified) {
       throw new AppError({
         statusCode: 403,
         userMessageKey: AUTH_ERROR_MESSAGES.ACCOUNT_EMAIL_NOT_VERIFIED,
@@ -148,10 +143,7 @@ class AuthService {
     }
 
     const refreshToken = await sequelize.transaction(async (t): Promise<string> => {
-      await RefreshToken.update(
-        { revoked_at: dayjs().toDate() },
-        { where: { user_id: user.id, revoked_at: null }, transaction: t }
-      );
+      await RefreshToken.update({ revoked_at: dayjs().toDate() }, { where: { user_id: user.id, revoked_at: null }, transaction: t });
 
       const refreshTokenRecord = await RefreshToken.create(
         {
@@ -199,10 +191,7 @@ class AuthService {
     }
 
     if (refreshTokenRecord.isUsed()) {
-      await RefreshToken.update(
-        { revoked_at: dayjs().toDate() },
-        { where: { user_id: refreshTokenRecord.user_id, revoked_at: null } }
-      );
+      await RefreshToken.update({ revoked_at: dayjs().toDate() }, { where: { user_id: refreshTokenRecord.user_id, revoked_at: null } });
 
       throw new AppError({
         statusCode: 401,
@@ -290,11 +279,6 @@ class AuthService {
    * @returns {Promise<void>}
    */
   public static async logoutUser(refreshToken: string): Promise<void> {
-    await RefreshToken.update(
-      { revoked_at: dayjs().toDate() },
-      { where: { token: refreshToken, revoked_at: null } }
-    );
+    await RefreshToken.update({ revoked_at: dayjs().toDate() }, { where: { token: refreshToken, revoked_at: null } });
   }
 }
-
-export { AuthService };

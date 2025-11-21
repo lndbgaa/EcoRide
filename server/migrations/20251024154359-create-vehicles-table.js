@@ -42,7 +42,7 @@ export async function up(queryInterface, Sequelize) {
       allowNull: false,
       unique: true,
     },
-    registration_date: {
+    first_registration_date: {
       type: Sequelize.DATEONLY,
       allowNull: false,
     },
@@ -53,10 +53,10 @@ export async function up(queryInterface, Sequelize) {
       onUpdate: "CASCADE",
       onDelete: "RESTRICT",
     },
-    status: {
-      type: Sequelize.ENUM("active", "archived"),
-      allowNull: false,
-      defaultValue: "active",
+    deleted_at: {
+      type: Sequelize.DATE,
+      allowNull: true,
+      defaultValue: null,
     },
     created_at: {
       type: Sequelize.DATE,

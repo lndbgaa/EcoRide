@@ -1,8 +1,5 @@
 import { Router } from "express";
 
-import { imageUpload, requireAuth, validateAll } from "@/middlewares";
-import { updateUserInfoSchema, updateUserPasswordSchema } from "@/validation";
-
 import {
   getMyInfo,
   requestAccountDeletion,
@@ -10,6 +7,8 @@ import {
   updateMyPassword,
   updateMyPicture,
 } from "@/controllers";
+import { imageUpload, requireAuth, validateAll } from "@/middlewares";
+import { updateUserInfoSchema, updateUserPasswordSchema } from "@/validations";
 
 const router = Router();
 
@@ -17,8 +16,8 @@ router.use(requireAuth);
 
 router.get("/", getMyInfo);
 
-router.patch("/", validateAll(updateUserInfoSchema), updateMyInfo);
-router.patch("/password", validateAll(updateUserPasswordSchema), updateMyPassword);
+router.patch("/", validateAll(updateUserInfoSchema, "body"), updateMyInfo);
+router.patch("/password", validateAll(updateUserPasswordSchema, "body"), updateMyPassword);
 router.patch("/profile-picture", imageUpload, updateMyPicture);
 
 router.post("/deletion-request", requestAccountDeletion);

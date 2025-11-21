@@ -32,9 +32,9 @@ const errorHandler: ErrorRequestHandler = (err: unknown, req: Request, res: Resp
 
     return res.status(statusCode).json({
       success: false,
+      statusCode,
       code,
       message,
-      statusCode,
       ...(isDev && { debugCode, debug: debugMessage }),
     });
   }
@@ -45,9 +45,10 @@ const errorHandler: ErrorRequestHandler = (err: unknown, req: Request, res: Resp
     const statusText = getReasonPhrase(statusCode);
     const message = req.t(COMMON_ERROR_MESSAGES.VALIDATION_ERROR);
     const code = COMMON_ERROR_CODES.VALIDATION_ERROR;
+
     const errors = parseJoiError(err).map((e) => ({
       field: e.field,
-      message: req.t(e.messageKey),
+      message: req.t(e.messageKey, e.context),
       type: e.type,
     }));
 
@@ -63,9 +64,9 @@ const errorHandler: ErrorRequestHandler = (err: unknown, req: Request, res: Resp
 
     return res.status(statusCode).json({
       success: false,
+      statusCode,
       code,
       message,
-      statusCode,
       errors,
     });
   }
@@ -90,9 +91,9 @@ const errorHandler: ErrorRequestHandler = (err: unknown, req: Request, res: Resp
 
   return res.status(statusCode).json({
     success: false,
+    statusCode,
     code,
     message,
-    statusCode,
     ...(isDev && { debug: debugMessage }),
   });
 };

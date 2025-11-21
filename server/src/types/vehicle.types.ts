@@ -1,7 +1,4 @@
-import type { VEHICLE_STATUSES } from "@/constants";
 import type { UserPublicDTO } from "@/types";
-
-export type VehicleStatus = (typeof VEHICLE_STATUSES)[keyof typeof VEHICLE_STATUSES];
 
 export interface VehiclePublicDTO {
   id: string;
@@ -19,6 +16,34 @@ export interface VehiclePrivateDTO extends VehiclePublicDTO {
 }
 
 export interface VehicleAdminDTO extends VehiclePrivateDTO {
-  status: VehicleStatus;
   owner: UserPublicDTO | null;
 }
+
+export type CreateVehiclePayload = {
+  brandId: number;
+  model: string;
+  colorId: number;
+  energyId: number;
+  seats: number;
+  licensePlate: string;
+  firstRegistrationDate: string;
+};
+
+export type UpdateVehiclePayload = {
+  brandId?: number;
+  model?: string;
+  colorId?: number;
+  energyId?: number;
+  firstRegistrationDate?: string;
+};
+
+export type VehicleCreationAttributes = {
+  brand_id: number;
+  model: string;
+  color_id: number;
+  energy_id: number;
+  seats: number;
+  license_plate: string;
+  owner_id: string;
+  first_registration_date: Date;
+};

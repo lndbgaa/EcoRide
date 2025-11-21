@@ -8,7 +8,7 @@ import type { UpdateUserInfoPayload, UpdateUserPasswordPayload } from "@/types";
 
 const { env } = appConfig;
 
-class UserProfileService {
+export class UserProfileService {
   /**
    * Updates the profile information of a user.
    *
@@ -107,5 +107,3 @@ class UserProfileService {
     return { url: secure_url };
   }
 }
-
-export { UserProfileService };

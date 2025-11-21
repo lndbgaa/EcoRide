@@ -44,10 +44,6 @@ app.get("/", (req, res) => {
   });
 });
 
-app.post("/api/v1/test", (req, res) => {
-  res.json({ data: req.body });
-});
-
 app.get("/health", (req, res) => {
   res.status(200).json({ status: "ok" });
 });

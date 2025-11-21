@@ -4,7 +4,7 @@ import { AppError, dataUriFromBuffer } from "@/utils";
 
 import type { UploadApiResponse } from "cloudinary";
 
-class UploadService {
+export class UploadService {
   /**
    * Uploads an image to Cloudinary.
    *
@@ -32,5 +32,3 @@ class UploadService {
     }
   }
 }
-
-export { UploadService };

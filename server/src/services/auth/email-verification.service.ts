@@ -15,7 +15,7 @@ import { AppError, renderTemplate, sendEmail } from "@/utils";
 
 const { clientUrl, gmail } = appConfig;
 
-class EmailVerificationService {
+export class EmailVerificationService {
   /**
    * Sends a verification link to a user.
    *
@@ -24,7 +24,7 @@ class EmailVerificationService {
    * @throws {AppError} - If the user is already verified or if sending the email fails.
    */
   public static async sendVerificationLinkToUser(user: User): Promise<void> {
-    if (user.is_verified) {
+    if (user.email_is_verified) {
       throw new AppError({
         statusCode: 400,
         userMessageKey: AUTH_ERROR_MESSAGES.ACCOUNT_EMAIL_ALREADY_VERIFIED,
@@ -67,7 +67,7 @@ class EmailVerificationService {
   public static async sendVerificationLinkByEmail(email: string): Promise<void> {
     const user = await User.findOne({ where: { email } });
 
-    if (!user || user.is_verified) return;
+    if (!user || user.email_is_verified) return;
 
     await this.sendVerificationLinkToUser(user);
   }
@@ -98,9 +98,7 @@ class EmailVerificationService {
       throw new AppError({
         statusCode: 400,
         userMessageKey: AUTH_ERROR_MESSAGES.EMAIL_VERIFICATION_FAILED,
-        debugMessage: tokenRecord.used_at
-          ? "Email verification token already used"
-          : "Email verification token expired",
+        debugMessage: tokenRecord.used_at ? "Email verification token already used" : "Email verification token expired",
         code: AUTH_ERROR_CODES.EMAIL_VERIFICATION_FAILED,
         debugCode: tokenRecord.used_at
           ? DEBUG_CODES.AUTH.EMAIL_VERIFICATION_TOKEN_ALREADY_USED
@@ -124,10 +122,7 @@ class EmailVerificationService {
         });
       }
 
-      await Promise.all([
-        tokenRecord.markAsUsed({ transaction: t }),
-        user.markAsVerified({ transaction: t }),
-      ]);
+      await Promise.all([tokenRecord.markAsUsed({ transaction: t }), user.markEmailAsVerified({ transaction: t })]);
     });
   }
 
@@ -161,5 +156,3 @@ class EmailVerificationService {
     });
   }
 }
-
-export { EmailVerificationService };

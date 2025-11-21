@@ -5,8 +5,11 @@ export const COMMON_ERROR_CODES = {
 
 export const COMMON_ERROR_MESSAGES = {
   INTERNAL_SERVER_ERROR: "errors.common.internal_server_error",
-  RESOURCE_NOT_FOUND: "errors.common.resource_not_found",
   VALIDATION_ERROR: "errors.common.validation_error",
+  FORBIDDEN_ACCESS: "errors.common.forbidden_access",
+  RESOURCE_NOT_FOUND: "errors.common.resource_not_found",
+
+  NO_CHANGES_DETECTED: "errors.common.no_changes_detected",
 
   RATE_LIMIT: {
     DEFAULT: "errors.rate_limit.default",

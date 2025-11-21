@@ -11,6 +11,7 @@ export interface RegisterUserPayload {
   password: string;
   firstName: string;
   lastName: string;
+  birthDate: string;
 }
 
 export interface LoginUserPayload {
