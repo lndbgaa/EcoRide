@@ -9,13 +9,9 @@ export async function up(queryInterface, Sequelize) {
       allowNull: false,
     },
     key: {
-      type: Sequelize.STRING(50),
+      type: Sequelize.ENUM("chat", "music", "smoking", "animals"),
       allowNull: false,
       unique: true,
-    },
-    display: {
-      type: Sequelize.STRING(100),
-      allowNull: false,
     },
   });
 }

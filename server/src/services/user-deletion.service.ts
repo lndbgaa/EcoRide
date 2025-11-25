@@ -11,7 +11,16 @@ import {
   USER_ERROR_MESSAGES,
   USER_STATUSES,
 } from "@/constants";
-import { Booking, EmailVerificationToken, PasswordResetToken, Preference, RefreshToken, Ride, User, Vehicle } from "@/models/mysql";
+import {
+  Booking,
+  EmailVerificationToken,
+  PasswordResetToken,
+  Preference,
+  RefreshToken,
+  Ride,
+  User,
+  Vehicle,
+} from "@/models/mysql";
 import { UserService } from "@/services";
 import { AppError, logger, renderTemplate, sendEmail } from "@/utils";
 

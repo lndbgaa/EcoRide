@@ -88,6 +88,7 @@ Preference.belongsTo(PreferenceOption, { foreignKey: "option_id", as: "option" }
 
 PreferenceCategory.hasMany(PreferenceOption, { foreignKey: "category_id", as: "options" });
 PreferenceOption.belongsTo(PreferenceCategory, { foreignKey: "category_id", as: "category" });
+Preference.belongsTo(PreferenceCategory, { foreignKey: "category_id", as: "category" });
 
 // ----------------------------
 // Rides

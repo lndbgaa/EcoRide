@@ -1,22 +1,18 @@
 import { SUCCESS_MESSAGES } from "@/constants";
-import { VehicleService } from "@/services/vehicle.service";
+import { VehicleService } from "@/services";
 import { catchAsync } from "@/utils";
 
 import type { CreateVehiclePayload, UpdateVehiclePayload } from "@/types";
 import type { Request, Response } from "express";
 
-// ============================================
-// 🔍 READ
-// ============================================
-
 /**
  * Retrieve the authenticated user's vehicles.
  */
-export const getVehicles = catchAsync(async (req: Request, res: Response): Promise<Response> => {
+export const getMyVehicles = catchAsync(async (req: Request, res: Response): Promise<Response> => {
   const userId = req.user!.id;
 
   const vehicles = await VehicleService.getUserVehicles(userId);
-  const dto = vehicles.map((v) => v.toPrivateDTO());
+  const dto = vehicles.map((v) => v.toPrivateDTO(req.t));
 
   return res.status(200).json({
     success: true,
@@ -28,12 +24,12 @@ export const getVehicles = catchAsync(async (req: Request, res: Response): Promi
 /**
  * Retrieve a specific vehicle owned by the authenticated user.
  */
-export const getVehicle = catchAsync(async (req: Request, res: Response): Promise<Response> => {
+export const getMyVehicle = catchAsync(async (req: Request, res: Response): Promise<Response> => {
   const userId = req.user!.id;
   const vehicleId = req.params.id!;
 
   const vehicle = await VehicleService.findOwnedVehicleById(userId, vehicleId);
-  const dto = vehicle.toPrivateDTO();
+  const dto = vehicle.toPrivateDTO(req.t);
 
   return res.status(200).json({
     success: true,
@@ -42,19 +38,15 @@ export const getVehicle = catchAsync(async (req: Request, res: Response): Promis
   });
 });
 
-// ============================================
-// ➕ CREATE
-// ============================================
-
 /**
  * Create a new vehicle for the authenticated user.
  */
-export const createVehicle = catchAsync(async (req: Request, res: Response): Promise<Response> => {
+export const createMyVehicle = catchAsync(async (req: Request, res: Response): Promise<Response> => {
   const userId = req.user!.id;
   const data: CreateVehiclePayload = req.body;
 
   const vehicle = await VehicleService.createVehicle(userId, data);
-  const dto = vehicle.toPrivateDTO();
+  const dto = vehicle.toPrivateDTO(req.t);
 
   return res.status(201).json({
     success: true,
@@ -63,20 +55,16 @@ export const createVehicle = catchAsync(async (req: Request, res: Response): Pro
   });
 });
 
-// ============================================
-// 🚦 UPDATE
-// ============================================
-
 /**
  * Update a specific vehicle owned by the authenticated user.
  */
-export const updateVehicle = catchAsync(async (req: Request, res: Response): Promise<Response> => {
+export const updateMyVehicle = catchAsync(async (req: Request, res: Response): Promise<Response> => {
   const userId = req.user!.id;
   const vehicleId = req.params.id!;
   const data: UpdateVehiclePayload = req.body;
 
   const vehicle = await VehicleService.updateVehicle(userId, vehicleId, data);
-  const dto = vehicle.toPrivateDTO();
+  const dto = vehicle.toPrivateDTO(req.t);
 
   return res.status(200).json({
     success: true,
@@ -85,18 +73,17 @@ export const updateVehicle = catchAsync(async (req: Request, res: Response): Pro
   });
 });
 
-// ============================================
-//  ❌ DELETE
-// ============================================
-
 /**
  * Delete a specific vehicle owned by the authenticated user.
  */
-export const deleteVehicle = catchAsync(async (req: Request, res: Response): Promise<Response> => {
+export const deleteMyVehicle = catchAsync(async (req: Request, res: Response): Promise<Response> => {
   const userId = req.user!.id;
   const vehicleId = req.params.id!;
 
   await VehicleService.deleteVehicle(userId, vehicleId);
 
-  return res.sendStatus(204);
+  return res.status(200).json({
+    success: true,
+    message: req.t(SUCCESS_MESSAGES.VEHICLE.DELETED),
+  });
 });

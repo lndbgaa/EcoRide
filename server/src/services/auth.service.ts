@@ -2,11 +2,19 @@ import bcrypt from "bcrypt";
 import dayjs from "dayjs";
 import ms from "ms";
 import { nanoid } from "nanoid";
+import { UniqueConstraintError } from "sequelize";
 
 import { appConfig, sequelize } from "@/config";
-import { AUTH_ERROR_CODES, AUTH_ERROR_MESSAGES, DEBUG_CODES, USER_ROLES_ID, USER_ROLES_KEY } from "@/constants";
+import {
+  AUTH_ERROR_CODES,
+  AUTH_ERROR_MESSAGES,
+  DEBUG_CODES,
+  DUMMY_PASSWORD_HASH,
+  USER_ROLES_ID,
+  USER_ROLES_KEY,
+} from "@/constants";
 import { RefreshToken, User } from "@/models/mysql";
-import { EmailVerificationService } from "@/services";
+import { EmailVerificationService, PreferenceService } from "@/services";
 import { AppError, generateJwt } from "@/utils";
 
 import type { AuthResponse, LoginUserPayload, RegisterUserPayload } from "@/types";
@@ -16,71 +24,53 @@ const { refreshExpiration, accessSecret, accessExpiration } = auth;
 
 export class AuthService {
   /**
-   * Checks if an email is already in use.
-   *
-   * @param {string} email - The email to check.
-   * @returns {Promise<void>}
-   * @throws {AppError} - If the email is already in use.
-   */
-  public static async assertEmailIsUnique(email: string): Promise<void> {
-    const cleanEmail = email.trim().toLowerCase();
-
-    const exists = await User.findOne({ where: { email: cleanEmail } });
-
-    if (exists) {
-      throw new AppError({
-        statusCode: 409,
-        userMessageKey: AUTH_ERROR_MESSAGES.EMAIL_ALREADY_EXISTS,
-      });
-    }
-  }
-
-  /**
-   * Checks if a username is already in use.
-   *
-   * @param {string} username - The username to check.
-   * @returns {Promise<void>}
-   * @throws {AppError} - If the username is already in use.
-   */
-  public static async assertUsernameIsUnique(username: string): Promise<void> {
-    const cleanUsername = username.trim().toLowerCase();
-
-    const exists = await User.findOne({ where: { username: cleanUsername } });
-
-    if (exists) {
-      throw new AppError({
-        statusCode: 409,
-        userMessageKey: AUTH_ERROR_MESSAGES.USERNAME_ALREADY_EXISTS,
-      });
-    }
-  }
-
-  /**
    * Registers a new user.
+   * Creates default preferences and sends a verification email with a confirmation link to the user's email address.
    *
    * @param {RegisterUserPayload} data - The user data to register.
-   * @returns {Promise<User>} The registered user.
-   * @throws {AppError} - If the email or username is already in use, or if ending the verification email fails.
+   * @returns {Promise<User>} The registered user instance.
+   * @throws {AppError} - If:
+   *   - The email or username is already in use (HTTP 409).
+   *   - Sending the verification email fails (HTTP 500, thrown by EmailVerificationService.sendVerificationLinkToUser).
    */
-  public static async registerUser(data: RegisterUserPayload): Promise<User> {
+  public static async register(data: RegisterUserPayload): Promise<User> {
     const { email, username, password, firstName, lastName, birthDate } = data;
 
-    await this.assertEmailIsUnique(email);
-    await this.assertUsernameIsUnique(username);
+    try {
+      const user = await sequelize.transaction(async (t) => {
+        const user = await User.create(
+          {
+            role_id: USER_ROLES_ID.USER,
+            email,
+            username,
+            password,
+            first_name: firstName,
+            last_name: lastName,
+            birth_date: dayjs(birthDate).toDate(),
+          },
+          { transaction: t }
+        );
 
-    const newUser = await User.create({
-      role_id: USER_ROLES_ID.USER,
-      email,
-      username,
-      password,
-      first_name: firstName,
-      last_name: lastName,
-      birth_date: dayjs(birthDate).toDate(),
-    });
+        await PreferenceService.createUserDefaultPreferences(user.id, t);
 
-    await EmailVerificationService.sendVerificationLinkToUser(newUser);
+        return user;
+      });
 
-    return newUser;
+      await EmailVerificationService.sendVerificationLinkToUser(user);
+
+      return user;
+    } catch (err) {
+      if (err instanceof UniqueConstraintError) {
+        const field = err.errors[0]?.path;
+
+        throw new AppError({
+          statusCode: 409,
+          userMessageKey:
+            field === "email" ? AUTH_ERROR_MESSAGES.EMAIL_ALREADY_EXISTS : AUTH_ERROR_MESSAGES.USERNAME_ALREADY_EXISTS,
+        });
+      }
+      throw err;
+    }
   }
 
   /**
@@ -89,13 +79,13 @@ export class AuthService {
    * @param {LoginUserPayload} data - The user data to log in.
    * @returns {Promise<AuthResponse>} The authentication response.
    * @throws {AppError} - If:
-   *   - The user does not exist
-   *   - The password is invalid
-   *   - The account is not verified
-   *   - The account is suspended
-   *   - The account is pending deletion
+   *   - The user does not exist (HTTP 401)
+   *   - The password is invalid (HTTP 401)
+   *   - The account is not verified (HTTP 403)
+   *   - The account is suspended (HTTP 403)
+   *   - The account is pending deletion (HTTP 403)
    */
-  public static async loginUser(data: LoginUserPayload): Promise<AuthResponse> {
+  public static async login(data: LoginUserPayload): Promise<AuthResponse> {
     const { email, password } = data;
 
     const user = await User.findOne({
@@ -103,15 +93,9 @@ export class AuthService {
       include: [{ association: "role" }],
     });
 
-    if (!user) {
-      await bcrypt.hash(password, 10);
-      throw new AppError({
-        statusCode: 401,
-        userMessageKey: AUTH_ERROR_MESSAGES.INVALID_CREDENTIALS,
-      });
-    }
+    const passwordValid = user ? await user.checkPassword(password) : await bcrypt.compare(password, DUMMY_PASSWORD_HASH);
 
-    if (!(await user.checkPassword(password))) {
+    if (!user || !passwordValid) {
       throw new AppError({
         statusCode: 401,
         userMessageKey: AUTH_ERROR_MESSAGES.INVALID_CREDENTIALS,
@@ -142,8 +126,11 @@ export class AuthService {
       });
     }
 
-    const refreshToken = await sequelize.transaction(async (t): Promise<string> => {
-      await RefreshToken.update({ revoked_at: dayjs().toDate() }, { where: { user_id: user.id, revoked_at: null }, transaction: t });
+    const refreshToken = await sequelize.transaction(async (t) => {
+      await RefreshToken.update(
+        { revoked_at: dayjs().toDate() },
+        { where: { user_id: user.id, revoked_at: null }, transaction: t }
+      );
 
       const refreshTokenRecord = await RefreshToken.create(
         {
@@ -173,11 +160,11 @@ export class AuthService {
    * @param {string} refreshToken - The refresh token to use for refreshing the access token.
    * @returns {Promise<AuthResponse>} The authentication response.
    * @throws {AppError} - If:
-   *   - The token is not found, expired, revoked, or already used
-   *   - The associated user does not exist
-   *   - The user account is suspended or pending deletion
+   *   - The token is not found, expired, revoked, or already used (HTTP 401)
+   *   - The associated user does not exist (HTTP 401)
+   *   - The user account is suspended or pending deletion (HTTP 403)
    */
-  public static async refreshUserToken(refreshToken: string): Promise<AuthResponse> {
+  public static async refreshToken(refreshToken: string): Promise<AuthResponse> {
     const refreshTokenRecord = await RefreshToken.findOne({ where: { token: refreshToken } });
 
     if (!refreshTokenRecord) {
@@ -191,7 +178,10 @@ export class AuthService {
     }
 
     if (refreshTokenRecord.isUsed()) {
-      await RefreshToken.update({ revoked_at: dayjs().toDate() }, { where: { user_id: refreshTokenRecord.user_id, revoked_at: null } });
+      await RefreshToken.update(
+        { revoked_at: dayjs().toDate() },
+        { where: { user_id: refreshTokenRecord.user_id, revoked_at: null } }
+      );
 
       throw new AppError({
         statusCode: 401,
@@ -222,7 +212,10 @@ export class AuthService {
       });
     }
 
-    const user = await User.findOne({ where: { id: refreshTokenRecord.user_id } });
+    const user = await User.findOne({
+      where: { id: refreshTokenRecord.user_id },
+      include: [{ association: "role" }],
+    });
 
     if (!user) {
       throw new AppError({
@@ -250,7 +243,7 @@ export class AuthService {
       });
     }
 
-    const newRefreshToken = await sequelize.transaction(async (t): Promise<string> => {
+    const newRefreshToken = await sequelize.transaction(async (t) => {
       await refreshTokenRecord.markAsUsed({ transaction: t });
 
       const newRefreshTokenRecord = await RefreshToken.create(
@@ -278,7 +271,7 @@ export class AuthService {
    * @param {string} refreshToken - The refresh token to revoke.
    * @returns {Promise<void>}
    */
-  public static async logoutUser(refreshToken: string): Promise<void> {
+  public static async logout(refreshToken: string): Promise<void> {
     await RefreshToken.update({ revoked_at: dayjs().toDate() }, { where: { token: refreshToken, revoked_at: null } });
   }
 }

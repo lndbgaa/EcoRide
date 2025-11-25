@@ -2,16 +2,16 @@
 
 export async function up(queryInterface, Sequelize) {
   await queryInterface.bulkInsert("vehicle_energies", [
-    { id: 1, key: "petrol", display: "Essence" },
-    { id: 2, key: "diesel", display: "Diesel" },
-    { id: 3, key: "electric", display: "Électrique" },
-    { id: 4, key: "hybrid_petrol", display: "Hybride Essence" },
-    { id: 5, key: "hybrid_diesel", display: "Hybride Diesel" },
-    { id: 6, key: "plug_in_hybrid", display: "Hybride rechargeable" },
-    { id: 7, key: "lpg", display: "GPL" },
-    { id: 8, key: "cng", display: "GNV" },
-    { id: 9, key: "bioethanol", display: "Bioéthanol" },
-    { id: 10, key: "hydrogen", display: "Hydrogène" },
+    { id: 1, key: "petrol" },
+    { id: 2, key: "diesel" },
+    { id: 3, key: "electric" },
+    { id: 4, key: "hybrid_petrol" },
+    { id: 5, key: "hybrid_diesel" },
+    { id: 6, key: "plug_in_hybrid" },
+    { id: 7, key: "lpg" },
+    { id: 8, key: "cng" },
+    { id: 9, key: "bioethanol" },
+    { id: 10, key: "hydrogen" },
   ]);
 }
 

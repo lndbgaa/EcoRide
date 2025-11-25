@@ -22,7 +22,8 @@ export class UserService {
     if (!user) {
       throw new AppError({
         statusCode: notFoundStatus,
-        userMessageKey: notFoundStatus === 404 ? COMMON_ERROR_MESSAGES.RESOURCE_NOT_FOUND : COMMON_ERROR_MESSAGES.INTERNAL_SERVER_ERROR,
+        userMessageKey:
+          notFoundStatus === 404 ? COMMON_ERROR_MESSAGES.RESOURCE_NOT_FOUND : COMMON_ERROR_MESSAGES.INTERNAL_SERVER_ERROR,
         debugMessage: `User with ID ${userId} not found in database`,
       });
     }

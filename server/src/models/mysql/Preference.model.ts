@@ -1,11 +1,29 @@
-import { DataTypes, Model, type Sequelize } from "sequelize";
+import { DataTypes, Model } from "sequelize";
+
+import type { PreferenceCategory, PreferenceOption } from "@/models/mysql";
+import type { PreferencePublicDTO } from "@/types";
+import type { TFunction } from "i18next";
+import type { Sequelize } from "sequelize";
 
 export default class Preference extends Model {
   declare id: string;
   declare user_id: string;
   declare option_id: number;
+  declare category_id: number;
 
-  public static initModel(sequelize: Sequelize): void {
+  declare option?: PreferenceOption;
+  declare category?: PreferenceCategory;
+
+  public toPublicDTO(t: TFunction): PreferencePublicDTO {
+    return {
+      id: this.id,
+      userId: this.user_id,
+      option: this.option?.toPublicDTO(t, this.category?.key) ?? null,
+      category: this.category?.toPublicDTO(t) ?? null,
+    };
+  }
+
+  public static initModel(sequelize: Sequelize) {
     this.init(
       {
         id: {
@@ -27,6 +45,13 @@ export default class Preference extends Model {
           onUpdate: "CASCADE",
           onDelete: "RESTRICT",
         },
+        category_id: {
+          type: DataTypes.INTEGER,
+          allowNull: false,
+          references: { model: "preference_categories", key: "id" },
+          onUpdate: "CASCADE",
+          onDelete: "RESTRICT",
+        },
       },
       {
         sequelize,
@@ -36,10 +61,21 @@ export default class Preference extends Model {
         indexes: [
           {
             unique: true,
-            name: "unique_option_per_user",
-            fields: ["user_id", "option_id"],
+            name: "unique_user_category",
+            fields: ["user_id", "category_id"],
           },
         ],
+        hooks: {
+          async beforeValidate(preference: Preference) {
+            if (!preference.category_id && preference.option_id) {
+              const option = (await preference.sequelize.models.PreferenceOption?.findByPk(
+                preference.option_id
+              )) as PreferenceOption | null;
+
+              if (option) preference.category_id = option.category_id;
+            }
+          },
+        },
       }
     );
   }

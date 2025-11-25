@@ -1,6 +1,8 @@
+import { UniqueConstraintError } from "sequelize";
+
 import { appConfig } from "@/config";
-import { USER_ERROR_MESSAGES } from "@/constants";
-import { AuthService, UploadService, UserService } from "@/services";
+import { AUTH_ERROR_MESSAGES, USER_ERROR_MESSAGES } from "@/constants";
+import { UploadService, UserService } from "@/services";
 import { AppError } from "@/utils";
 
 import type { User } from "@/models/mysql";
@@ -14,20 +16,26 @@ export class UserProfileService {
    *
    * @param {string} userId - The ID of the user.
    * @param {UpdateUserInfoPayload} data - The new profile data.
-   * @returns {Promise<User>} The updated user object.
+   * @returns {Promise<User>} The updated user instance.
    * @throws {AppError} - If:
-   *   - The user is not found (thrown by UserService.findById)
-   *   - The new username is already in use (thrown by AuthService.assertUsernameIsUnique)
-   *   - The update fails due to invalid or unchanged data (thrown by user.updateProfile)
+   *   - The user is not found (HTTP 500, thrown by UserService.findById)
+   *   - The new username is already in use (HTTP 409)
+   *   - The update fails due to invalid or unchanged data (HTTP 400, thrown by user.updateProfile)
    */
   public static async updateProfile(userId: string, data: UpdateUserInfoPayload): Promise<User> {
     const user = await UserService.findById(userId, 500);
 
-    if (data.username && data.username !== user.username) {
-      await AuthService.assertUsernameIsUnique(data.username);
+    try {
+      return await user.updateProfile(data);
+    } catch (err) {
+      if (err instanceof UniqueConstraintError && err.errors[0]?.path === "username") {
+        throw new AppError({
+          statusCode: 409,
+          userMessageKey: AUTH_ERROR_MESSAGES.USERNAME_ALREADY_EXISTS,
+        });
+      }
+      throw err;
     }
-
-    return user.updateProfile(data);
   }
 
   /**
@@ -37,9 +45,9 @@ export class UserProfileService {
    * @param {UpdateUserPasswordPayload} data - The current and new passwords.
    * @returns {Promise<void>}
    * @throws {AppError} - If:
-   *   - The user is not found (thrown by UserService.findById)
-   *   - The current password is incorrect
-   *   - The new password is the same as the current one
+   *   - The user is not found (HTTP 500, thrown by UserService.findById)
+   *   - The current password is incorrect (HTTP 400)
+   *   - The new password is the same as the current one (HTTP 400)
    */
   public static async updatePassword(userId: string, data: UpdateUserPasswordPayload): Promise<void> {
     const user = await UserService.findById(userId, 500);
@@ -71,10 +79,10 @@ export class UserProfileService {
    * @param {Express.Multer.File} file - The uploaded image file.
    * @returns {Promise<{ url: string }>} The URL of the uploaded profile picture.
    * @throws {AppError} - If:
-   *   - The user is not found (thrown by UserService.findById)
-   *   - The file type is invalid
-   *   - The file size exceeds the maximum allowed limit
-   *   - The image upload fails (thrown by UploadService.uploadImage, e.g., Cloudinary error)
+   *   - The user is not found (HTTP 500, thrown by UserService.findById)
+   *   - The file type is invalid (HTTP 400)
+   *   - The file size exceeds the maximum allowed limit (HTTP 400)
+   *   - The image upload fails (HTTP 500, thrown by UploadService.uploadImage, e.g., Cloudinary error)
    */
   public static async updatePicture(userId: string, file: Express.Multer.File): Promise<{ url: string }> {
     const user = await UserService.findById(userId, 500);

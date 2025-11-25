@@ -3,7 +3,7 @@ import Joi from "joi";
 
 import { ALLOWED_DATE_FORMATS, REGEX, VALIDATION_MESSAGES, VEHICLE_MAX_SEATS, VEHICLE_MIN_SEATS } from "@/constants";
 
-export const createVehicleSchema = Joi.object({
+export const createVehicleBodySchema = Joi.object({
   brandId: Joi.number().integer().min(1).strict().required().messages({
     "any.required": VALIDATION_MESSAGES.REQUIRED,
     "number.base": VALIDATION_MESSAGES.NUMBER_BASE,
@@ -60,7 +60,7 @@ export const createVehicleSchema = Joi.object({
     }),
 });
 
-export const updateVehicleSchema = Joi.object({
+export const updateVehicleBodySchema = Joi.object({
   brandId: Joi.number().integer().min(1).strict().optional().messages({
     "number.base": VALIDATION_MESSAGES.NUMBER_BASE,
     "number.integer": VALIDATION_MESSAGES.NUMBER_INTEGER,

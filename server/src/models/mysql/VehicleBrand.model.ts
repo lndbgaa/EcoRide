@@ -1,11 +1,24 @@
-import { DataTypes, Model, type Sequelize } from "sequelize";
+import { DataTypes, Model } from "sequelize";
+
+import type { VehicleBrandPublicDTO } from "@/types";
+import type { TFunction } from "i18next";
+import type { Sequelize } from "sequelize";
 
 export default class VehicleBrand extends Model {
-  declare id: string;
+  declare id: number;
   declare key: string;
-  declare display: string;
 
-  public static initModel(sequelize: Sequelize): void {
+  public toPublicDTO(t: TFunction): VehicleBrandPublicDTO {
+    const translationKey = `display.vehicle_brands.${this.key}`;
+
+    return {
+      id: this.id,
+      key: this.key,
+      display: t(translationKey),
+    };
+  }
+
+  public static initModel(sequelize: Sequelize) {
     this.init(
       {
         id: {
@@ -17,10 +30,6 @@ export default class VehicleBrand extends Model {
           type: DataTypes.STRING(50),
           allowNull: false,
           unique: true,
-        },
-        display: {
-          type: DataTypes.STRING(100),
-          allowNull: false,
         },
       },
       {

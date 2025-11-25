@@ -2,9 +2,9 @@
 
 export async function up(queryInterface, Sequelize) {
   await queryInterface.bulkInsert("roles", [
-    { id: 1, key: "admin", display: "Administrateur" },
-    { id: 2, key: "moderator", display: "Modérateur" },
-    { id: 3, key: "user", display: "Utilisateur" },
+    { id: 1, key: "admin" },
+    { id: 2, key: "moderator" },
+    { id: 3, key: "user" },
   ]);
 }
 

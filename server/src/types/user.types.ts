@@ -1,4 +1,4 @@
-import type { USER_ROLES_DISPLAY, USER_ROLES_ID, USER_ROLES_KEY, USER_STATUSES } from "@/constants";
+import type { USER_ROLES_ID, USER_ROLES_KEY, USER_STATUSES } from "@/constants";
 import type { DateTimeDTO } from "@/types";
 
 // ===========================
@@ -7,12 +7,17 @@ import type { DateTimeDTO } from "@/types";
 
 export type UserRoleId = (typeof USER_ROLES_ID)[keyof typeof USER_ROLES_ID];
 export type UserRoleKey = (typeof USER_ROLES_KEY)[keyof typeof USER_ROLES_ID];
-export type UserRoleDisplay = (typeof USER_ROLES_DISPLAY)[keyof typeof USER_ROLES_ID];
 export type UserStatus = (typeof USER_STATUSES)[keyof typeof USER_STATUSES];
 
 // ===========================
 //           DTOs
 // =========================== */
+
+export interface UserRolePublicDTO {
+  id: UserRoleId;
+  key: UserRoleKey;
+  display: string;
+}
 
 export interface UserPublicDTO {
   id: string;
@@ -36,7 +41,7 @@ export interface UserPrivateDTO extends UserPublicDTO {
 }
 
 export interface UserAdminDTO extends UserPrivateDTO {
-  role: UserRoleDisplay | null;
+  role: UserRolePublicDTO | null;
   status: UserStatus;
   suspendedAt: DateTimeDTO;
   pendingDeletionAt: DateTimeDTO;

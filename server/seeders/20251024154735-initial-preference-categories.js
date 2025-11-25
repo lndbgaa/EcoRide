@@ -2,10 +2,10 @@
 
 export async function up(queryInterface, Sequelize) {
   await queryInterface.bulkInsert("preference_categories", [
-    { id: 1, key: "chat", display: "Discussion" },
-    { id: 2, key: "music", display: "Musique" },
-    { id: 3, key: "smoking", display: "Cigarette" },
-    { id: 4, key: "animals", display: "Animaux" },
+    { id: 1, key: "chat" },
+    { id: 2, key: "music" },
+    { id: 3, key: "smoking" },
+    { id: 4, key: "animals" },
   ]);
 }
 

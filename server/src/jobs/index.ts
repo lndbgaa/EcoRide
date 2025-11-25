@@ -1,4 +1,4 @@
-import { scheduleUserDeletionJob } from "./user.deletion.job";
+import { scheduleUserDeletionJob } from "./user-deletion.job";
 
 export function scheduleAllJobs() {
   scheduleUserDeletionJob();

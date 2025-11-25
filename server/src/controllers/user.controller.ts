@@ -17,11 +17,12 @@ export const getMyInfo = catchAsync(async (req: Request, res: Response): Promise
   const userId = req.user!.id;
 
   const user = await UserService.findById(userId, 500);
+  const dto = user.toPrivateDTO();
 
   return res.status(200).json({
     success: true,
     message: req.t(SUCCESS_MESSAGES.USER.PERSONAL_DATA_RETRIEVED),
-    data: user.toPrivateDTO(),
+    data: dto,
   });
 });
 
@@ -33,11 +34,12 @@ export const updateMyInfo = catchAsync(async (req: Request, res: Response): Prom
   const data: UpdateUserInfoPayload = req.body;
 
   const user = await UserProfileService.updateProfile(userId, data);
+  const dto = user.toPrivateDTO();
 
   return res.status(200).json({
     success: true,
     message: req.t(SUCCESS_MESSAGES.USER.PROFILE_UPDATED),
-    data: user.toPrivateDTO(),
+    data: dto,
   });
 });
 
@@ -83,7 +85,7 @@ export const updateMyPicture = catchAsync(async (req: MulterRequest, res: Respon
 /**
  * Handle the authenticated user's account deletion request.
  */
-export const requestAccountDeletion = catchAsync(async (req: Request, res: Response): Promise<Response> => {
+export const requestMyDeletion = catchAsync(async (req: Request, res: Response): Promise<Response> => {
   const userId = req.user!.id;
 
   await UserDeletionService.requestDeletion(userId);
@@ -99,7 +101,7 @@ export const requestAccountDeletion = catchAsync(async (req: Request, res: Respo
 /**
  * Handle the authenticated user's deletion request cancellation.
  */
-export const cancelDeletionRequest = catchAsync(async (req: Request, res: Response): Promise<Response> => {
+export const cancelMyDeletionRequest = catchAsync(async (req: Request, res: Response): Promise<Response> => {
   const data: CancelUserDeletionPayload = req.body;
 
   await UserDeletionService.cancelDeletion(data);

@@ -16,7 +16,7 @@ import { appConfig, connectMongoDB, connectMySQL, i18next } from "@/config";
 import { COMMON_ERROR_MESSAGES } from "@/constants";
 import { scheduleAllJobs } from "@/jobs";
 import { defaultLimiter, errorHandler, sanitizeAll } from "@/middlewares";
-import router from "@/routes";
+import mainRouter from "@/routes";
 import { AppError, logger } from "@/utils";
 
 const { port, corsOptions } = appConfig;
@@ -48,7 +48,7 @@ app.get("/health", (req, res) => {
   res.status(200).json({ status: "ok" });
 });
 
-app.use("/api/v1", router);
+app.use("/api/v1", mainRouter);
 
 app.use((req, res, next) => {
   next(

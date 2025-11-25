@@ -1,12 +1,19 @@
 import dayjs from "dayjs";
 import { DataTypes, Model, Op } from "sequelize";
 
-import { COMMON_ERROR_MESSAGES, VEHICLE_ECO_ENERGY_KEYS, VEHICLE_ERROR_MESSAGES, VEHICLE_MAX_SEATS, VEHICLE_MIN_SEATS } from "@/constants";
+import {
+  COMMON_ERROR_MESSAGES,
+  VEHICLE_ECO_ENERGY_KEYS,
+  VEHICLE_ERROR_MESSAGES,
+  VEHICLE_MAX_SEATS,
+  VEHICLE_MIN_SEATS,
+} from "@/constants";
 import { VehicleBrand, VehicleColor, VehicleEnergy } from "@/models/mysql";
 import { AppError, setIfChanged, toDateOnly } from "@/utils";
 
 import type { User } from "@/models/mysql";
 import type { UpdateVehiclePayload, VehicleAdminDTO, VehiclePrivateDTO, VehiclePublicDTO } from "@/types";
+import type { TFunction } from "i18next";
 import type { SaveOptions, Sequelize } from "sequelize";
 
 export default class Vehicle extends Model {
@@ -97,7 +104,8 @@ export default class Vehicle extends Model {
     }
 
     if (setIfChanged(this, "model", data.model, false)) updatedFields.push("model");
-    if (setIfChanged(this, "first_registration_date", data.firstRegistrationDate, false)) updatedFields.push("first_registration_date");
+    if (setIfChanged(this, "first_registration_date", data.firstRegistrationDate, false))
+      updatedFields.push("first_registration_date");
 
     if (updatedFields.length === 0) {
       throw new AppError({
@@ -113,29 +121,29 @@ export default class Vehicle extends Model {
   // DTOs
   // ----------------------------
 
-  public toPublicDTO(): VehiclePublicDTO {
+  public toPublicDTO(t: TFunction): VehiclePublicDTO {
     return {
       id: this.id,
-      brand: this.brand?.display ?? null,
+      brand: this.brand?.toPublicDTO(t) ?? null,
       model: this.model,
-      color: this.color?.display ?? null,
-      energy: this.energy?.display ?? null,
+      color: this.color?.toPublicDTO(t) ?? null,
+      energy: this.energy?.toPublicDTO(t) ?? null,
       seats: this.seats,
       isEco: this.isEco,
     };
   }
 
-  public toPrivateDTO(): VehiclePrivateDTO {
+  public toPrivateDTO(t: TFunction): VehiclePrivateDTO {
     return {
-      ...this.toPublicDTO(),
+      ...this.toPublicDTO(t),
       licensePlate: this.license_plate,
       firstRegistrationDate: toDateOnly(this.first_registration_date),
     };
   }
 
-  public toAdminDTO(): VehicleAdminDTO {
+  public toAdminDTO(t: TFunction): VehicleAdminDTO {
     return {
-      ...this.toPrivateDTO(),
+      ...this.toPrivateDTO(t),
       owner: this.owner?.toPublicDTO() ?? null,
     };
   }

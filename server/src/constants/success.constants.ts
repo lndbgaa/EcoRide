@@ -23,5 +23,11 @@ export const SUCCESS_MESSAGES = {
     RETRIEVED: "success.vehicle.retrieved",
     CREATED: "success.vehicle.created",
     UPDATED: "success.vehicle.updated",
+    DELETED: "success.vehicle.deleted",
+  },
+  PREFERENCE: {
+    RETRIEVED_ALL: "success.preference.retrieved_all",
+    RETRIEVED: "success.preference.retrieved",
+    UPDATED: "success.preference.updated",
   },
 } as const;

@@ -3,23 +3,13 @@ import Joi from "joi";
 
 import { ALLOWED_DATE_FORMATS, MINIMUM_USER_AGE, REGEX, VALIDATION_MESSAGES } from "@/constants";
 
-const emailField = Joi.string().trim().lowercase().email().required().messages({
-  "any.required": VALIDATION_MESSAGES.REQUIRED,
-  "string.base": VALIDATION_MESSAGES.STRING_BASE,
-  "string.empty": VALIDATION_MESSAGES.STRING_EMPTY,
-  "string.email": VALIDATION_MESSAGES.STRING_EMAIL,
-});
-
-const strongPasswordField = Joi.string().trim().min(8).pattern(REGEX.password).required().messages({
-  "any.required": VALIDATION_MESSAGES.REQUIRED,
-  "string.base": VALIDATION_MESSAGES.STRING_BASE,
-  "string.empty": VALIDATION_MESSAGES.STRING_EMPTY,
-  "string.min": VALIDATION_MESSAGES.STRING_MIN,
-  "string.pattern.base": VALIDATION_MESSAGES.PATTERN_PASSWORD,
-});
-
-export const registerSchema = Joi.object({
-  email: emailField,
+export const registerUserBodySchema = Joi.object({
+  email: Joi.string().trim().lowercase().email().required().messages({
+    "any.required": VALIDATION_MESSAGES.REQUIRED,
+    "string.base": VALIDATION_MESSAGES.STRING_BASE,
+    "string.empty": VALIDATION_MESSAGES.STRING_EMPTY,
+    "string.email": VALIDATION_MESSAGES.STRING_EMAIL,
+  }),
   username: Joi.string().trim().min(3).max(20).pattern(REGEX.username).required().messages({
     "any.required": VALIDATION_MESSAGES.REQUIRED,
     "string.base": VALIDATION_MESSAGES.STRING_BASE,
@@ -28,7 +18,13 @@ export const registerSchema = Joi.object({
     "string.max": VALIDATION_MESSAGES.STRING_MAX,
     "string.pattern.base": VALIDATION_MESSAGES.PATTERN_USERNAME,
   }),
-  password: strongPasswordField,
+  password: Joi.string().trim().min(8).pattern(REGEX.password).required().messages({
+    "any.required": VALIDATION_MESSAGES.REQUIRED,
+    "string.base": VALIDATION_MESSAGES.STRING_BASE,
+    "string.empty": VALIDATION_MESSAGES.STRING_EMPTY,
+    "string.min": VALIDATION_MESSAGES.STRING_MIN,
+    "string.pattern.base": VALIDATION_MESSAGES.PATTERN_PASSWORD,
+  }),
   firstName: Joi.string().trim().min(2).max(50).pattern(REGEX.firstName).required().messages({
     "any.required": VALIDATION_MESSAGES.REQUIRED,
     "string.base": VALIDATION_MESSAGES.STRING_BASE,
@@ -70,44 +66,16 @@ export const registerSchema = Joi.object({
     }),
 });
 
-export const loginSchema = Joi.object({
-  email: emailField,
+export const loginUserBodySchema = Joi.object({
+  email: Joi.string().trim().lowercase().email().required().messages({
+    "any.required": VALIDATION_MESSAGES.REQUIRED,
+    "string.base": VALIDATION_MESSAGES.STRING_BASE,
+    "string.empty": VALIDATION_MESSAGES.STRING_EMPTY,
+    "string.email": VALIDATION_MESSAGES.STRING_EMAIL,
+  }),
   password: Joi.string().trim().required().messages({
     "any.required": VALIDATION_MESSAGES.REQUIRED,
     "string.base": VALIDATION_MESSAGES.STRING_BASE,
     "string.empty": VALIDATION_MESSAGES.STRING_EMPTY,
   }),
-});
-
-export const resendVerificationSchema = Joi.object({
-  email: emailField,
-});
-
-export const verifyEmailSchema = Joi.object({
-  token: Joi.string().trim().required().messages({
-    "any.required": VALIDATION_MESSAGES.REQUIRED,
-    "string.base": VALIDATION_MESSAGES.STRING_BASE,
-    "string.empty": VALIDATION_MESSAGES.STRING_EMPTY,
-  }),
-});
-
-export const requestPasswordResetSchema = Joi.object({
-  email: emailField,
-});
-
-export const verifyResetTokenSchema = Joi.object({
-  token: Joi.string().trim().required().messages({
-    "any.required": VALIDATION_MESSAGES.REQUIRED,
-    "string.base": VALIDATION_MESSAGES.STRING_BASE,
-    "string.empty": VALIDATION_MESSAGES.STRING_EMPTY,
-  }),
-});
-
-export const resetPasswordSchema = Joi.object({
-  token: Joi.string().trim().required().messages({
-    "any.required": VALIDATION_MESSAGES.REQUIRED,
-    "string.base": VALIDATION_MESSAGES.STRING_BASE,
-    "string.empty": VALIDATION_MESSAGES.STRING_EMPTY,
-  }),
-  password: strongPasswordField,
 });

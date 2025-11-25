@@ -28,7 +28,13 @@
       "retrieved_all": "Vehicle list retrieved",
       "retrieved": "Vehicle retrieved successfully",
       "created": "Vehicle created successfully",
-      "updated": "Vehicle updated successfully"
+      "updated": "Vehicle updated successfully",
+      "deleted": "Véhicule deleted successfully"
+    },
+    "preference": {
+      "retrieved_all": "Preference list retrieved",
+      "retrieved": "Preference retrieved successfully",
+      "updated": "Preference updated successfully"
     }
   },
 
@@ -93,6 +99,9 @@
       "energy_invalid": "The specified vehicle energy type is invalid",
       "vehicle_cannot_be_deleted": "This vehicle cannot be deleted because it has active rides"
     },
+    "preference": {
+      "invalid_option": "The selected option is not valid for this category"
+    },
     "ride": {
       "invalid_status_transition": "Invalid status transition for this ride",
       "cannot_modify_seats": "Cannot modify the number of seats for this ride in its current state",
@@ -111,6 +120,7 @@
 
   "validation": {
     "required": "This field is required",
+    "only": "The value must be one of the following options: {{valids}}",
 
     "string_base": "This field must be a string",
     "string_empty": "This field cannot be empty",
@@ -134,5 +144,138 @@
     "pattern_last_name": "The last name can only contain letters and hyphens",
     "pattern_phone": "The phone number must be a valid French format (e.g., 06XXXXXXXX or +33XXXXXXXX)",
     "pattern_license_plate": "The license plate must follow the format AB-123-CD"
+  },
+
+  "display": {
+    "user_roles": {
+      "admin": "Administrator",
+      "moderator": "Moderator",
+      "user": "User"
+    },
+
+    "vehicle_brands": {
+      "renault": "Renault",
+      "peugeot": "Peugeot",
+      "citroen": "Citroen",
+      "ford": "Ford",
+      "tesla": "Tesla",
+      "toyota": "Toyota",
+      "volkswagen": "Volkswagen",
+      "bmw": "BMW",
+      "mercedes": "Mercedes",
+      "audi": "Audi",
+      "nissan": "Nissan",
+      "hyundai": "Hyundai",
+      "kia": "Kia",
+      "dacia": "Dacia",
+      "fiat": "Fiat",
+      "mazda": "Mazda",
+      "honda": "Honda",
+      "chevrolet": "Chevrolet",
+      "jeep": "Jeep",
+      "opel": "Opel",
+      "skoda": "Skoda",
+      "suzuki": "Suzuki",
+      "volvo": "Volvo",
+      "lexus": "Lexus",
+      "alfa_romeo": "Alfa Romeo",
+      "mini": "Mini",
+      "mitsubishi": "Mitsubishi",
+      "land_rover": "Land Rover",
+      "jaguar": "Jaguar",
+      "porsche": "Porsche",
+      "lamborghini": "Lamborghini",
+      "ferrari": "Ferrari",
+      "mclaren": "McLaren",
+      "rolls_royce": "Rolls-Royce",
+      "bentley": "Bentley",
+      "bugatti": "Bugatti",
+      "maserati": "Maserati",
+      "subaru": "Subaru",
+      "isuzu": "Isuzu",
+      "geely": "Geely",
+      "byd": "BYD",
+      "nio": "NIO",
+      "xpeng": "XPeng",
+      "li_auto": "Li Auto",
+      "mg": "MG",
+      "great_wall": "Great Wall",
+      "changan": "Changan",
+      "chery": "Chery",
+      "haval": "Haval",
+      "saic": "SAIC",
+      "acura": "Acura",
+      "infiniti": "Infiniti",
+      "genesis": "Genesis",
+      "cupra": "Cupra",
+      "seat": "Seat",
+      "lancia": "Lancia",
+      "ds": "DS",
+      "polestar": "Polestar",
+      "lucid": "Lucid",
+      "rivian": "Rivian"
+    },
+
+    "vehicle_colors": {
+      "black": "Black",
+      "white": "White",
+      "dark_gray": "Dark gray",
+      "gray": "Gray",
+      "burgundy": "Burgundy",
+      "red": "Red",
+      "dark_blue": "Dark blue",
+      "blue": "Blue",
+      "dark_green": "Dark green",
+      "green": "Green",
+      "brown": "Brown",
+      "beige": "Beige",
+      "orange": "Orange",
+      "yellow": "Yellow",
+      "purple": "Purple",
+      "pink": "Pink"
+    },
+
+    "vehicle_energies": {
+      "petrol": "Petrol",
+      "diesel": "Diesel",
+      "electric": "Electric",
+      "hybrid_petrol": "Petrol Hybrid",
+      "hybrid_diesel": "Diesel Hybrid",
+      "plug_in_hybrid": "Plug-in Hybrid",
+      "lpg": "LPG (Liquefied Petroleum Gas)",
+      "cng": "CNG (Compressed Natural Gas)",
+      "bioethanol": "Bioethanol",
+      "hydrogen": "Hydrogen"
+    },
+
+    "preference_categories": {
+      "chat": "Chat",
+      "music": "Music",
+      "smoking": "Smoking",
+      "animals": "Animals"
+    },
+
+    "preference_options": {
+      "chat": {
+        "chat_allowed": "I talk easily... sometimes even with the GPS!",
+        "chat_sometimes": "I like chatting when I feel comfortable",
+        "no_chat": "I'm not very talkative"
+      },
+      "music": {
+        "music_allowed": "Music is part of the journey!",
+        "music_sometimes": "Music possible, depending on the vibe",
+        "no_music": "I prefer to travel in silence"
+      },
+      "smoking": {
+        "smoking_allowed": "Smoking allowed in the car",
+        "smoking_sometimes": "Cigarette breaks don't bother me",
+        "no_smoking": "No smoking at all"
+      },
+      "animals": {
+        "animals_allowed": "Animals are welcome!",
+        "animals_sometimes": "I can travel with some animals",
+        "no_animals": "I prefer to travel without animals"
+      }
+    }
   }
 }

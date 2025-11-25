@@ -1,11 +1,11 @@
-import type { UserPublicDTO } from "@/types";
+import type { UserPublicDTO, VehicleBrandPublicDTO, VehicleColorPublicDTO, VehicleEnergyPublicDTO } from "@/types";
 
 export interface VehiclePublicDTO {
   id: string;
-  brand: string | null;
+  brand: VehicleBrandPublicDTO | null;
   model: string;
-  color: string | null;
-  energy: string | null;
+  color: VehicleColorPublicDTO | null;
+  energy: VehicleEnergyPublicDTO | null;
   seats: number;
   isEco: boolean;
 }

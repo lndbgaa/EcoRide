@@ -1,15 +1,24 @@
-import { DataTypes, Model, type Sequelize } from "sequelize";
+import { DataTypes, Model } from "sequelize";
 
-import { USER_ROLES_DISPLAY, USER_ROLES_KEY } from "@/constants";
+import { USER_ROLES_KEY } from "@/constants";
 
-import type { UserRoleDisplay, UserRoleId, UserRoleKey } from "@/types";
-
+import type { UserRoleId, UserRoleKey, UserRolePublicDTO } from "@/types";
+import type { TFunction } from "i18next";
+import type { Sequelize } from "sequelize";
 export default class Role extends Model {
   declare id: UserRoleId;
   declare key: UserRoleKey;
-  declare display: UserRoleDisplay;
 
-  public static initModel(sequelize: Sequelize): void {
+  public toPublicDTO(t: TFunction): UserRolePublicDTO {
+    const translationKey = `display.user_roles.${this.key}`;
+    return {
+      id: this.id,
+      key: this.key,
+      display: t(translationKey),
+    };
+  }
+
+  public static initModel(sequelize: Sequelize) {
     Role.init(
       {
         id: {
@@ -21,10 +30,6 @@ export default class Role extends Model {
           type: DataTypes.ENUM(...Object.values(USER_ROLES_KEY)),
           allowNull: false,
           unique: true,
-        },
-        display: {
-          type: DataTypes.ENUM(...Object.values(USER_ROLES_DISPLAY)),
-          allowNull: false,
         },
       },
       {

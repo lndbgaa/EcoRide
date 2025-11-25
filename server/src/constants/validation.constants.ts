@@ -4,6 +4,7 @@ export const ALLOWED_DATE_FORMATS = ["YYYY-MM-DD", "YYYY/MM/DD", "DD/MM/YYYY", "
 
 export const VALIDATION_MESSAGES = {
   REQUIRED: "validation.required",
+  ONLY: "validation.only",
 
   STRING_BASE: "validation.string_base",
   STRING_EMPTY: "validation.string_empty",

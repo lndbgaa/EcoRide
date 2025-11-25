@@ -1,11 +1,26 @@
-import { DataTypes, Model, type Sequelize } from "sequelize";
+import { DataTypes, Model } from "sequelize";
+
+import { PREFERENCE_CATEGORIES_KEY } from "@/constants";
+
+import type { PreferenceCategoryId, PreferenceCategoryKey, PreferenceCategoryPublicDTO } from "@/types";
+import type { TFunction } from "i18next";
+import type { Sequelize } from "sequelize";
 
 export default class PreferenceCategory extends Model {
-  declare id: number;
-  declare key: string;
-  declare display: string;
+  declare id: PreferenceCategoryId;
+  declare key: PreferenceCategoryKey;
 
-  public static initModel(sequelize: Sequelize): void {
+  public toPublicDTO(t: TFunction): PreferenceCategoryPublicDTO {
+    const translationKey = `display.preference_categories.${this.key}`;
+
+    return {
+      id: this.id,
+      key: this.key,
+      display: t(translationKey),
+    };
+  }
+
+  public static initModel(sequelize: Sequelize) {
     this.init(
       {
         id: {
@@ -14,13 +29,9 @@ export default class PreferenceCategory extends Model {
           autoIncrement: true,
         },
         key: {
-          type: DataTypes.STRING(50),
+          type: DataTypes.ENUM(...Object.values(PREFERENCE_CATEGORIES_KEY)),
           allowNull: false,
           unique: true,
-        },
-        display: {
-          type: DataTypes.STRING(100),
-          allowNull: false,
         },
       },
       {
@@ -28,11 +39,6 @@ export default class PreferenceCategory extends Model {
         modelName: "PreferenceCategory",
         tableName: "preference_categories",
         timestamps: false,
-        hooks: {
-          beforeValidate: (category: PreferenceCategory) => {
-            category.key = category.key.trim().toLowerCase();
-          },
-        },
       }
     );
   }

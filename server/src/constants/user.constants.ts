@@ -10,12 +10,6 @@ export const USER_ROLES_KEY = {
   USER: "user",
 } as const;
 
-export const USER_ROLES_DISPLAY = {
-  ADMIN: "Administrateur",
-  MODERATOR: "Modérateur",
-  USER: "Utilisateur",
-} as const;
-
 export const USER_STATUSES = {
   ACTIVE: "active",
   SUSPENDED: "suspended",

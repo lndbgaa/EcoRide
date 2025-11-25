@@ -22,11 +22,18 @@ export async function up(queryInterface, Sequelize) {
       onUpdate: "CASCADE",
       onDelete: "RESTRICT",
     },
+    category_id: {
+      type: Sequelize.INTEGER,
+      allowNull: false,
+      references: { model: "preference_categories", key: "id" },
+      onUpdate: "CASCADE",
+      onDelete: "RESTRICT",
+    },
   });
 
-  await queryInterface.addIndex("preferences", ["user_id", "option_id"], {
+  await queryInterface.addIndex("preferences", ["user_id", "category_id"], {
     unique: true,
-    name: "unique_option_per_user",
+    name: "unique_user_category",
   });
 }
 

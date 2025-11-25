@@ -20,14 +20,6 @@ export async function up(queryInterface, Sequelize) {
       allowNull: false,
       unique: true,
     },
-    display: {
-      type: Sequelize.STRING(100),
-      allowNull: false,
-    },
-    icon: {
-      type: Sequelize.STRING(100),
-      allowNull: true, // FIXME mettre à false quand icones prêtes
-    },
   });
 }
 

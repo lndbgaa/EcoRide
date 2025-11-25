@@ -3,7 +3,7 @@ import Joi from "joi";
 
 import { ALLOWED_DATE_FORMATS, MINIMUM_USER_AGE, REGEX, VALIDATION_MESSAGES } from "@/constants";
 
-export const updateUserPasswordSchema = Joi.object({
+export const updateUserPasswordBodySchema = Joi.object({
   currentPassword: Joi.string().trim().required().messages({
     "any.required": VALIDATION_MESSAGES.REQUIRED,
     "string.base": VALIDATION_MESSAGES.STRING_BASE,
@@ -18,7 +18,7 @@ export const updateUserPasswordSchema = Joi.object({
   }),
 });
 
-export const updateUserInfoSchema = Joi.object({
+export const updateUserInfoBodySchema = Joi.object({
   username: Joi.string().trim().min(3).max(20).pattern(REGEX.username).optional().messages({
     "string.base": VALIDATION_MESSAGES.STRING_BASE,
     "string.empty": VALIDATION_MESSAGES.STRING_EMPTY,

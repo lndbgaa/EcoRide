@@ -15,6 +15,7 @@ import { AppError, calculateAge, capitalize, formatDateTime, setIfChanged, toDat
 
 import type { Role } from "@/models/mysql";
 import type { UpdateUserInfoPayload, UserAdminDTO, UserPrivateDTO, UserPublicDTO, UserRoleId, UserStatus } from "@/types";
+import type { TFunction } from "i18next";
 import type { SaveOptions, Sequelize } from "sequelize";
 
 const { ACTIVE, SUSPENDED, PENDING_DELETION, DELETED } = USER_STATUSES;
@@ -267,10 +268,10 @@ export default class User extends Model {
     };
   }
 
-  public toAdminDTO(): UserAdminDTO {
+  public toAdminDTO(t: TFunction): UserAdminDTO {
     return {
       ...this.toPrivateDTO(),
-      role: this.role?.display ?? null,
+      role: this.role?.toPublicDTO(t) ?? null,
       status: this.status,
       suspendedAt: this.suspended_at ? formatDateTime(this.suspended_at) : null,
       pendingDeletionAt: this.pending_deletion_at ? formatDateTime(this.pending_deletion_at) : null,

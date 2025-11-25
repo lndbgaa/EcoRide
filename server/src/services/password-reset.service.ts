@@ -40,13 +40,7 @@ export class PasswordResetService {
     });
 
     try {
-      await sendEmail(
-        transporter,
-        gmail.user,
-        user.email,
-        "Réinitialisation de ton mot de passe – EcoRide",
-        content
-      );
+      await sendEmail(transporter, gmail.user, user.email, "Réinitialisation de ton mot de passe – EcoRide", content);
       // TODO ajouter i18n pour l'email
       // FIXME mettre un retry automatique pour sendEmail
     } catch (err) {
@@ -86,9 +80,7 @@ export class PasswordResetService {
       throw new AppError({
         statusCode: 400,
         userMessageKey: AUTH_ERROR_MESSAGES.PASSWORD_RESET_TOKEN_INVALID,
-        debugMessage: tokenRecord.used_at
-          ? "Password reset token already used"
-          : "Password reset token expired",
+        debugMessage: tokenRecord.used_at ? "Password reset token already used" : "Password reset token expired",
         code: AUTH_ERROR_CODES.PASSWORD_RESET_TOKEN_INVALID,
         debugCode: tokenRecord.used_at
           ? DEBUG_CODES.AUTH.PASSWORD_RESET_TOKEN_ALREADY_USED
@@ -129,10 +121,7 @@ export class PasswordResetService {
 
       user.password = password;
 
-      await Promise.all([
-        user.save({ transaction: t, fields: ["password"] }),
-        tokenRecord.markAsUsed({ transaction: t }),
-      ]);
+      await Promise.all([user.save({ transaction: t, fields: ["password"] }), tokenRecord.markAsUsed({ transaction: t })]);
     });
   }
 

@@ -28,7 +28,13 @@
       "retrieved_all": "Liste des véhicules récupérée",
       "retrieved": "Véhicule récupéré avec succès",
       "created": "Véhicule créé avec succès",
-      "updated": "Véhicule mis à jour avec succès"
+      "updated": "Véhicule mis à jour avec succès",
+      "deleted": "Véhicule supprimé avec succès"
+    },
+    "preference": {
+      "retrieved_all": "Liste des préférences récupérée",
+      "retrieved": "Préférence récupérée avec succès",
+      "updated": "Préférence mise à jour avec succès"
     }
   },
 
@@ -93,6 +99,9 @@
       "energy_invalid": "Le type d'énergie de véhicule spécifié est invalide",
       "vehicle_cannot_be_deleted": "Ce véhicule ne peut pas être supprimé car il a des trajets actifs"
     },
+    "preference": {
+      "invalid_option": "L'option sélectionnée n'est pas valide pour cette catégorie"
+    },
     "ride": {
       "invalid_status_transition": "Transition de statut invalide pour ce trajet",
       "cannot_modify_seats": "Impossible de modifier le nombre de places pour ce trajet dans son état actuel",
@@ -111,6 +120,7 @@
 
   "validation": {
     "required": "Ce champ est requis",
+    "only": "La valeur doit être l'une des options suivantes : {{valids}}",
 
     "string_base": "Ce champ doit être une chaîne de caractères",
     "string_empty": "Ce champ ne peut pas être vide",
@@ -134,5 +144,138 @@
     "pattern_last_name": "Le nom de famille ne peut contenir que des lettres et des tirets",
     "pattern_phone": "Le numéro de téléphone doit être au format français valide (ex: 06XXXXXXXX ou +33XXXXXXXX)",
     "pattern_license_plate": "La plaque d'immatriculation doit respecter le format AB-123-CD"
+  },
+
+  "display": {
+    "user_roles": {
+      "admin": "Administrateur",
+      "moderator": "Modérateur",
+      "user": "Utilisateur"
+    },
+
+    "vehicle_brands": {
+      "renault": "Renault",
+      "peugeot": "Peugeot",
+      "citroen": "Citroën",
+      "ford": "Ford",
+      "tesla": "Tesla",
+      "toyota": "Toyota",
+      "volkswagen": "Volkswagen",
+      "bmw": "BMW",
+      "mercedes": "Mercedes",
+      "audi": "Audi",
+      "nissan": "Nissan",
+      "hyundai": "Hyundai",
+      "kia": "Kia",
+      "dacia": "Dacia",
+      "fiat": "Fiat",
+      "mazda": "Mazda",
+      "honda": "Honda",
+      "chevrolet": "Chevrolet",
+      "jeep": "Jeep",
+      "opel": "Opel",
+      "skoda": "Skoda",
+      "suzuki": "Suzuki",
+      "volvo": "Volvo",
+      "lexus": "Lexus",
+      "alfa_romeo": "Alfa Romeo",
+      "mini": "Mini",
+      "mitsubishi": "Mitsubishi",
+      "land_rover": "Land Rover",
+      "jaguar": "Jaguar",
+      "porsche": "Porsche",
+      "lamborghini": "Lamborghini",
+      "ferrari": "Ferrari",
+      "mclaren": "McLaren",
+      "rolls_royce": "Rolls-Royce",
+      "bentley": "Bentley",
+      "bugatti": "Bugatti",
+      "maserati": "Maserati",
+      "subaru": "Subaru",
+      "isuzu": "Isuzu",
+      "geely": "Geely",
+      "byd": "BYD",
+      "nio": "NIO",
+      "xpeng": "XPeng",
+      "li_auto": "Li Auto",
+      "mg": "MG",
+      "great_wall": "Great Wall",
+      "changan": "Changan",
+      "chery": "Chery",
+      "haval": "Haval",
+      "saic": "SAIC",
+      "acura": "Acura",
+      "infiniti": "Infiniti",
+      "genesis": "Genesis",
+      "cupra": "Cupra",
+      "seat": "Seat",
+      "lancia": "Lancia",
+      "ds": "DS",
+      "polestar": "Polestar",
+      "lucid": "Lucid",
+      "rivian": "Rivian"
+    },
+
+    "vehicle_colors": {
+      "black": "Noir",
+      "white": "Blanc",
+      "dark_gray": "Gris foncé",
+      "gray": "Gris",
+      "burgundy": "Bordeaux",
+      "red": "Rouge",
+      "dark_blue": "Bleu foncé",
+      "blue": "Bleu",
+      "dark_green": "Vert foncé",
+      "green": "Vert",
+      "brown": "Marron",
+      "beige": "Beige",
+      "orange": "Orange",
+      "yellow": "Jaune",
+      "purple": "Violet",
+      "pink": "Rose"
+    },
+
+    "vehicle_energies": {
+      "petrol": "Essence",
+      "diesel": "Diesel",
+      "electric": "Électrique",
+      "hybrid_petrol": "Hybride Essence",
+      "hybrid_diesel": "Hybride Diesel",
+      "plug_in_hybrid": "Hybride rechargeable",
+      "lpg": "GPL",
+      "cng": "GNV",
+      "bioethanol": "Bioéthanol",
+      "hydrogen": "Hydrogène"
+    },
+
+    "preference_categories": {
+      "chat": "Discussion",
+      "music": "Musique",
+      "smoking": "Cigarette",
+      "animals": "Animaux"
+    },
+
+    "preference_options": {
+      "chat": {
+        "chat_allowed": "Je parle facilement… parfois même avec le GPS !",
+        "chat_sometimes": "J'aime discuter quand je me sens à l'aise",
+        "no_chat": "Je ne suis pas très bavard(e)"
+      },
+      "music": {
+        "music_allowed": "La musique fait partie du voyage !",
+        "music_sometimes": "Musique possible, selon l'ambiance",
+        "no_music": "Je préfère voyager dans le calme"
+      },
+      "smoking": {
+        "smoking_allowed": "Cigarettes autorisées dans la voiture",
+        "smoking_sometimes": "Les pauses cigarette ne me dérangent pas",
+        "no_smoking": "Pas de cigarette du tout"
+      },
+      "animals": {
+        "animals_allowed": "Les animaux sont les bienvenus !",
+        "animals_sometimes": "Je peux voyager avec certains animaux",
+        "no_animals": "Je préfère voyager sans animaux"
+      }
+    }
   }
 }
