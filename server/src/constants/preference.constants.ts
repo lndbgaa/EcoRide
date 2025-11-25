@@ -14,6 +14,14 @@ export const PREFERENCE_CATEGORIES_KEY = {
   ANIMALS: "animals",
 } as const;
 
-export const PREFERENCE_ASSOCIATIONS: Includeable[] = [{ association: "category" }, { association: "option" }];
+export const PREFERENCE_ASSOCIATIONS: Includeable[] = [
+  { association: "category" },
+  { association: "option" },
+];
 
-export const USER_DEFAULT_PREFERENCES_KEYS = ["chat_sometimes", "music_sometimes", "no_smoking", "no_animals"];
+export const USER_DEFAULT_PREFERENCES_KEYS = [
+  "chat_sometimes",
+  "music_sometimes",
+  "no_smoking",
+  "no_animals",
+];

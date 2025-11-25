@@ -1,7 +1,11 @@
 import { DataTypes, Model } from "sequelize";
 
 import type { PreferenceCategory } from "@/models/mysql";
-import type { PreferenceCategoryId, PreferenceCategoryKey, PreferenceOptionPublicDTO } from "@/types";
+import type {
+  PreferenceCategoryId,
+  PreferenceCategoryKey,
+  PreferenceOptionPublicDTO,
+} from "@/types";
 import type { TFunction } from "i18next";
 import type { Sequelize } from "sequelize";
 
@@ -12,11 +16,14 @@ export default class PreferenceOption extends Model {
 
   declare category?: PreferenceCategory;
 
-  public toPublicDTO(t: TFunction, categoryKey: PreferenceCategoryKey | undefined): PreferenceOptionPublicDTO {
+  public toPublicDTO(
+    t: TFunction,
+    categoryKey: PreferenceCategoryKey | undefined
+  ): PreferenceOptionPublicDTO {
     let displayValue: string;
 
     if (categoryKey) {
-      const translationKey = `display.preference_options.${categoryKey}.${this.key}`;
+      const translationKey = `ui:preference_options.${categoryKey}.${this.key}`;
       displayValue = t(translationKey);
     } else {
       displayValue = this.key;

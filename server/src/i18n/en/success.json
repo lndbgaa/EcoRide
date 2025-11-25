@@ -1,0 +1,33 @@
+{
+  "auth": {
+    "registered": "Account created successfully! A verification email has been sent",
+    "logged_in": "Login successful",
+    "refreshed": "Your session has been successfully refreshed",
+    "logged_out": "Logout successful",
+    "email_verification_sent": "If an account exists with this email, a verification link has been sent",
+    "email_verified": "Your email has been successfully verified. You can now sign in",
+    "password_reset_sent": "If an account exists with this email, a password reset link has been sent",
+    "password_reset_token_valid": "The password reset link is valid",
+    "password_reset_completed": "Your password has been successfully reset. You can now sign in"
+  },
+  "user": {
+    "personal_data_retrieved": "Your information has been successfully retrieved",
+    "profile_updated": "Your profile has been updated successfully",
+    "password_updated": "Your password has been updated successfully",
+    "picture_updated": "Your profile picture has been updated successfully",
+    "deletion_requested": "Your account deletion request has been confirmed. Your account will be permanently deleted in 30 days unless you log in to cancel.",
+    "deletion_cancelled": "Your account has been successfully reactivated. Welcome back!"
+  },
+  "vehicle": {
+    "retrieved_all": "Vehicle list retrieved",
+    "retrieved": "Vehicle retrieved successfully",
+    "created": "Vehicle created successfully",
+    "updated": "Vehicle updated successfully",
+    "deleted": "Véhicule deleted successfully"
+  },
+  "preference": {
+    "retrieved_all": "Preference list retrieved",
+    "retrieved": "Preference retrieved successfully",
+    "updated": "Preference updated successfully"
+  }
+}

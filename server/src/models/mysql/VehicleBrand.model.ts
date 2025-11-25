@@ -9,7 +9,7 @@ export default class VehicleBrand extends Model {
   declare key: string;
 
   public toPublicDTO(t: TFunction): VehicleBrandPublicDTO {
-    const translationKey = `display.vehicle_brands.${this.key}`;
+    const translationKey = `ui:vehicle_brands.${this.key}`;
 
     return {
       id: this.id,

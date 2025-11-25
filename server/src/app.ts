@@ -37,9 +37,9 @@ app.use(sanitizeAll);
 app.get("/", (req, res) => {
   res.json({
     status: "ok",
-    name: req.t("app.name"),
+    name: req.t("app:name"),
     version: "1.0.0",
-    message: req.t("app.welcome"),
+    message: req.t("app:welcome"),
     env: appConfig.env,
   });
 });

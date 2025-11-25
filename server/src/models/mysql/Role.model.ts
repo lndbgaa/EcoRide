@@ -10,7 +10,7 @@ export default class Role extends Model {
   declare key: UserRoleKey;
 
   public toPublicDTO(t: TFunction): UserRolePublicDTO {
-    const translationKey = `display.user_roles.${this.key}`;
+    const translationKey = `ui:user_roles.${this.key}`;
     return {
       id: this.id,
       key: this.key,

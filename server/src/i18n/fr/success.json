@@ -1,0 +1,33 @@
+{
+  "auth": {
+    "registered": "Compte créé avec succès ! Un email de vérification t'a été envoyé",
+    "logged_in": "Connexion réussie",
+    "refreshed": "Ta session a été renouvelée avec succès",
+    "logged_out": "Déconnexion réussie",
+    "email_verification_sent": "Si un compte existe avec cet email, un lien de vérification lui a été envoyé",
+    "email_verified": "Ton email a été vérifié avec succès. Tu peux maintenant te connecter",
+    "password_reset_sent": "Si un compte existe avec cet email, un lien de réinitialisation de mot de passe lui a été envoyé",
+    "password_reset_token_valid": "Le lien de réinitialisation de mot de passe est valide",
+    "password_reset_completed": "Ton mot de passe a été réinitialisé avec succès. Tu peux maintenant te connecter"
+  },
+  "user": {
+    "personal_data_retrieved": "Tes informations ont été récupérées avec succès",
+    "profile_updated": "Ton profil a été mis à jour avec succès",
+    "password_updated": "Ton mot de passe a été mis à jour avec succès",
+    "picture_updated": "Ta photo de profil a été mise à jour avec succès",
+    "deletion_requested": "Ta demande de suppression de compte a été confirmée. Ton compte sera définitivement supprimé dans 30 jours sauf si tu te reconnectes pour annuler",
+    "deletion_cancelled": "Ton compte a été réactivé avec succès. Heureux de te revoir !"
+  },
+  "vehicle": {
+    "retrieved_all": "Liste des véhicules récupérée",
+    "retrieved": "Véhicule récupéré avec succès",
+    "created": "Véhicule créé avec succès",
+    "updated": "Véhicule mis à jour avec succès",
+    "deleted": "Véhicule supprimé avec succès"
+  },
+  "preference": {
+    "retrieved_all": "Liste des préférences récupérée",
+    "retrieved": "Préférence récupérée avec succès",
+    "updated": "Préférence mise à jour avec succès"
+  }
+}

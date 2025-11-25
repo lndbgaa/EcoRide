@@ -2,7 +2,11 @@ import { DataTypes, Model } from "sequelize";
 
 import { PREFERENCE_CATEGORIES_KEY } from "@/constants";
 
-import type { PreferenceCategoryId, PreferenceCategoryKey, PreferenceCategoryPublicDTO } from "@/types";
+import type {
+  PreferenceCategoryId,
+  PreferenceCategoryKey,
+  PreferenceCategoryPublicDTO,
+} from "@/types";
 import type { TFunction } from "i18next";
 import type { Sequelize } from "sequelize";
 
@@ -11,7 +15,7 @@ export default class PreferenceCategory extends Model {
   declare key: PreferenceCategoryKey;
 
   public toPublicDTO(t: TFunction): PreferenceCategoryPublicDTO {
-    const translationKey = `display.preference_categories.${this.key}`;
+    const translationKey = `ui:preference_categories.${this.key}`;
 
     return {
       id: this.id,

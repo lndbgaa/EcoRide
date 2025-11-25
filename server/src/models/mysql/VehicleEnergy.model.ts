@@ -9,7 +9,7 @@ export default class VehicleEnergy extends Model {
   declare key: string;
 
   public toPublicDTO(t: TFunction): VehicleEnergyPublicDTO {
-    const translationKey = `display.vehicle_energies.${this.key}`;
+    const translationKey = `ui:vehicle_energies.${this.key}`;
 
     return {
       id: this.id,

@@ -1,0 +1,84 @@
+{
+  "common": {
+    "internal_server_error": "An unexpected error occurred",
+    "validation_error": "The provided data is invalid",
+    "forbidden_access": "You do not have permission to access this resource",
+    "resource_not_found": "The requested resource was not found",
+    "no_changes_detected": "No changes detected"
+  },
+
+  "rate_limit": {
+    "default": "Too many requests. Please wait a moment before trying again",
+    "register": "Too many registration attempts. Please wait a few minutes before trying again",
+    "login": "Too many login attempts. Please wait a few minutes before trying again",
+    "password_reset": "Too many password reset requests. Please try again in one hour"
+  },
+
+  "upload": {
+    "image": {
+      "file_missing": "No image file was provided. Please select a file to upload",
+      "upload_failed": "Failed to upload image. Please try again"
+    }
+  },
+
+  "auth": {
+    "authentication_required": "You must be logged in to access this resource",
+    "session_invalid": "Your session is no longer valid. Please log in again",
+    "role_invalid": "You do not have permission to access this resource",
+    "invalid_credentials": "Invalid credentials",
+    "email_already_exists": "This email address is already in use",
+    "username_already_exists": "This username is already taken",
+    "email_verification_token_invalid": "The verification link is invalid or has expired",
+    "email_verification_send_failed": "Unable to send verification email. Please try again",
+    "password_reset_token_invalid": "The password reset link is invalid or has expired",
+    "password_reset_send_failed": "Unable to send password reset email. Please try again",
+    "account_email_already_verified": "Your email address is already verified",
+    "account_email_not_verified": "Please verify your email address before logging in",
+    "account_suspended": "Your account has been suspended. Please contact support for more information",
+    "account_pending_deletion": "Your account is pending deletion"
+  },
+
+  "user": {
+    "invalid_status_transition": "Invalid status transition for this user",
+    "invalid_credit_amount": "The credit amount must be a positive integer",
+    "insufficient_credits": "You do not have enough credits to perform this action",
+    "current_password_incorrect": "Current password is incorrect",
+    "new_password_same_as_old": "New password must be different from the old password",
+    "profile_picture_invalid_file_type": "Invalid image type. Allowed types: JPEG, PNG, WebP",
+    "profile_picture_file_too_large": "Image file is too large. Maximum size: 5 MB",
+    "deletion_already_requested": "A deletion request is already in progress for this account",
+    "no_deletion_requested": "No deletion request found. Your account is currently active",
+    "deletion_period_expired": "The 30-day reactivation period has expired. Your account has been permanently deleted",
+    "has_active_rides_or_bookings": "You have active rides or bookings; your account cannot be deleted at this time"
+  },
+
+  "vehicle": {
+    "license_plate_already_exists": "This license plate is already registered",
+    "brand_invalid": "The specified vehicle brand is invalid",
+    "color_invalid": "The specified vehicle color is invalid",
+    "energy_invalid": "The specified vehicle energy type is invalid",
+    "vehicle_cannot_be_deleted": "This vehicle cannot be deleted because it has active rides"
+  },
+
+  "preference": {
+    "invalid_option": "The selected option is not valid for this category"
+  },
+
+  "ride": {
+    "invalid_status_transition": "Invalid status transition for this ride",
+    "cannot_modify_seats": "Cannot modify the number of seats for this ride in its current state",
+    "invalid_seat_amount": "Number of seats must be a positive integer",
+    "exceeds_offered_seats": "Cannot add this number of seats: it would exceed the total offered seats",
+    "not_enough_available_seats": "Cannot remove this number of seats: not enough seats available"
+  },
+
+  "booking": {
+    "invalid_status_transition": "Invalid status transition for this booking"
+  },
+
+  "review": {
+    "invalid_status_transition": "Invalid status transition for this review"
+  },
+
+  "incident": {}
+}

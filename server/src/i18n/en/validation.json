@@ -1,0 +1,27 @@
+{
+  "required": "This field is required",
+  "only": "The value must be one of the following options: {{valids}}",
+
+  "string_base": "This field must be a string",
+  "string_empty": "This field cannot be empty",
+  "string_min": "This field must be at least {{limit}} characters long",
+  "string_max": "This field must be at most {{limit}} characters long",
+  "string_email": "The email address must be valid",
+  "string_uuid": "The identifier must be a valid UUID",
+
+  "number_base": "This field must be a number",
+  "number_integer": "This field must be an integer",
+  "number_min": "The value must be greater than or equal to {{limit}}",
+  "number_max": "The value must be less than or equal to {{limit}}",
+
+  "date_invalid": "The provided date is invalid",
+  "date_before_now": "The date must be earlier than today",
+  "date_too_young": "You must be at least {{minAge}} years old to proceed",
+
+  "pattern_username": "The username must start with a letter, and can only contain letters, numbers, hyphens, or underscores",
+  "pattern_password": "The password must contain at least one uppercase letter, one lowercase letter, one number, and one special character",
+  "pattern_first_name": "The first name can only contain letters and hyphens",
+  "pattern_last_name": "The last name can only contain letters and hyphens",
+  "pattern_phone": "The phone number must be a valid French format (e.g., 06XXXXXXXX or +33XXXXXXXX)",
+  "pattern_license_plate": "The license plate must follow the format AB-123-CD"
+}

@@ -16,6 +16,8 @@ i18next
     },
     fallbackLng: "fr",
     preload: ["fr", "en"],
+    ns: ["app", "success", "errors", "validation", "ui"],
+    defaultNS: "app",
   });
 
 export { i18next };

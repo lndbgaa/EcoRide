@@ -1,0 +1,84 @@
+{
+  "common": {
+    "internal_server_error": "Une erreur inattendue s'est produite",
+    "validation_error": "Les données fournies sont invalides",
+    "forbidden_access": "Vous n'avez pas l'autorisation d'accéder à cette ressource",
+    "resource_not_found": "La ressource demandée est introuvable",
+    "no_changes_detected": "Aucun changement détecté"
+  },
+
+  "rate_limit": {
+    "default": "Trop de requêtes. Merci de patienter quelques instants avant de réessayer",
+    "register": "Trop de tentatives d'inscription. Merci de patienter quelques minutes avant de réessayer",
+    "login": "Trop de tentatives de connexion. Merci de patienter quelques minutes avant de réessayer",
+    "password_reset": "Trop de demandes de réinitialisation de mot de passe. Veuillez réessayer dans une heure"
+  },
+
+  "upload": {
+    "image": {
+      "file_missing": "Aucun fichier image n'a été fourni. Merci de sélectionner un fichier à télécharger",
+      "upload_failed": "Échec du téléchargement de l'image. Merci de réessayer"
+    }
+  },
+
+  "auth": {
+    "authentication_required": "Tu dois être connecté pour accéder à cette ressource",
+    "session_invalid": "Ta session n'est plus valide. Merci de te reconnecter",
+    "role_invalid": "Tu n'as pas la permission d’accéder à cette ressource",
+    "invalid_credentials": "Identifiants incorrects",
+    "email_already_exists": "Cette adresse e-mail est déjà utilisée",
+    "username_already_exists": "Ce nom d’utilisateur est déjà pris",
+    "email_verification_token_invalid": "Le lien de vérification est invalide ou a expiré",
+    "email_verification_send_failed": "Impossible d'envoyer l'email de vérification. Veuillez réessayer",
+    "password_reset_token_invalid": "Le lien de réinitialisation de mot de passe est invalide ou a expiré",
+    "password_reset_send_failed": "Impossible d'envoyer l'email de réinitialisation de mot de passe. Veuillez réessayer",
+    "account_email_already_verified": "Ton adresse email est déjà vérifiée",
+    "account_email_not_verified": "Merci de vérifier ton adresse email avant de te connecter",
+    "account_suspended": "Ton compte a été suspendu. Contacte le support pour plus d'informations",
+    "account_pending_deletion": "Ton compte est en attente de suppression"
+  },
+
+  "user": {
+    "invalid_status_transition": "Transition de statut invalide pour cet utilisateur",
+    "invalid_credit_amount": "Le montant des crédits doit être un entier positif",
+    "insufficient_credits": "Tu n'as pas assez de crédits pour effectuer cette action",
+    "current_password_incorrect": "Le mot de passe actuel est incorrect",
+    "new_password_same_as_old": "Le nouveau mot de passe doit être différent de l'ancien",
+    "profile_picture_invalid_file_type": "Type d'image invalide. Types autorisés : JPEG, PNG, WebP",
+    "profile_picture_file_too_large": "L'image est trop volumineuse. Taille maximale : 5 Mo",
+    "deletion_already_requested": "Une demande de suppression est déjà en cours pour ce compte",
+    "no_deletion_requested": "Aucune demande de suppression trouvée. Ton compte est actuellement actif",
+    "deletion_period_expired": "Le délai de réactivation de 30 jours est expiré. Ton compte a été définitivement supprimé",
+    "has_active_rides_or_bookings": "Vous avez des trajets ou réservations en cours, la suppression de votre compte est impossible pour le moment"
+  },
+
+  "vehicle": {
+    "license_plate_already_exists": "Cette plaque d'immatriculation est déjà enregistrée",
+    "brand_invalid": "La marque de véhicule spécifiée est invalide",
+    "color_invalid": "La couleur de véhicule spécifiée est invalide",
+    "energy_invalid": "Le type d'énergie de véhicule spécifié est invalide",
+    "vehicle_cannot_be_deleted": "Ce véhicule ne peut pas être supprimé car il a des trajets actifs"
+  },
+
+  "preference": {
+    "invalid_option": "L'option sélectionnée n'est pas valide pour cette catégorie"
+  },
+
+  "ride": {
+    "invalid_status_transition": "Transition de statut invalide pour ce trajet",
+    "cannot_modify_seats": "Impossible de modifier le nombre de places pour ce trajet dans son état actuel",
+    "invalid_seat_amount": "Le nombre de places doit être un entier positif",
+    "exceeds_offered_seats": "Impossible d'ajouter ce nombre de places : cela dépasserait le nombre total de places offertes",
+    "not_enough_available_seats": "Impossible de retirer ce nombre de places : il n'y a pas assez de places disponibles"
+  },
+
+  "booking": {
+    "invalid_status_transition": "Transition de statut invalide pour cette réservation"
+  },
+
+  "review": {
+    "invalid_status_transition": "Transition de statut invalide pour cet avis"
+  },
+
+  "incident": {}
+}

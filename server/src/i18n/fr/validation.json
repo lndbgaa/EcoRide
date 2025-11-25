@@ -1,0 +1,27 @@
+{
+  "required": "Ce champ est requis",
+  "only": "La valeur doit être l'une des options suivantes : {{valids}}",
+
+  "string_base": "Ce champ doit être une chaîne de caractères",
+  "string_empty": "Ce champ ne peut pas être vide",
+  "string_min": "Ce champ doit contenir au moins {{limit}} caractères",
+  "string_max": "Ce champ doit contenir au maximum {{limit}} caractères",
+  "string_email": "L'adresse e-mail doit être valide",
+  "string_uuid": "L'identifiant doit être un UUID valide",
+
+  "number_base": "Ce champ doit être un nombre",
+  "number_integer": "Ce champ doit être un nombre entier",
+  "number_min": "La valeur doit être supérieure ou égale à {{limit}}",
+  "number_max": "La valeur doit être inférieure ou égale à {{limit}}",
+
+  "date_invalid": "La date fournie est invalide",
+  "date_before_now": "La date doit être antérieure à aujourd'hui",
+  "date_too_young": "Vous devez avoir au moins {{minAge}} ans pour continuer",
+
+  "pattern_username": "Le nom d'utilisateur doit commencer par une lettre, et ne peut inclure que des lettres, chiffres, tirets ou underscores",
+  "pattern_password": "Le mot de passe doit contenir au moins une majuscule, une minuscule, un chiffre et un caractère spécial",
+  "pattern_first_name": "Le prénom ne peut contenir que des lettres et des tirets",
+  "pattern_last_name": "Le nom de famille ne peut contenir que des lettres et des tirets",
+  "pattern_phone": "Le numéro de téléphone doit être au format français valide (ex: 06XXXXXXXX ou +33XXXXXXXX)",
+  "pattern_license_plate": "La plaque d'immatriculation doit respecter le format AB-123-CD"
+}
