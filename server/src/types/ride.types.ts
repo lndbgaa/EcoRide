@@ -1,12 +1,5 @@
 import type { RIDE_STATUSES } from "@/constants";
-import type {
-  DateTimeDTO,
-  UserAdminDTO,
-  UserPublicDTO,
-  VehicleAdminDTO,
-  VehiclePrivateDTO,
-  VehiclePublicDTO,
-} from "@/types";
+import type { DateTimeDTO, UserAdminDTO, UserPublicDTO, VehicleAdminDTO, VehiclePrivateDTO, VehiclePublicDTO } from "@/types";
 
 export type RideStatus = (typeof RIDE_STATUSES)[keyof typeof RIDE_STATUSES];
 

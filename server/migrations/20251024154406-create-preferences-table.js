@@ -25,9 +25,7 @@ export async function up(queryInterface, Sequelize) {
     category_id: {
       type: Sequelize.INTEGER,
       allowNull: false,
-      references: { model: "preference_categories", key: "id" },
-      onUpdate: "CASCADE",
-      onDelete: "RESTRICT",
+      comment: "Derived from preference_options.category_id for indexing",
     },
   });
 

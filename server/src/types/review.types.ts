@@ -1,12 +1,5 @@
 import type { REVIEW_STATUSES } from "@/constants";
-import type {
-  DateTimeDTO,
-  RideAdminDTO,
-  RidePrivateDTO,
-  RidePublicDTO,
-  UserAdminDTO,
-  UserPublicDTO,
-} from "@/types";
+import type { DateTimeDTO, RideAdminDTO, RidePrivateDTO, RidePublicDTO, UserAdminDTO, UserPublicDTO } from "@/types";
 
 export type ReviewStatus = (typeof REVIEW_STATUSES)[keyof typeof REVIEW_STATUSES];
 

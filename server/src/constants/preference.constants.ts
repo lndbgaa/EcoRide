@@ -15,8 +15,10 @@ export const PREFERENCE_CATEGORIES_KEY = {
 } as const;
 
 export const PREFERENCE_ASSOCIATIONS: Includeable[] = [
-  { association: "category" },
-  { association: "option" },
+  {
+    association: "option",
+    include: [{ association: "category" }],
+  },
 ];
 
 export const USER_DEFAULT_PREFERENCES_KEYS = [

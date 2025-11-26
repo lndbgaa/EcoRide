@@ -1,5 +1,6 @@
 import { appConfig } from "@/config";
 import { AUTH_ERROR_CODES, AUTH_ERROR_MESSAGES, DEBUG_CODES } from "@/constants";
+import { UserService } from "@/services";
 import { AppError, validateJwt } from "@/utils";
 
 import type { NextFunction, Request, Response } from "express";
@@ -7,7 +8,7 @@ import type { NextFunction, Request, Response } from "express";
 const { auth } = appConfig;
 const { accessSecret } = auth;
 
-const requireAuth = (req: Request, res: Response, next: NextFunction): void => {
+const requireAuth = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   const authHeader = req.headers.authorization;
 
   if (!authHeader?.startsWith("Bearer ")) {
@@ -15,7 +16,7 @@ const requireAuth = (req: Request, res: Response, next: NextFunction): void => {
       new AppError({
         statusCode: 401,
         userMessageKey: AUTH_ERROR_MESSAGES.AUTHENTICATION_REQUIRED,
-        debugMessage: "Missing or invalid authorization header",
+        debugMessage: "[requireAuth] Missing or invalid authorization header",
         code: AUTH_ERROR_CODES.AUTHENTICATION_REQUIRED,
         debugCode: DEBUG_CODES.AUTH.HEADER_MISSING,
       })
@@ -29,7 +30,7 @@ const requireAuth = (req: Request, res: Response, next: NextFunction): void => {
       new AppError({
         statusCode: 401,
         userMessageKey: AUTH_ERROR_MESSAGES.AUTHENTICATION_REQUIRED,
-        debugMessage: "Missing authentication token",
+        debugMessage: "[requireAuth] Missing authentication token",
         code: AUTH_ERROR_CODES.AUTHENTICATION_REQUIRED,
         debugCode: DEBUG_CODES.AUTH.ACCESS_TOKEN_MISSING,
       })
@@ -38,7 +39,24 @@ const requireAuth = (req: Request, res: Response, next: NextFunction): void => {
 
   try {
     const decoded = validateJwt(token, accessSecret);
-    req.user = decoded;
+
+    const user = await UserService.findById(decoded.id, {
+      include: [{ association: "role" }],
+    });
+
+    if (!user) {
+      return next(
+        new AppError({
+          statusCode: 401,
+          userMessageKey: AUTH_ERROR_MESSAGES.AUTHENTICATION_REQUIRED,
+          debugMessage: "[requireAuth] Authenticated user not found in database",
+          code: AUTH_ERROR_CODES.AUTHENTICATION_REQUIRED,
+          debugCode: AUTH_ERROR_CODES.USER_NOT_FOUND,
+        })
+      );
+    }
+
+    req.user = user;
 
     return next();
   } catch (err) {

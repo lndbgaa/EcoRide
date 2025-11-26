@@ -1,4 +1,4 @@
-import type { CustomJwtPayload } from "@/types";
+import type { User } from "@/models/mysql";
 import type { Request } from "express";
 
 export interface MulterRequest extends Request {
@@ -8,7 +8,7 @@ export interface MulterRequest extends Request {
 declare global {
   namespace Express {
     interface Request {
-      user?: CustomJwtPayload;
+      user: User;
     }
   }
 }

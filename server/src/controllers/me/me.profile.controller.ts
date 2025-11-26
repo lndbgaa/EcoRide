@@ -1,10 +1,10 @@
 import { appConfig } from "@/config";
 import { COMMON_ERROR_MESSAGES, SUCCESS_MESSAGES } from "@/constants";
-import { UserDeletionService, UserProfileService, UserService } from "@/services";
+import { UserDeletionService, UserProfileService } from "@/services";
 import { AppError, catchAsync, generateRefreshTokenCookieOptions } from "@/utils";
 
 import type { MulterRequest } from "@/@types/express";
-import type { CancelUserDeletionPayload, UpdateUserInfoPayload, UpdateUserPasswordPayload } from "@/types";
+import type { UpdateUserInfoPayload, UpdateUserPasswordPayload } from "@/types";
 import type { Request, Response } from "express";
 
 const { env, auth } = appConfig;
@@ -14,14 +14,12 @@ const { refreshExpiration } = auth;
  * Retrieve the authenticated user's private information.
  */
 export const getMyInfo = catchAsync(async (req: Request, res: Response): Promise<Response> => {
-  const userId = req.user!.id;
-
-  const user = await UserService.findById(userId, 500);
+  const user = req.user;
   const dto = user.toPrivateDTO();
 
   return res.status(200).json({
     success: true,
-    message: req.t(SUCCESS_MESSAGES.USER.PERSONAL_DATA_RETRIEVED),
+    message: req.t(SUCCESS_MESSAGES.USER.DATA_RETRIEVED),
     data: dto,
   });
 });
@@ -30,11 +28,11 @@ export const getMyInfo = catchAsync(async (req: Request, res: Response): Promise
  * Update the authenticated user's profile information.
  */
 export const updateMyInfo = catchAsync(async (req: Request, res: Response): Promise<Response> => {
-  const userId = req.user!.id;
+  const user = req.user;
   const data: UpdateUserInfoPayload = req.body;
 
-  const user = await UserProfileService.updateProfile(userId, data);
-  const dto = user.toPrivateDTO();
+  const updatedUser = await UserProfileService.updateProfile(user, data);
+  const dto = updatedUser.toPrivateDTO();
 
   return res.status(200).json({
     success: true,
@@ -47,10 +45,10 @@ export const updateMyInfo = catchAsync(async (req: Request, res: Response): Prom
  * Update the authenticated user's password.
  */
 export const updateMyPassword = catchAsync(async (req: Request, res: Response): Promise<Response> => {
-  const userId = req.user!.id;
+  const user = req.user;
   const data: UpdateUserPasswordPayload = req.body;
 
-  await UserProfileService.updatePassword(userId, data);
+  await UserProfileService.updatePassword(user, data);
 
   return res.status(200).json({
     success: true,
@@ -62,7 +60,7 @@ export const updateMyPassword = catchAsync(async (req: Request, res: Response): 
  * Update the authenticated user's profile picture.
  */
 export const updateMyPicture = catchAsync(async (req: MulterRequest, res: Response): Promise<Response> => {
-  const userId = req.user!.id;
+  const user = req.user;
 
   const { file } = req;
 
@@ -73,7 +71,7 @@ export const updateMyPicture = catchAsync(async (req: MulterRequest, res: Respon
     });
   }
 
-  const { url } = await UserProfileService.updatePicture(userId, file);
+  const { url } = await UserProfileService.updatePicture(user, file);
 
   return res.status(200).json({
     success: true,
@@ -86,28 +84,14 @@ export const updateMyPicture = catchAsync(async (req: MulterRequest, res: Respon
  * Handle the authenticated user's account deletion request.
  */
 export const requestMyDeletion = catchAsync(async (req: Request, res: Response): Promise<Response> => {
-  const userId = req.user!.id;
+  const user = req.user;
 
-  await UserDeletionService.requestDeletion(userId);
+  await UserDeletionService.requestDeletion(user);
 
   res.clearCookie("refreshToken", generateRefreshTokenCookieOptions(env, refreshExpiration));
 
   return res.status(200).json({
     success: true,
     message: req.t(SUCCESS_MESSAGES.USER.DELETION_REQUESTED),
-  });
-});
-
-/**
- * Handle the authenticated user's deletion request cancellation.
- */
-export const cancelMyDeletionRequest = catchAsync(async (req: Request, res: Response): Promise<Response> => {
-  const data: CancelUserDeletionPayload = req.body;
-
-  await UserDeletionService.cancelDeletion(data);
-
-  return res.status(200).json({
-    success: true,
-    message: req.t(SUCCESS_MESSAGES.USER.DELETION_CANCELLED),
   });
 });

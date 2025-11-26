@@ -22,7 +22,7 @@
   },
 
   "auth": {
-    "authentication_required": "You must be logged in to access this resource",
+    "authentication_required": "Authentication required. Please log in",
     "session_invalid": "Your session is no longer valid. Please log in again",
     "role_invalid": "You do not have permission to access this resource",
     "invalid_credentials": "Invalid credentials",

@@ -22,7 +22,7 @@
   },
 
   "auth": {
-    "authentication_required": "Tu dois être connecté pour accéder à cette ressource",
+    "authentication_required": "Authentification requise. Veuillez vous connecter",
     "session_invalid": "Ta session n'est plus valide. Merci de te reconnecter",
     "role_invalid": "Tu n'as pas la permission d’accéder à cette ressource",
     "invalid_credentials": "Identifiants incorrects",

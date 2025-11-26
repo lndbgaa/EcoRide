@@ -49,7 +49,7 @@ export interface UserAdminDTO extends UserPrivateDTO {
 }
 
 // ===========================
-//     Payloads & Results
+//       Request Payloads
 // =========================== */
 
 export interface UpdateUserInfoPayload {

@@ -5,6 +5,10 @@ export interface CustomJwtPayload extends JwtPayload {
   role: string;
 }
 
+// ===========================
+//       Request Payload
+// =========================== */
+
 export interface RegisterUserPayload {
   email: string;
   username: string;
@@ -19,12 +23,16 @@ export interface LoginUserPayload {
   password: string;
 }
 
-export interface AuthResponse {
-  accessToken: string;
-  refreshToken: string;
-}
-
 export interface ResetPasswordPayload {
   token: string;
   password: string;
+}
+
+// ===========================
+//       Response Types
+// =========================== */
+
+export interface AuthResponse {
+  accessToken: string;
+  refreshToken: string;
 }

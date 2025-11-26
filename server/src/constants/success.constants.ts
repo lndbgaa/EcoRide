@@ -11,7 +11,7 @@ export const SUCCESS_MESSAGES = {
     PASSWORD_RESET_COMPLETED: "success:auth.password_reset_completed",
   },
   USER: {
-    PERSONAL_DATA_RETRIEVED: "success:user.personal_data_retrieved",
+    DATA_RETRIEVED: "success:user.data_retrieved",
     PROFILE_UPDATED: "success:user.profile_updated",
     PASSWORD_UPDATED: "success:user.password_updated",
     PICTURE_UPDATED: "success:user.picture_updated",

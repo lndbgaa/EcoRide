@@ -2,7 +2,7 @@ import { UniqueConstraintError } from "sequelize";
 
 import { appConfig } from "@/config";
 import { AUTH_ERROR_MESSAGES, USER_ERROR_MESSAGES } from "@/constants";
-import { UploadService, UserService } from "@/services";
+import { UploadService } from "@/services";
 import { AppError } from "@/utils";
 
 import type { User } from "@/models/mysql";
@@ -14,17 +14,14 @@ export class UserProfileService {
   /**
    * Updates the profile information of a user.
    *
-   * @param {string} userId - The ID of the user.
+   * @param {User} user - The user instance to update.
    * @param {UpdateUserInfoPayload} data - The new profile data.
    * @returns {Promise<User>} The updated user instance.
    * @throws {AppError} - If:
-   *   - The user is not found (HTTP 500, thrown by UserService.findById)
    *   - The new username is already in use (HTTP 409)
    *   - The update fails due to invalid or unchanged data (HTTP 400, thrown by user.updateProfile)
    */
-  public static async updateProfile(userId: string, data: UpdateUserInfoPayload): Promise<User> {
-    const user = await UserService.findById(userId, 500);
-
+  public static async updateProfile(user: User, data: UpdateUserInfoPayload): Promise<User> {
     try {
       return await user.updateProfile(data);
     } catch (err) {
@@ -41,17 +38,14 @@ export class UserProfileService {
   /**
    * Updates the password of a user.
    *
-   * @param {string} userId - The ID of the user.
+   * @param {User} user - The user instance to update.
    * @param {UpdateUserPasswordPayload} data - The current and new passwords.
    * @returns {Promise<void>}
    * @throws {AppError} - If:
-   *   - The user is not found (HTTP 500, thrown by UserService.findById)
    *   - The current password is incorrect (HTTP 400)
    *   - The new password is the same as the current one (HTTP 400)
    */
-  public static async updatePassword(userId: string, data: UpdateUserPasswordPayload): Promise<void> {
-    const user = await UserService.findById(userId, 500);
-
+  public static async updatePassword(user: User, data: UpdateUserPasswordPayload): Promise<void> {
     const { currentPassword, newPassword } = data;
 
     if (!(await user.checkPassword(currentPassword))) {
@@ -75,18 +69,18 @@ export class UserProfileService {
   /**
    * Updates the profile picture of a user.
    *
-   * @param {string} userId - The ID of the user.
+   * @param {User} user - The user instance to update.
    * @param {Express.Multer.File} file - The uploaded image file.
    * @returns {Promise<{ url: string }>} The URL of the uploaded profile picture.
    * @throws {AppError} - If:
-   *   - The user is not found (HTTP 500, thrown by UserService.findById)
    *   - The file type is invalid (HTTP 400)
    *   - The file size exceeds the maximum allowed limit (HTTP 400)
    *   - The image upload fails (HTTP 500, thrown by UploadService.uploadImage, e.g., Cloudinary error)
    */
-  public static async updatePicture(userId: string, file: Express.Multer.File): Promise<{ url: string }> {
-    const user = await UserService.findById(userId, 500);
-
+  public static async updatePicture(
+    user: User,
+    file: Express.Multer.File
+  ): Promise<{ url: string }> {
     const allowedImageMimedTypes = ["image/jpeg", "image/png", "image/webp"];
 
     if (!allowedImageMimedTypes.includes(file.mimetype)) {
@@ -107,7 +101,7 @@ export class UserProfileService {
       });
     }
 
-    const folderPath = `ecoride/${env}/users/${userId}/profile_picture`;
+    const folderPath = `ecoride/${env}/users/${user.id}/profile_picture`;
     const { secure_url } = await UploadService.uploadImage(file, folderPath);
 
     await user.update({ profile_picture: secure_url });

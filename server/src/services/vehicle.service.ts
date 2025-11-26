@@ -5,14 +5,9 @@ import { sequelize } from "@/config";
 import { COMMON_ERROR_MESSAGES, RIDE_STATUSES, VEHICLE_ASSOCIATIONS } from "@/constants";
 import { VEHICLE_ERROR_MESSAGES } from "@/constants/errors";
 import { Ride, Vehicle, VehicleBrand, VehicleColor, VehicleEnergy } from "@/models/mysql";
-import { UserService } from "@/services";
 import { AppError } from "@/utils";
 
-import type {
-  CreateVehiclePayload,
-  UpdateVehiclePayload,
-  VehicleCreationAttributes,
-} from "@/types";
+import type { CreateVehiclePayload, UpdateVehiclePayload, VehicleCreationAttributes } from "@/types";
 import type { FindOptions } from "sequelize";
 
 export class VehicleService {
@@ -21,12 +16,8 @@ export class VehicleService {
    *
    * @param {string} userId - The ID of the user.
    * @returns {Promise<Vehicle[]>} - A list of the user's vehicles.
-   * @throws {AppError} - If:
-   *   - The user does not exist (HTTP 500, thrown by UserService.findById).
    */
   public static async getUserVehicles(userId: string): Promise<Vehicle[]> {
-    await UserService.findById(userId, 500);
-
     const vehicles = await Vehicle.findAll({
       where: { owner_id: userId },
       include: VEHICLE_ASSOCIATIONS,
@@ -45,11 +36,7 @@ export class VehicleService {
    * @throws {AppError} - If:
    *   - The vehicle is not found or the ownership check fails (HTTP 404).
    */
-  public static async findOwnedVehicleById(
-    userId: string,
-    vehicleId: string,
-    options?: FindOptions
-  ): Promise<Vehicle> {
+  public static async findOwnedVehicleById(userId: string, vehicleId: string, options?: FindOptions): Promise<Vehicle> {
     const vehicle = await Vehicle.findOne({
       where: {
         id: vehicleId,
@@ -77,13 +64,10 @@ export class VehicleService {
    * @param {CreateVehiclePayload} data - The data for the new vehicle.
    * @returns {Promise<Vehicle>} - The newly created vehicle instance.
    * @throws {AppError} - If:
-   *   - The user does not exist (HTTP 500, thrown by UserService.findById).
    *   - The license plate is already registered by another vehicle (HTTP 409).
    *   - Provided brandId, colorId, or energyId is invalid (HTTP 400).
    */
   public static async createVehicle(userId: string, data: CreateVehiclePayload): Promise<Vehicle> {
-    await UserService.findById(userId, 500);
-
     return sequelize.transaction(async (t) => {
       const licensePlateExists = !!(await Vehicle.findOne({
         attributes: ["id"],
@@ -109,11 +93,13 @@ export class VehicleService {
           statusCode: 400,
           userMessageKey: VEHICLE_ERROR_MESSAGES.BRAND_INVALID,
         });
+
       if (!color)
         throw new AppError({
           statusCode: 400,
           userMessageKey: VEHICLE_ERROR_MESSAGES.COLOR_INVALID,
         });
+
       if (!energy)
         throw new AppError({
           statusCode: 400,
@@ -150,11 +136,7 @@ export class VehicleService {
    *   - Provided brandId, colorId, or energyId is invalid (HTTP 400, thrown by vehicle.updateInfo).
    *   - No changes were detected in the provided data (HTTP 400, thrown by vehicle.updateInfo)
    */
-  public static async updateVehicle(
-    userId: string,
-    vehicleId: string,
-    data: UpdateVehiclePayload
-  ): Promise<Vehicle> {
+  public static async updateVehicle(userId: string, vehicleId: string, data: UpdateVehiclePayload): Promise<Vehicle> {
     return await sequelize.transaction(async (t) => {
       const vehicle = await this.findOwnedVehicleById(userId, vehicleId, { transaction: t });
 

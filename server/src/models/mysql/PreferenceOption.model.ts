@@ -4,6 +4,7 @@ import type { PreferenceCategory } from "@/models/mysql";
 import type {
   PreferenceCategoryId,
   PreferenceCategoryKey,
+  PreferenceOptionPrivateDTO,
   PreferenceOptionPublicDTO,
 } from "@/types";
 import type { TFunction } from "i18next";
@@ -16,24 +17,22 @@ export default class PreferenceOption extends Model {
 
   declare category?: PreferenceCategory;
 
-  public toPublicDTO(
-    t: TFunction,
-    categoryKey: PreferenceCategoryKey | undefined
-  ): PreferenceOptionPublicDTO {
-    let displayValue: string;
+  private getDisplayTranslationKey(categoryKey: PreferenceCategoryKey): string {
+    return `ui:preference_options.${categoryKey}.${this.key}`;
+  }
 
-    if (categoryKey) {
-      const translationKey = `ui:preference_options.${categoryKey}.${this.key}`;
-      displayValue = t(translationKey);
-    } else {
-      displayValue = this.key;
-    }
+  public toPublicDTO(t: TFunction): PreferenceOptionPublicDTO {
+    return {
+      display: t(this.getDisplayTranslationKey(this.category!.key)),
+    };
+  }
 
+  public toPrivateDTO(t: TFunction): PreferenceOptionPrivateDTO {
     return {
       id: this.id,
-      categoryId: this.category_id,
+      category: this.category?.toPrivateDTO(t) ?? null,
       key: this.key,
-      display: displayValue,
+      display: t(this.getDisplayTranslationKey(this.category!.key)),
     };
   }
 

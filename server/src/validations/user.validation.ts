@@ -40,14 +40,12 @@ export const updateUserInfoBodySchema = Joi.object({
     "string.max": VALIDATION_MESSAGES.STRING_MAX,
     "string.pattern.base": VALIDATION_MESSAGES.PATTERN_LAST_NAME,
   }),
-  phone: Joi.string().trim().pattern(REGEX.phoneFR).optional().messages({
+  phone: Joi.string().trim().pattern(REGEX.phoneFR).allow("", null).optional().messages({
     "string.base": VALIDATION_MESSAGES.STRING_BASE,
-    "string.empty": VALIDATION_MESSAGES.STRING_EMPTY,
     "string.pattern.base": VALIDATION_MESSAGES.PATTERN_PHONE,
   }),
-  address: Joi.string().trim().min(5).max(150).optional().messages({
+  address: Joi.string().trim().min(5).max(150).allow("", null).optional().messages({
     "string.base": VALIDATION_MESSAGES.STRING_BASE,
-    "string.empty": VALIDATION_MESSAGES.STRING_EMPTY,
     "string.min": VALIDATION_MESSAGES.STRING_MIN,
     "string.max": VALIDATION_MESSAGES.STRING_MAX,
   }),

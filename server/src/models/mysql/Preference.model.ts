@@ -1,7 +1,9 @@
 import { DataTypes, Model } from "sequelize";
 
-import type { PreferenceCategory, PreferenceOption } from "@/models/mysql";
-import type { PreferencePublicDTO } from "@/types";
+import { PREFERENCE_ERROR_MESSAGES } from "@/constants";
+import type { PreferenceOption } from "@/models/mysql";
+import type { PreferencePrivateDTO, PreferencePublicDTO } from "@/types";
+import { AppError } from "@/utils";
 import type { TFunction } from "i18next";
 import type { Sequelize } from "sequelize";
 
@@ -12,14 +14,17 @@ export default class Preference extends Model {
   declare category_id: number;
 
   declare option?: PreferenceOption;
-  declare category?: PreferenceCategory;
 
   public toPublicDTO(t: TFunction): PreferencePublicDTO {
     return {
+      option: this.option?.toPublicDTO(t) ?? null,
+    };
+  }
+
+  public toPrivateDTO(t: TFunction): PreferencePrivateDTO {
+    return {
       id: this.id,
-      userId: this.user_id,
-      option: this.option?.toPublicDTO(t, this.category?.key) ?? null,
-      category: this.category?.toPublicDTO(t) ?? null,
+      option: this.option?.toPrivateDTO(t) ?? null,
     };
   }
 
@@ -48,9 +53,6 @@ export default class Preference extends Model {
         category_id: {
           type: DataTypes.INTEGER,
           allowNull: false,
-          references: { model: "preference_categories", key: "id" },
-          onUpdate: "CASCADE",
-          onDelete: "RESTRICT",
         },
       },
       {
@@ -67,12 +69,21 @@ export default class Preference extends Model {
         ],
         hooks: {
           async beforeValidate(preference: Preference) {
-            if (!preference.category_id && preference.option_id) {
+            if (preference.option_id) {
               const option = (await preference.sequelize.models.PreferenceOption?.findByPk(
-                preference.option_id
+                preference.option_id,
+                { attributes: ["category_id"] }
               )) as PreferenceOption | null;
 
-              if (option) preference.category_id = option.category_id;
+              if (!option) {
+                throw new AppError({
+                  statusCode: 500,
+                  userMessageKey: PREFERENCE_ERROR_MESSAGES.INVALID_OPTION,
+                  debugMessage: `[Preference.beforeValidate] PreferenceOption with id ${preference.option_id} not found`,
+                });
+              }
+
+              preference.category_id = option.category_id;
             }
           },
         },
