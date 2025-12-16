@@ -1,5 +1,12 @@
 import type { REVIEW_STATUSES } from "@/constants";
-import type { DateTimeDTO, RideAdminDTO, RidePrivateDTO, RidePublicDTO, UserAdminDTO, UserPublicDTO } from "@/types";
+import type {
+  DateTimeDTO,
+  TripAdminDTO,
+  TripPrivateDTO,
+  TripPublicDTO,
+  UserAdminDTO,
+  UserPublicDTO,
+} from "@/types";
 
 export type ReviewStatus = (typeof REVIEW_STATUSES)[keyof typeof REVIEW_STATUSES];
 
@@ -16,7 +23,7 @@ export interface ReviewAuthorDTO {
   rating: number;
   comment: string | null;
   target: UserPublicDTO | null;
-  ride: RidePublicDTO | null;
+  trip: TripPublicDTO | null;
   createdAt: DateTimeDTO;
 }
 
@@ -25,7 +32,7 @@ export interface ReviewTargetDTO {
   rating: number;
   comment: string | null;
   author: UserPublicDTO | null;
-  ride: RidePrivateDTO | null;
+  trip: TripPrivateDTO | null;
   createdAt: DateTimeDTO;
 }
 
@@ -35,8 +42,7 @@ export interface ReviewAdminDTO {
   comment: string | null;
   author: UserAdminDTO | null;
   target: UserAdminDTO | null;
-  ride: RideAdminDTO | null;
+  trip: TripAdminDTO | null;
   status: ReviewStatus;
   createdAt: DateTimeDTO;
-  updatedAt: DateTimeDTO;
 }

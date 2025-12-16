@@ -9,10 +9,15 @@ import {
   VEHICLE_MIN_SEATS,
 } from "@/constants";
 import { VehicleBrand, VehicleColor, VehicleEnergy } from "@/models/mysql";
-import { AppError, setIfChanged, toDateOnly } from "@/utils";
+import { AppError, formatDateOnly, setIfChanged } from "@/utils";
 
 import type { User } from "@/models/mysql";
-import type { UpdateVehiclePayload, VehicleAdminDTO, VehiclePrivateDTO, VehiclePublicDTO } from "@/types";
+import type {
+  UpdateVehiclePayload,
+  VehicleAdminDTO,
+  VehiclePrivateDTO,
+  VehiclePublicDTO,
+} from "@/types";
 import type { TFunction } from "i18next";
 import type { SaveOptions, Sequelize } from "sequelize";
 
@@ -87,19 +92,31 @@ export default class Vehicle extends Model {
 
     if (data.brandId) {
       const brand = await VehicleBrand.findByPk(data.brandId);
-      if (!brand) throw new AppError({ statusCode: 400, userMessageKey: VEHICLE_ERROR_MESSAGES.BRAND_INVALID });
+      if (!brand)
+        throw new AppError({
+          statusCode: 400,
+          userMessageKey: VEHICLE_ERROR_MESSAGES.BRAND_INVALID,
+        });
       if (setIfChanged(this, "brand_id", data.brandId, false)) updatedFields.push("brand_id");
     }
 
     if (data.colorId) {
       const color = await VehicleColor.findByPk(data.colorId);
-      if (!color) throw new AppError({ statusCode: 400, userMessageKey: VEHICLE_ERROR_MESSAGES.COLOR_INVALID });
+      if (!color)
+        throw new AppError({
+          statusCode: 400,
+          userMessageKey: VEHICLE_ERROR_MESSAGES.COLOR_INVALID,
+        });
       if (setIfChanged(this, "color_id", data.colorId, false)) updatedFields.push("color_id");
     }
 
     if (data.energyId) {
       const energy = await VehicleEnergy.findByPk(data.energyId);
-      if (!energy) throw new AppError({ statusCode: 400, userMessageKey: VEHICLE_ERROR_MESSAGES.ENERGY_INVALID });
+      if (!energy)
+        throw new AppError({
+          statusCode: 400,
+          userMessageKey: VEHICLE_ERROR_MESSAGES.ENERGY_INVALID,
+        });
       if (setIfChanged(this, "energy_id", data.energyId, false)) updatedFields.push("energy_id");
     }
 
@@ -124,10 +141,10 @@ export default class Vehicle extends Model {
   public toPublicDTO(t: TFunction): VehiclePublicDTO {
     return {
       id: this.id,
-      brand: this.brand?.toPublicDTO(t) ?? null,
+      brand: this.brand?.toPublicDTO(t).display ?? null,
       model: this.model,
-      color: this.color?.toPublicDTO(t) ?? null,
-      energy: this.energy?.toPublicDTO(t) ?? null,
+      color: this.color?.toPublicDTO(t).display ?? null,
+      energy: this.energy?.toPublicDTO(t).display ?? null,
       seats: this.seats,
       isEco: this.isEco,
     };
@@ -137,7 +154,7 @@ export default class Vehicle extends Model {
     return {
       ...this.toPublicDTO(t),
       licensePlate: this.license_plate,
-      firstRegistrationDate: toDateOnly(this.first_registration_date),
+      firstRegistrationDate: formatDateOnly(this.first_registration_date),
     };
   }
 
@@ -252,7 +269,8 @@ export default class Vehicle extends Model {
         hooks: {
           beforeValidate: (vehicle: Vehicle) => {
             if (typeof vehicle.model === "string") vehicle.model = vehicle.model.trim();
-            if (typeof vehicle.license_plate === "string") vehicle.license_plate = vehicle.license_plate.trim();
+            if (typeof vehicle.license_plate === "string")
+              vehicle.license_plate = vehicle.license_plate.trim();
           },
         },
       }

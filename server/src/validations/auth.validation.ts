@@ -1,7 +1,8 @@
 import dayjs from "dayjs";
 import Joi from "joi";
 
-import { ALLOWED_DATE_FORMATS, MINIMUM_USER_AGE, REGEX, VALIDATION_MESSAGES } from "@/constants";
+import { MINIMUM_USER_AGE, REGEX, VALIDATION_MESSAGES } from "@/constants";
+import { dateField } from "./common.validation";
 
 export const registerUserBodySchema = Joi.object({
   email: Joi.string().trim().lowercase().email().required().messages({
@@ -41,29 +42,29 @@ export const registerUserBodySchema = Joi.object({
     "string.max": VALIDATION_MESSAGES.STRING_MAX,
     "string.pattern.base": VALIDATION_MESSAGES.PATTERN_LAST_NAME,
   }),
-  birthDate: Joi.string()
-    .trim()
-    .custom((value, helpers) => {
-      const now = dayjs();
-      const parsed = dayjs(value, ALLOWED_DATE_FORMATS, true);
+  birthDate: dateField.concat(
+    Joi.string()
+      .custom((value, helpers) => {
+        const now = dayjs();
+        const parsed = dayjs(value);
 
-      if (!parsed.isValid()) return helpers.error("date.invalid");
-      if (!parsed.isBefore(now)) return helpers.error("date.before_now");
-      if (parsed.isAfter(now.subtract(MINIMUM_USER_AGE, "year"))) {
-        return helpers.error("date.too_young", { minAge: MINIMUM_USER_AGE });
-      }
+        if (parsed.isAfter(now, "day")) {
+          return helpers.error("user.birth_cannot_be_future");
+        }
 
-      return parsed.format("YYYY-MM-DD");
-    })
-    .required()
-    .messages({
-      "any.required": VALIDATION_MESSAGES.REQUIRED,
-      "string.base": VALIDATION_MESSAGES.STRING_BASE,
-      "string.empty": VALIDATION_MESSAGES.STRING_EMPTY,
-      "date.invalid": VALIDATION_MESSAGES.DATE_INVALID,
-      "date.before_now": VALIDATION_MESSAGES.DATE_BEFORE_NOW,
-      "date.too_young": VALIDATION_MESSAGES.DATE_TOO_YOUNG,
-    }),
+        if (parsed.isAfter(now.subtract(MINIMUM_USER_AGE, "year"))) {
+          return helpers.error("user.too_young", {
+            minAge: MINIMUM_USER_AGE,
+          });
+        }
+
+        return value;
+      })
+      .messages({
+        "user.birth_cannot_be_future": VALIDATION_MESSAGES.USER.BIRTH_CANNOT_BE_FUTURE,
+        "user.too_young": VALIDATION_MESSAGES.USER.TOO_YOUNG,
+      })
+  ),
 });
 
 export const loginUserBodySchema = Joi.object({

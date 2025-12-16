@@ -8,6 +8,7 @@ class AppError extends Error {
   public readonly statusCode: number;
   public readonly statusText: string;
   public readonly userMessageKey: string;
+  public readonly userMessageParams?: Record<string, any>;
   public readonly debugMessage?: string;
   public readonly code?: string;
   public readonly debugCode?: string;
@@ -25,6 +26,7 @@ class AppError extends Error {
     statusCode = 500,
     statusText,
     userMessageKey = COMMON_ERROR_MESSAGES.INTERNAL_SERVER_ERROR,
+    userMessageParams,
     debugMessage,
     code,
     debugCode,
@@ -36,6 +38,7 @@ class AppError extends Error {
     this.statusCode = statusCode;
     this.statusText = statusText || AppError.resolveStatusText(statusCode);
     this.userMessageKey = userMessageKey;
+    this.userMessageParams = userMessageParams;
     this.debugMessage = debugMessage;
     this.code = code;
     this.debugCode = debugCode;

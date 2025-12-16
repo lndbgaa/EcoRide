@@ -1,16 +1,17 @@
 import { DataTypes, Model } from "sequelize";
 
 import { sequelize } from "@/config";
-import { RIDE_ERROR_MESSAGES, RIDE_MAX_PRICE, RIDE_MIN_PRICE, RIDE_STATUSES } from "@/constants";
-import { AppError, calculateDuration, formatDateTime, toDateOnly, toTimeOnly } from "@/utils";
+import { TRIP_ERROR_MESSAGES, TRIP_MAX_PRICE, TRIP_MIN_PRICE, TRIP_STATUSES } from "@/constants";
+import { AppError, calculateDuration, formatDateTimeFromUTC } from "@/utils";
 
-import type { User, Vehicle } from "@/models/mysql";
-import type { RideAdminDTO, RidePrivateDTO, RidePublicDTO, RideStatus } from "@/types";
+import type { Booking, User, Vehicle } from "@/models/mysql";
+import type { TripAdminDTO, TripPrivateDTO, TripPublicDTO, TripStatus } from "@/types";
+import type { TFunction } from "i18next";
 import type { SaveOptions, Sequelize } from "sequelize";
 
-const { OPEN, FULL, IN_PROGRESS, COMPLETED, CANCELLED } = RIDE_STATUSES;
+const { OPEN, FULL, IN_PROGRESS, COMPLETED, CANCELLED } = TRIP_STATUSES;
 
-export default class Ride extends Model {
+export default class Trip extends Model {
   declare id: string;
   declare departure_datetime: Date;
   declare departure_location: string;
@@ -21,23 +22,21 @@ export default class Ride extends Model {
   declare price: number;
   declare offered_seats: number;
   declare available_seats: number;
-  declare status: RideStatus;
+  declare duration_minutes: number;
+  declare status: TripStatus;
   declare created_at: Date;
   declare updated_at: Date;
 
   declare driver?: User;
   declare vehicle?: Vehicle;
+  declare bookings?: Booking[];
 
   // ----------------------------
   // Getters
   // ----------------------------
 
-  public get duration(): number | null {
-    return calculateDuration(this.departure_datetime, this.arrival_datetime);
-  }
-
   public get isEcoFriendly(): boolean {
-    return this.vehicle?.isEcoVehicle ?? false;
+    return this.vehicle?.isEco ?? false;
   }
 
   // ----------------------------
@@ -68,7 +67,7 @@ export default class Ride extends Model {
   // Private Status Transitions
   // ----------------------------
 
-  private static readonly allowedStatusTransitions: Record<RideStatus, RideStatus[]> = {
+  private static readonly allowedStatusTransitions: Record<TripStatus, TripStatus[]> = {
     open: [FULL, IN_PROGRESS, CANCELLED],
     full: [OPEN, IN_PROGRESS, CANCELLED],
     in_progress: [COMPLETED],
@@ -76,18 +75,18 @@ export default class Ride extends Model {
     cancelled: [],
   } as const;
 
-  private canTransitionTo(newStatus: RideStatus): boolean {
-    return Ride.allowedStatusTransitions[this.status]?.includes(newStatus) ?? false;
+  private canTransitionTo(newStatus: TripStatus): boolean {
+    return Trip.allowedStatusTransitions[this.status]?.includes(newStatus) ?? false;
   }
 
-  private transitionTo(newStatus: RideStatus): void {
+  private transitionTo(newStatus: TripStatus): void {
     if (this.status === newStatus) return;
 
     if (!this.canTransitionTo(newStatus)) {
       throw new AppError({
         statusCode: 400,
-        userMessageKey: RIDE_ERROR_MESSAGES.INVALID_STATUS_TRANSITION,
-        debugMessage: `Ride ${this.id} cannot transition from ${this.status} to ${newStatus}`,
+        userMessageKey: TRIP_ERROR_MESSAGES.GENERIC.INVALID_STATUS_TRANSITION,
+        debugMessage: `Cannot transition from ${this.status} to ${newStatus}.`,
       });
     }
 
@@ -98,13 +97,8 @@ export default class Ride extends Model {
   // Public Status Transitions
   // ----------------------------
 
-  private async markAsOpen(options?: SaveOptions): Promise<void> {
-    this.transitionTo(OPEN);
-    await this.save({ ...options, fields: ["status"] });
-  }
-
-  private async markAsFull(options?: SaveOptions): Promise<void> {
-    this.transitionTo(FULL);
+  public async markAsCancelled(options?: SaveOptions): Promise<void> {
+    this.transitionTo(CANCELLED);
     await this.save({ ...options, fields: ["status"] });
   }
 
@@ -118,41 +112,44 @@ export default class Ride extends Model {
     await this.save({ ...options, fields: ["status"] });
   }
 
-  public async markAsCancelled(options?: SaveOptions): Promise<void> {
-    this.transitionTo(CANCELLED);
-    await this.save({ ...options, fields: ["status"] });
-  }
-
   // ----------------------------
   // Business Logic
   // ----------------------------
 
+  /**
+   *
+   * @param {number} amount - The number of seats to add.
+   * @param {SaveOptions} [options] - Additional Sequelize save options.
+   * @returns {Promise<void>}
+   * @throws {AppError} -If:
+   *   - The amount is not a positive integer (HTTP 400).
+   *   - Trip status is not OPEN or FULL (HTTP 409).
+   *   - Adding the seats would exceed the total offered seats (HTTP 400).
+   */
   public async addAvailableSeats(amount: number, options?: SaveOptions): Promise<void> {
-    const canAddSeats = this.isOpen() || this.isFull();
-
-    if (!canAddSeats) {
-      throw new AppError({
-        statusCode: 400,
-        userMessageKey: RIDE_ERROR_MESSAGES.CANNOT_MODIFY_SEATS,
-        debugMessage: `Cannot add seats: Ride status is "${this.status}". Only OPEN or FULL rides can have seats added.`,
-      });
-    }
-
     if (!Number.isInteger(amount) || amount <= 0) {
       throw new AppError({
         statusCode: 400,
-        userMessageKey: RIDE_ERROR_MESSAGES.INVALID_SEAT_AMOUNT,
+        userMessageKey: TRIP_ERROR_MESSAGES.GENERIC.INVALID_SEAT_AMOUNT,
         debugMessage: `Invalid add amount: ${amount}. Must be a positive integer.`,
       });
     }
 
+    if (!this.isOpen() && !this.isFull()) {
+      throw new AppError({
+        statusCode: 409,
+        userMessageKey: TRIP_ERROR_MESSAGES.GENERIC.CANNOT_MODIFY_SEATS,
+        debugMessage: `Cannot add seats: Trip status is "${this.status}". Only OPEN or FULL trips can have seats added.`,
+      });
+    }
+
     return sequelize.transaction(async (t) => {
-      await this.reload({ transaction: t });
+      await this.reload({ transaction: t, lock: true });
 
       if (this.available_seats + amount > this.offered_seats) {
         throw new AppError({
           statusCode: 400,
-          userMessageKey: RIDE_ERROR_MESSAGES.EXCEEDS_OFFERED_SEATS,
+          userMessageKey: TRIP_ERROR_MESSAGES.GENERIC.EXCEEDS_OFFERED_SEATS,
           debugMessage: `Adding ${amount} seats would exceed offered seats. Available: ${this.available_seats}, Offered: ${this.offered_seats}.`,
         });
       }
@@ -160,57 +157,65 @@ export default class Ride extends Model {
       this.available_seats += amount;
 
       if (this.isFull() && this.available_seats > 0) {
-        await this.markAsOpen({ ...options, transaction: t });
+        this.transitionTo(OPEN);
       }
 
       await this.save({
         ...options,
         transaction: t,
-        fields: ["available_seats"],
+        fields: ["available_seats", "status"],
       });
     });
   }
 
+  /**
+   *
+   * @param {number} amount - The number of seats to remove.
+   * @param {SaveOptions} [options] - Additional Sequelize save options.
+   * @returns {Promise<void>}
+   * @throws {AppError} -If:
+   *   - The amount is not a positive integer (HTTP 400).
+   *   - Trip status is not OPEN (HTTP 409).
+   *   - Removing the seats would leave negative available seats (HTTP 400).
+   */
   public async removeAvailableSeats(amount: number, options?: SaveOptions): Promise<void> {
-    const canRemoveSeats = this.isOpen();
-
-    if (!canRemoveSeats) {
-      throw new AppError({
-        statusCode: 400,
-        userMessageKey: RIDE_ERROR_MESSAGES.CANNOT_MODIFY_SEATS,
-        debugMessage: `Cannot remove seats: Ride ${this.id} status is "${this.status}". Only OPEN rides can have seats removed.`,
-      });
-    }
-
     if (!Number.isInteger(amount) || amount <= 0) {
       throw new AppError({
         statusCode: 400,
-        userMessageKey: RIDE_ERROR_MESSAGES.INVALID_SEAT_AMOUNT,
+        userMessageKey: TRIP_ERROR_MESSAGES.GENERIC.INVALID_SEAT_AMOUNT,
         debugMessage: `Invalid remove amount: ${amount}. Must be a positive integer.`,
       });
     }
 
+    if (!this.isOpen()) {
+      throw new AppError({
+        statusCode: 409,
+        userMessageKey: TRIP_ERROR_MESSAGES.GENERIC.CANNOT_MODIFY_SEATS,
+        debugMessage: `Cannot remove seats: Trip ${this.id} status is "${this.status}". Only OPEN trips can have seats removed.`,
+      });
+    }
+
     return sequelize.transaction(async (t) => {
-      await this.reload({ transaction: t });
+      await this.reload({ transaction: t, lock: true });
 
       if (amount > this.available_seats) {
         throw new AppError({
           statusCode: 400,
-          userMessageKey: RIDE_ERROR_MESSAGES.NOT_ENOUGH_AVAILABLE_SEATS,
-          debugMessage: `Cannot remove ${amount} seats for ride ${this.id}. Only ${this.available_seats} seats are available.`,
+          userMessageKey: TRIP_ERROR_MESSAGES.GENERIC.NOT_ENOUGH_AVAILABLE_SEATS,
+          debugMessage: `Cannot remove ${amount} seats for trip ${this.id}. Only ${this.available_seats} seats are available.`,
         });
       }
 
       this.available_seats -= amount;
 
       if (this.available_seats === 0) {
-        await this.markAsFull({ ...options, transaction: t });
+        this.transitionTo(FULL);
       }
 
       await this.save({
         ...options,
         transaction: t,
-        fields: ["available_seats"],
+        fields: ["available_seats", "status"],
       });
     });
   }
@@ -219,40 +224,57 @@ export default class Ride extends Model {
   // DTOs
   // ----------------------------
 
-  public toPublicDTO(): RidePublicDTO {
+  public toPublicDTO(t: TFunction): TripPublicDTO {
+    const departure = formatDateTimeFromUTC(this.departure_datetime);
+    const arrival = formatDateTimeFromUTC(this.arrival_datetime);
+
     return {
       id: this.id,
-      departureDate: toDateOnly(this.departure_datetime),
-      departureTime: toTimeOnly(this.departure_datetime),
+      departureDate: departure.date,
+      departureTime: departure.time,
       departureLocation: this.departure_location,
-      arrivalDate: toDateOnly(this.arrival_datetime),
-      arrivalTime: toTimeOnly(this.arrival_datetime),
+      arrivalDate: arrival.date,
+      arrivalTime: arrival.time,
       arrivalLocation: this.arrival_location,
-      duration: this.duration,
+      duration: this.duration_minutes,
       price: this.price,
       isEcoFriendly: this.isEcoFriendly,
       availableSeats: this.available_seats,
       offeredSeats: this.offered_seats,
       driver: this.driver?.toPublicDTO() ?? null,
-      vehicle: this.vehicle?.toPublicDTO() ?? null,
+      vehicle: this.vehicle?.toPublicDTO(t) ?? null,
       status: this.status,
-      createdAt: formatDateTime(this.created_at),
     };
   }
 
-  public toPrivateDTO(): RidePrivateDTO {
+  public toPrivateDTO(t: TFunction): TripPrivateDTO {
+    const departure = formatDateTimeFromUTC(this.departure_datetime);
+    const arrival = formatDateTimeFromUTC(this.arrival_datetime);
+
     return {
-      ...this.toPublicDTO(),
-      driver: null,
-      vehicle: this.vehicle?.toPrivateDTO() ?? null,
+      id: this.id,
+      departureDate: departure.date,
+      departureTime: departure.time,
+      departureLocation: this.departure_location,
+      arrivalDate: arrival.date,
+      arrivalTime: arrival.time,
+      arrivalLocation: this.arrival_location,
+      duration: this.duration_minutes,
+      price: this.price,
+      isEcoFriendly: this.isEcoFriendly,
+      availableSeats: this.available_seats,
+      offeredSeats: this.offered_seats,
+      vehicle: this.vehicle?.toPrivateDTO(t) ?? null,
+      status: this.status,
+      createdAt: formatDateTimeFromUTC(this.created_at),
     };
   }
 
-  public toAdminDTO(): RideAdminDTO {
+  public toAdminDTO(t: TFunction): TripAdminDTO {
     return {
-      ...this.toPrivateDTO(),
-      driver: this.driver?.toAdminDTO() ?? null,
-      vehicle: this.vehicle?.toAdminDTO() ?? null,
+      ...this.toPrivateDTO(t),
+      driver: this.driver?.toAdminDTO(t) ?? null,
+      vehicle: this.vehicle?.toAdminDTO(t) ?? null,
     };
   }
 
@@ -260,7 +282,7 @@ export default class Ride extends Model {
   // Model Initialisation
   // ----------------------------
 
-  public static initModel(sequelize: Sequelize): void {
+  public static initModel(sequelize: Sequelize) {
     this.init(
       {
         id: {
@@ -298,19 +320,19 @@ export default class Ride extends Model {
           allowNull: true,
           references: { model: "vehicles", key: "id" },
           onUpdate: "CASCADE",
-          onDelete: "SET NULL",
+          onDelete: "RESTRICT",
         },
         price: {
           type: DataTypes.INTEGER,
           allowNull: false,
           validate: {
             min: {
-              args: [RIDE_MIN_PRICE],
-              msg: `Price must be at least ${RIDE_MIN_PRICE} credits.`,
+              args: [TRIP_MIN_PRICE],
+              msg: `Price must be at least ${TRIP_MIN_PRICE} credits.`,
             },
             max: {
-              args: [RIDE_MAX_PRICE],
-              msg: `Price cannot exceed ${RIDE_MAX_PRICE} credits.`,
+              args: [TRIP_MAX_PRICE],
+              msg: `Price cannot exceed ${TRIP_MAX_PRICE} credits.`,
             },
           },
         },
@@ -329,24 +351,30 @@ export default class Ride extends Model {
           allowNull: false,
           defaultValue: 0,
         },
+        duration_minutes: {
+          type: DataTypes.INTEGER,
+          allowNull: false,
+        },
         status: {
-          type: DataTypes.ENUM(...Object.values(RIDE_STATUSES)),
+          type: DataTypes.ENUM(...Object.values(TRIP_STATUSES)),
           allowNull: false,
           defaultValue: OPEN,
         },
       },
       {
         sequelize,
-        modelName: "Ride",
-        tableName: "rides",
+        modelName: "Trip",
+        tableName: "trips",
         timestamps: true,
         createdAt: "created_at",
         updatedAt: "updated_at",
         hooks: {
-          beforeCreate: (ride: Ride) => {
-            ride.departure_location = ride.departure_location.trim();
-            ride.arrival_location = ride.arrival_location.trim();
-            ride.available_seats = ride.offered_seats;
+          beforeValidate: (trip: Trip) => {
+            trip.departure_location = trip.departure_location.trim();
+            trip.arrival_location = trip.arrival_location.trim();
+
+            trip.available_seats = trip.offered_seats;
+            trip.duration_minutes = calculateDuration(trip.departure_datetime, trip.arrival_datetime);
           },
         },
       }

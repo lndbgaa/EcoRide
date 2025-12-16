@@ -1,9 +1,9 @@
 import { DataTypes, Model } from "sequelize";
 
 import { BOOKING_ERROR_MESSAGES, BOOKING_STATUSES } from "@/constants";
-import { AppError, formatDateTime } from "@/utils";
+import { AppError, formatDateTimeFromUTC } from "@/utils";
 
-import type { Ride, User } from "@/models/mysql";
+import type { Trip, User } from "@/models/mysql";
 import type {
   BookingAdminDTO,
   BookingDriverDTO,
@@ -11,20 +11,21 @@ import type {
   BookingPublicDTO,
   BookingStatus,
 } from "@/types";
+import type { TFunction } from "i18next";
 import type { SaveOptions, Sequelize } from "sequelize";
 
 const { CONFIRMED, AWAITING_FEEDBACK, COMPLETED, CANCELLED } = BOOKING_STATUSES;
 
 export default class Booking extends Model {
   declare id: string;
-  declare ride_id: string;
+  declare trip_id: string;
   declare passenger_id: string;
   declare seats_booked: number;
   declare status: BookingStatus;
   declare created_at: Date;
   declare updated_at: Date;
 
-  declare ride?: Ride;
+  declare trip?: Trip;
   declare passenger?: User;
 
   // ----------------------------
@@ -69,7 +70,7 @@ export default class Booking extends Model {
       throw new AppError({
         statusCode: 400,
         userMessageKey: BOOKING_ERROR_MESSAGES.INVALID_STATUS_TRANSITION,
-        debugMessage: `Booking ${this.id} cannot transition from ${this.status} to ${newStatus}`,
+        debugMessage: `Booking ${this.id} cannot transition from ${this.status} to ${newStatus}.`,
       });
     }
 
@@ -80,6 +81,11 @@ export default class Booking extends Model {
   // Public Status Transitions
   // ----------------------------
 
+  public async markAsCancelled(options?: SaveOptions): Promise<void> {
+    this.transitionTo(CANCELLED);
+    await this.save({ ...options, fields: ["status"] });
+  }
+
   public async markAsAwaitingFeedback(options?: SaveOptions): Promise<void> {
     this.transitionTo(AWAITING_FEEDBACK);
     await this.save({ ...options, fields: ["status"] });
@@ -87,11 +93,6 @@ export default class Booking extends Model {
 
   public async markAsCompleted(options?: SaveOptions): Promise<void> {
     this.transitionTo(COMPLETED);
-    await this.save({ ...options, fields: ["status"] });
-  }
-
-  public async markAsCancelled(options?: SaveOptions): Promise<void> {
-    this.transitionTo(CANCELLED);
     await this.save({ ...options, fields: ["status"] });
   }
 
@@ -107,14 +108,13 @@ export default class Booking extends Model {
     };
   }
 
-  public toPassengerDTO(): BookingPassengerDTO {
+  public toPassengerDTO(t: TFunction): BookingPassengerDTO {
     return {
       id: this.id,
-      ride: this.ride?.toPublicDTO() ?? null,
+      trip: this.trip?.toPublicDTO(t) ?? null,
       seatsBooked: this.seats_booked,
       status: this.status,
-      createdAt: formatDateTime(this.created_at),
-      updatedAt: formatDateTime(this.updated_at),
+      createdAt: formatDateTimeFromUTC(this.created_at),
     };
   }
 
@@ -124,23 +124,22 @@ export default class Booking extends Model {
       passenger: this.passenger?.toPublicDTO() ?? null,
       seatsBooked: this.seats_booked,
       status: this.status,
-      createdAt: formatDateTime(this.created_at),
+      createdAt: formatDateTimeFromUTC(this.created_at),
     };
   }
 
-  public toAdminDTO(): BookingAdminDTO {
+  public toAdminDTO(t: TFunction): BookingAdminDTO {
     return {
       id: this.id,
-      ride: this.ride?.toAdminDTO() ?? null,
-      passenger: this.passenger?.toAdminDTO() ?? null,
+      trip: this.trip?.toAdminDTO(t) ?? null,
+      passenger: this.passenger?.toAdminDTO(t) ?? null,
       seatsBooked: this.seats_booked,
       status: this.status,
-      createdAt: formatDateTime(this.created_at),
-      updatedAt: formatDateTime(this.updated_at),
+      createdAt: formatDateTimeFromUTC(this.created_at),
     };
   }
 
-  public static initModel(sequelize: Sequelize): void {
+  public static initModel(sequelize: Sequelize) {
     this.init(
       {
         id: {
@@ -148,10 +147,10 @@ export default class Booking extends Model {
           primaryKey: true,
           defaultValue: DataTypes.UUIDV4,
         },
-        ride_id: {
+        trip_id: {
           type: DataTypes.UUID,
           allowNull: false,
-          references: { model: "rides", key: "id" },
+          references: { model: "trips", key: "id" },
           onUpdate: "CASCADE",
           onDelete: "RESTRICT",
         },

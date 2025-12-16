@@ -6,7 +6,7 @@ export interface CustomJwtPayload extends JwtPayload {
 }
 
 // ===========================
-//       Request Payload
+//       Request Types
 // =========================== */
 
 export interface RegisterUserPayload {

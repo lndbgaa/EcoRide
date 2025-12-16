@@ -24,10 +24,10 @@ export interface VehicleBrandPublicDTO {
 
 export interface VehiclePublicDTO {
   id: string;
-  brand: VehicleBrandPublicDTO | null;
+  brand: string | null;
   model: string;
-  color: VehicleColorPublicDTO | null;
-  energy: VehicleEnergyPublicDTO | null;
+  color: string | null;
+  energy: string | null;
   seats: number;
   isEco: boolean;
 }
@@ -42,7 +42,7 @@ export interface VehicleAdminDTO extends VehiclePrivateDTO {
 }
 
 // ===========================
-//     Request Payloads
+//        Request Types
 // =========================== */
 
 export type CreateVehiclePayload = {
@@ -64,10 +64,10 @@ export type UpdateVehiclePayload = {
 };
 
 // ===========================
-//        DB Attributes
+//  Internal / DB Data Types
 // =========================== */
 
-export type VehicleCreationAttributes = {
+export type CreateVehicleData = {
   brand_id: number;
   model: string;
   color_id: number;

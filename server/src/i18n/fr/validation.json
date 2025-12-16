@@ -14,14 +14,34 @@
   "number_min": "La valeur doit être supérieure ou égale à {{limit}}",
   "number_max": "La valeur doit être inférieure ou égale à {{limit}}",
 
+  "boolean_base": "Ce champ doit être un booléen",
+
   "date_invalid": "La date fournie est invalide",
-  "date_before_now": "La date doit être antérieure à aujourd'hui",
-  "date_too_young": "Vous devez avoir au moins {{minAge}} ans pour continuer",
+  "time_invalid": "L'heure fournie est invalide",
+  "datetime_invalid": "Les dates ou heures fournies sont invalides",
 
   "pattern_username": "Le nom d'utilisateur doit commencer par une lettre, et ne peut inclure que des lettres, chiffres, tirets ou underscores",
   "pattern_password": "Le mot de passe doit contenir au moins une majuscule, une minuscule, un chiffre et un caractère spécial",
   "pattern_first_name": "Le prénom ne peut contenir que des lettres et des tirets",
   "pattern_last_name": "Le nom de famille ne peut contenir que des lettres et des tirets",
   "pattern_phone": "Le numéro de téléphone doit être au format français valide (ex: 06XXXXXXXX ou +33XXXXXXXX)",
-  "pattern_license_plate": "La plaque d'immatriculation doit respecter le format AB-123-CD"
+  "pattern_license_plate": "La plaque d'immatriculation doit respecter le format AB-123-CD",
+
+  "user": {
+    "birth_cannot_be_future": "La date de naissance ne peut pas être dans le futur",
+    "too_young": "Vous devez avoir au moins {{minAge}} ans pour continuer"
+  },
+
+  "vehicle": {
+    "first_registration_cannot_be_future": "La date de première immatriculation ne peut pas être dans le futur"
+  },
+
+  "trip": {
+    "search_date_cannot_be_past": "La date de recherche ne peut pas être dans le passé",
+    "same_locations": "Le lieu de départ et d'arrivée doivent être différents",
+    "departure_cannot_be_past": "La date et l'heure de départ doivent être dans le futur",
+    "arrival_before_departure": "L'heure d'arrivée doit être postérieure à l'heure de départ",
+    "duration_too_short": "La durée du trajet doit être d'au moins {{minDuration}} minutes",
+    "duration_too_long": "La durée du trajet ne peut pas dépasser {{maxDuration}} heures"
+  }
 }

@@ -1,7 +1,7 @@
 "use strict";
 
 export async function up(queryInterface, Sequelize) {
-  await queryInterface.createTable("rides", {
+  await queryInterface.createTable("trips", {
     id: {
       type: Sequelize.UUID,
       primaryKey: true,
@@ -51,6 +51,10 @@ export async function up(queryInterface, Sequelize) {
       allowNull: false,
       defaultValue: 0,
     },
+    duration_minutes: {
+      type: Sequelize.INTEGER,
+      allowNull: false,
+    },
     status: {
       type: Sequelize.ENUM("open", "full", "in_progress", "completed", "cancelled"),
       allowNull: false,
@@ -70,5 +74,5 @@ export async function up(queryInterface, Sequelize) {
 }
 
 export async function down(queryInterface, Sequelize) {
-  await queryInterface.dropTable("rides");
+  await queryInterface.dropTable("trips");
 }

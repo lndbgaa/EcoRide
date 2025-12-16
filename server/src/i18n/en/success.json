@@ -18,6 +18,11 @@
     "deletion_requested": "Deletion request recorded",
     "deletion_cancelled": "Account reactivated"
   },
+  "preference": {
+    "retrieved_all": "Preferences list retrieved",
+    "retrieved": "Preference retrieved",
+    "updated": "Preference updated"
+  },
   "vehicle": {
     "retrieved_all": "Vehicles list retrieved",
     "retrieved": "Vehicle retrieved",
@@ -25,9 +30,12 @@
     "updated": "Vehicle updated",
     "deleted": "Vehicle deleted"
   },
-  "preference": {
-    "retrieved_all": "Preferences list retrieved",
-    "retrieved": "Preference retrieved",
-    "updated": "Preference updated"
+  "trip": {
+    "retrieved_all": "Trips list retrieved",
+    "retrieved": "Trip retrieved",
+    "created": "Trip created",
+    "cancelled": "Trip cancelled",
+    "started": "Trip started",
+    "ended": "Trip ended"
   }
 }

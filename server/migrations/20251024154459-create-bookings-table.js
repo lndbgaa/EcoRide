@@ -8,10 +8,10 @@ export async function up(queryInterface, Sequelize) {
       allowNull: false,
       defaultValue: Sequelize.UUIDV4,
     },
-    ride_id: {
+    trip_id: {
       type: Sequelize.UUID,
       allowNull: false,
-      references: { model: "rides", key: "id" },
+      references: { model: "trips", key: "id" },
       onUpdate: "CASCADE",
       onDelete: "RESTRICT",
     },

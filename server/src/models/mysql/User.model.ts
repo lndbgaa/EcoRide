@@ -11,10 +11,24 @@ import {
   USER_ROLES_ID,
   USER_STATUSES,
 } from "@/constants";
-import { AppError, calculateAge, capitalize, formatDateTime, setIfChanged, toDateOnly } from "@/utils";
+import {
+  AppError,
+  calculateAge,
+  capitalize,
+  formatDateOnly,
+  formatDateTimeFromUTC,
+  setIfChanged,
+} from "@/utils";
 
 import type { Role } from "@/models/mysql";
-import type { UpdateUserInfoPayload, UserAdminDTO, UserPrivateDTO, UserPublicDTO, UserRoleId, UserStatus } from "@/types";
+import type {
+  UpdateUserInfoPayload,
+  UserAdminDTO,
+  UserPrivateDTO,
+  UserPublicDTO,
+  UserRoleId,
+  UserStatus,
+} from "@/types";
 import type { TFunction } from "i18next";
 import type { SaveOptions, Sequelize } from "sequelize";
 
@@ -246,11 +260,11 @@ export default class User extends Model {
     return {
       id: this.id,
       username: this.username,
-      firstName: this.first_name ? this.first_name : null,
+      firstName: this.first_name,
       age: this.birth_date ? calculateAge(this.birth_date) : null,
       avatar: this.profile_picture,
       averageRating: this.average_rating,
-      memberSince: toDateOnly(this.created_at),
+      memberSince: formatDateOnly(this.created_at),
       emailIsVerified: this.email_is_verified,
     };
   }
@@ -263,8 +277,8 @@ export default class User extends Model {
       phone: this.phone,
       address: this.address,
       credits: this.credits,
-      birthDate: this.birth_date ? toDateOnly(this.birth_date) : null,
-      lastLogin: this.last_login ? formatDateTime(this.last_login) : null,
+      birthDate: this.birth_date ? formatDateOnly(this.birth_date) : null,
+      lastLogin: this.last_login ? formatDateTimeFromUTC(this.last_login) : null,
     };
   }
 
@@ -273,9 +287,11 @@ export default class User extends Model {
       ...this.toPrivateDTO(),
       role: this.role?.toPublicDTO(t) ?? null,
       status: this.status,
-      suspendedAt: this.suspended_at ? formatDateTime(this.suspended_at) : null,
-      pendingDeletionAt: this.pending_deletion_at ? formatDateTime(this.pending_deletion_at) : null,
-      deletedAt: this.deleted_at ? formatDateTime(this.deleted_at) : null,
+      suspendedAt: this.suspended_at ? formatDateTimeFromUTC(this.suspended_at) : null,
+      pendingDeletionAt: this.pending_deletion_at
+        ? formatDateTimeFromUTC(this.pending_deletion_at)
+        : null,
+      deletedAt: this.deleted_at ? formatDateTimeFromUTC(this.deleted_at) : null,
     };
   }
 
@@ -476,7 +492,8 @@ export default class User extends Model {
             if (typeof user.last_name === "string") user.last_name = capitalize(user.last_name);
             if (typeof user.phone === "string") user.phone = user.phone.trim();
             if (typeof user.address === "string") user.address = user.address.trim();
-            if (typeof user.profile_picture === "string") user.profile_picture = user.profile_picture.trim();
+            if (typeof user.profile_picture === "string")
+              user.profile_picture = user.profile_picture.trim();
           },
         },
       }

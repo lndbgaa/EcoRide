@@ -8,8 +8,8 @@ import PreferenceCategory from "./PreferenceCategory.model.js";
 import PreferenceOption from "./PreferenceOption.model.js";
 import RefreshToken from "./RefreshToken.model.js";
 import Review from "./Review.model.js";
-import Ride from "./Ride.model.js";
 import Role from "./Role.model.js";
+import Trip from "./Trip.model.js";
 import User from "./User.model.js";
 import Vehicle from "./Vehicle.model.js";
 import VehicleBrand from "./VehicleBrand.model.js";
@@ -28,7 +28,7 @@ VehicleEnergy.initModel(sequelize);
 Preference.initModel(sequelize);
 PreferenceCategory.initModel(sequelize);
 PreferenceOption.initModel(sequelize);
-Ride.initModel(sequelize);
+Trip.initModel(sequelize);
 Booking.initModel(sequelize);
 Review.initModel(sequelize);
 
@@ -90,21 +90,21 @@ PreferenceCategory.hasMany(PreferenceOption, { foreignKey: "category_id", as: "o
 PreferenceOption.belongsTo(PreferenceCategory, { foreignKey: "category_id", as: "category" });
 
 // ----------------------------
-// Rides
+// Trips
 // ----------------------------
 
-User.hasMany(Ride, { foreignKey: "driver_id", as: "rides" });
-Ride.belongsTo(User, { foreignKey: "driver_id", as: "driver" });
+User.hasMany(Trip, { foreignKey: "driver_id", as: "trips" });
+Trip.belongsTo(User, { foreignKey: "driver_id", as: "driver" });
 
-Vehicle.hasMany(Ride, { foreignKey: "vehicle_id", as: "rides" });
-Ride.belongsTo(Vehicle, { foreignKey: "vehicle_id", as: "vehicle" });
+Vehicle.hasMany(Trip, { foreignKey: "vehicle_id", as: "trips" });
+Trip.belongsTo(Vehicle, { foreignKey: "vehicle_id", as: "vehicle" });
 
 // ----------------------------
 // Bookings
 // ----------------------------
 
-Ride.hasMany(Booking, { foreignKey: "ride_id", as: "bookings" });
-Booking.belongsTo(Ride, { foreignKey: "ride_id", as: "ride" });
+Trip.hasMany(Booking, { foreignKey: "trip_id", as: "bookings" });
+Booking.belongsTo(Trip, { foreignKey: "trip_id", as: "trip" });
 
 User.hasMany(Booking, { foreignKey: "passenger_id", as: "bookings" });
 Booking.belongsTo(User, { foreignKey: "passenger_id", as: "passenger" });
@@ -121,8 +121,8 @@ User.hasMany(Review, { foreignKey: "author_id", as: "reviewsAuthored" });
 User.hasMany(Review, { foreignKey: "target_id", as: "reviewsReceived" });
 User.hasMany(Review, { foreignKey: "moderator_id", as: "reviewsModerated" });
 
-Ride.hasMany(Review, { foreignKey: "ride_id", as: "reviews" });
-Review.belongsTo(Ride, { foreignKey: "ride_id", as: "ride" });
+Trip.hasMany(Review, { foreignKey: "trip_id", as: "reviews" });
+Review.belongsTo(Trip, { foreignKey: "trip_id", as: "trip" });
 
 // ----------------------------
 // Export all models
@@ -136,8 +136,8 @@ export {
   PreferenceCategory,
   PreferenceOption,
   RefreshToken,
-  Ride,
   Role,
+  Trip,
   User,
   Vehicle,
   VehicleBrand,

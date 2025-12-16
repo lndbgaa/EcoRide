@@ -2,7 +2,7 @@ import dayjs from "dayjs";
 import { nanoid } from "nanoid";
 import { Op, Transaction } from "sequelize";
 
-import { appConfig, sequelize, transporter } from "@/config";
+import { appConfig, sequelize } from "@/config";
 import {
   AUTH_ERROR_CODES,
   AUTH_ERROR_MESSAGES,
@@ -11,7 +11,8 @@ import {
   EMAIL_VERIFICATION_TOKEN_LENGTH,
 } from "@/constants";
 import { EmailVerificationToken, User } from "@/models/mysql";
-import { AppError, renderTemplate, sendEmail } from "@/utils";
+import { AppError, renderTemplate } from "@/utils";
+import { EmailService } from "./email.service";
 
 const { clientUrl, gmail } = appConfig;
 
@@ -33,13 +34,13 @@ export class EmailVerificationService {
 
     const token = await this.createVerificationToken(user.id);
     const link = `${clientUrl}/verify-email?token=${token}`;
-    const content = await renderTemplate("emailVerification.html", {
+    const content = await renderTemplate("user.email-verification.html", {
       firstName: user.first_name || "",
       verificationLink: link,
     });
 
     try {
-      await sendEmail(transporter, gmail.user, user.email, "Vérifie ton adresse email - EcoRide", content);
+      await EmailService.sendEmail(gmail.user, user.email, "Vérifie ton adresse email - EcoRide", content);
       // TODO ajouter i18n pour l'email
       // FIXME mettre un retry automatique pour sendEmail
     } catch (err) {
@@ -98,7 +99,9 @@ export class EmailVerificationService {
       throw new AppError({
         statusCode: 400,
         userMessageKey: AUTH_ERROR_MESSAGES.EMAIL_VERIFICATION_FAILED,
-        debugMessage: tokenRecord.used_at ? "Email verification token already used" : "Email verification token expired",
+        debugMessage: tokenRecord.used_at
+          ? "Email verification token already used"
+          : "Email verification token expired",
         code: AUTH_ERROR_CODES.EMAIL_VERIFICATION_FAILED,
         debugCode: tokenRecord.used_at
           ? DEBUG_CODES.AUTH.EMAIL_VERIFICATION_TOKEN_ALREADY_USED
@@ -122,7 +125,10 @@ export class EmailVerificationService {
         });
       }
 
-      await Promise.all([tokenRecord.markAsUsed({ transaction: t }), user.markEmailAsVerified({ transaction: t })]);
+      await Promise.all([
+        tokenRecord.markAsUsed({ transaction: t }),
+        user.markEmailAsVerified({ transaction: t }),
+      ]);
     });
   }
 

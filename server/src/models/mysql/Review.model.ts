@@ -1,9 +1,9 @@
 import { DataTypes, Model } from "sequelize";
 
 import { REVIEW_ERROR_MESSAGES, REVIEW_MAX_RATING, REVIEW_MIN_RATING, REVIEW_STATUSES } from "@/constants";
-import { AppError, formatDateTime } from "@/utils";
+import { AppError, formatDateTimeFromUTC } from "@/utils";
 
-import type { Ride, User } from "@/models/mysql";
+import type { Trip, User } from "@/models/mysql";
 import type {
   ReviewAdminDTO,
   ReviewAuthorDTO,
@@ -11,6 +11,7 @@ import type {
   ReviewStatus,
   ReviewTargetDTO,
 } from "@/types";
+import type { TFunction } from "i18next";
 import type { SaveOptions, Sequelize } from "sequelize";
 
 const { PENDING, APPROVED, REJECTED } = REVIEW_STATUSES;
@@ -21,7 +22,7 @@ export default class Review extends Model {
   declare comment: string | null;
   declare author_id: string;
   declare target_id: string;
-  declare ride_id: string;
+  declare trip_id: string;
   declare status: ReviewStatus;
   declare moderator_id: string | null;
   declare created_at: Date;
@@ -29,7 +30,7 @@ export default class Review extends Model {
 
   declare author?: User;
   declare target?: User;
-  declare ride?: Ride;
+  declare trip: Trip;
   declare moderator?: User;
 
   // ----------------------------
@@ -102,47 +103,46 @@ export default class Review extends Model {
       rating: this.rating,
       comment: this.comment,
       author: this.author?.toPublicDTO() ?? null,
-      createdAt: formatDateTime(this.created_at),
+      createdAt: formatDateTimeFromUTC(this.created_at),
     };
   }
 
-  public toAuthorDTO(): ReviewAuthorDTO {
+  public toAuthorDTO(t: TFunction): ReviewAuthorDTO {
     return {
       id: this.id,
       rating: this.rating,
       comment: this.comment,
       target: this.target?.toPublicDTO() ?? null,
-      ride: this.ride?.toPublicDTO() ?? null,
-      createdAt: formatDateTime(this.created_at),
+      trip: this.trip?.toPublicDTO(t) ?? null,
+      createdAt: formatDateTimeFromUTC(this.created_at),
     };
   }
 
-  public toTargetDTO(): ReviewTargetDTO {
+  public toTargetDTO(t: TFunction): ReviewTargetDTO {
     return {
       id: this.id,
       rating: this.rating,
       comment: this.comment,
       author: this.author?.toPublicDTO() ?? null,
-      ride: this.ride?.toPrivateDTO() ?? null,
-      createdAt: formatDateTime(this.created_at),
+      trip: this.trip?.toPrivateDTO(t) ?? null,
+      createdAt: formatDateTimeFromUTC(this.created_at),
     };
   }
 
-  public toAdminDTO(): ReviewAdminDTO {
+  public toAdminDTO(t: TFunction): ReviewAdminDTO {
     return {
       id: this.id,
       rating: this.rating,
       comment: this.comment,
-      author: this.author?.toAdminDTO() ?? null,
-      target: this.target?.toAdminDTO() ?? null,
-      ride: this.ride?.toAdminDTO() ?? null,
+      author: this.author?.toAdminDTO(t) ?? null,
+      target: this.target?.toAdminDTO(t) ?? null,
+      trip: this.trip?.toAdminDTO(t) ?? null,
       status: this.status,
-      createdAt: formatDateTime(this.created_at),
-      updatedAt: formatDateTime(this.updated_at),
+      createdAt: formatDateTimeFromUTC(this.created_at),
     };
   }
 
-  public static initModel(sequelize: Sequelize): void {
+  public static initModel(sequelize: Sequelize) {
     this.init(
       {
         id: {
@@ -180,10 +180,10 @@ export default class Review extends Model {
           onUpdate: "CASCADE",
           onDelete: "RESTRICT",
         },
-        ride_id: {
+        trip_id: {
           type: DataTypes.UUID,
           allowNull: false,
-          references: { model: "rides", key: "id" },
+          references: { model: "trips", key: "id" },
           onUpdate: "CASCADE",
           onDelete: "RESTRICT",
         },
@@ -210,8 +210,8 @@ export default class Review extends Model {
         indexes: [
           {
             unique: true,
-            name: "unique_review_per_ride_author_target",
-            fields: ["author_id", "target_id", "ride_id"],
+            name: "unique_reviews_author_target_trip",
+            fields: ["author_id", "target_id", "trip_id"],
           },
         ],
       }

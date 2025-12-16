@@ -64,12 +64,31 @@
     "invalid_option": "L'option sélectionnée n'est pas valide pour cette catégorie"
   },
 
-  "ride": {
+  "trip": {
     "invalid_status_transition": "Transition de statut invalide pour ce trajet",
     "cannot_modify_seats": "Impossible de modifier le nombre de places pour ce trajet dans son état actuel",
     "invalid_seat_amount": "Le nombre de places doit être un entier positif",
     "exceeds_offered_seats": "Impossible d'ajouter ce nombre de places : cela dépasserait le nombre total de places offertes",
-    "not_enough_available_seats": "Impossible de retirer ce nombre de places : il n'y a pas assez de places disponibles"
+    "not_enough_available_seats": "Impossible de retirer ce nombre de places : il n'y a pas assez de places disponibles",
+
+    "create": {
+      "insufficient_vehicle_seats": "Votre véhicule ne dispose que de {{available}} siège(s) passager(s). Veuillez sélectionner un véhicule plus large ou ajuster le nombre de sièges proposés."
+    },
+
+    "cancel": {
+      "invalid_status": "Ce trajet ne peut pas être annulé dans son état actuel",
+      "too_close": "Vous ne pouvez pas annuler ce trajet car il débute trop prochainement et possède des réservations actives"
+    },
+
+    "start": {
+      "invalid_status": "Ce trajet ne peut pas être démarré dans son état actuel",
+      "too_early": "Il est trop tôt pour démarrer ce trajet",
+      "too_late": "Il est trop tard pour démarrer ce trajet"
+    },
+
+    "end": {
+      "invalid_status": "Ce trajet ne peut pas être terminé dans son état actuel"
+    }
   },
 
   "booking": {

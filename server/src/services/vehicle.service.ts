@@ -2,12 +2,12 @@ import dayjs from "dayjs";
 import { Op } from "sequelize";
 
 import { sequelize } from "@/config";
-import { COMMON_ERROR_MESSAGES, RIDE_STATUSES, VEHICLE_ASSOCIATIONS } from "@/constants";
+import { COMMON_ERROR_MESSAGES, TRIP_STATUSES, VEHICLE_ASSOCIATIONS } from "@/constants";
 import { VEHICLE_ERROR_MESSAGES } from "@/constants/errors";
-import { Ride, Vehicle, VehicleBrand, VehicleColor, VehicleEnergy } from "@/models/mysql";
+import { Trip, Vehicle, VehicleBrand, VehicleColor, VehicleEnergy } from "@/models/mysql";
 import { AppError } from "@/utils";
 
-import type { CreateVehiclePayload, UpdateVehiclePayload, VehicleCreationAttributes } from "@/types";
+import type { CreateVehicleData, CreateVehiclePayload, UpdateVehiclePayload } from "@/types";
 import type { FindOptions } from "sequelize";
 
 export class VehicleService {
@@ -27,21 +27,23 @@ export class VehicleService {
   }
 
   /**
-   * Finds a vehicle by ID, ensuring it belongs to the given user.
+   * Finds a vehicle by ID, ensuring it belongs to a given user.
    *
    * @param {string} userId - The ID of the user.
    * @param {string} vehicleId - The ID of the vehicle.
    * @param {FindOptions} [options] - Additional Sequelize find options.
    * @returns {Promise<Vehicle>} - The returned vehicle instance.
    * @throws {AppError} - If:
-   *   - The vehicle is not found or the ownership check fails (HTTP 404).
+   *   - The vehicle does not exist, or
+   *   - The vehicle exists but does not belong to the user (HTTP 404).
    */
-  public static async findOwnedVehicleById(userId: string, vehicleId: string, options?: FindOptions): Promise<Vehicle> {
+  public static async findOwnedById(
+    userId: string,
+    vehicleId: string,
+    options?: FindOptions
+  ): Promise<Vehicle> {
     const vehicle = await Vehicle.findOne({
-      where: {
-        id: vehicleId,
-        owner_id: userId,
-      },
+      where: { id: vehicleId, owner_id: userId },
       include: VEHICLE_ASSOCIATIONS,
       ...options,
     });
@@ -50,7 +52,7 @@ export class VehicleService {
       throw new AppError({
         statusCode: 404,
         userMessageKey: COMMON_ERROR_MESSAGES.RESOURCE_NOT_FOUND,
-        debugMessage: `[VehicleService.findOwnedVehicleById] Vehicle with ID ${vehicleId} not found or ownership check failed for user ${userId}`,
+        debugMessage: `[VehicleService.findOwnedById] Vehicle '${vehicleId}' not found or ownership check failed for user '${userId}'`,
       });
     }
 
@@ -67,7 +69,7 @@ export class VehicleService {
    *   - The license plate is already registered by another vehicle (HTTP 409).
    *   - Provided brandId, colorId, or energyId is invalid (HTTP 400).
    */
-  public static async createVehicle(userId: string, data: CreateVehiclePayload): Promise<Vehicle> {
+  public static async create(userId: string, data: CreateVehiclePayload): Promise<Vehicle> {
     return sequelize.transaction(async (t) => {
       const licensePlateExists = !!(await Vehicle.findOne({
         attributes: ["id"],
@@ -106,7 +108,7 @@ export class VehicleService {
           userMessageKey: VEHICLE_ERROR_MESSAGES.ENERGY_INVALID,
         });
 
-      const vehicleAttributes: VehicleCreationAttributes = {
+      const vehicleCreationData: CreateVehicleData = {
         brand_id: data.brandId,
         model: data.model,
         color_id: data.colorId,
@@ -117,7 +119,7 @@ export class VehicleService {
         first_registration_date: dayjs(data.firstRegistrationDate).toDate(),
       };
 
-      const vehicle = await Vehicle.create(vehicleAttributes, { transaction: t });
+      const vehicle = await Vehicle.create(vehicleCreationData, { transaction: t });
       await vehicle.reload({ include: VEHICLE_ASSOCIATIONS, transaction: t });
 
       return vehicle;
@@ -136,9 +138,13 @@ export class VehicleService {
    *   - Provided brandId, colorId, or energyId is invalid (HTTP 400, thrown by vehicle.updateInfo).
    *   - No changes were detected in the provided data (HTTP 400, thrown by vehicle.updateInfo)
    */
-  public static async updateVehicle(userId: string, vehicleId: string, data: UpdateVehiclePayload): Promise<Vehicle> {
+  public static async updateVehicle(
+    userId: string,
+    vehicleId: string,
+    data: UpdateVehiclePayload
+  ): Promise<Vehicle> {
     return await sequelize.transaction(async (t) => {
-      const vehicle = await this.findOwnedVehicleById(userId, vehicleId, { transaction: t });
+      const vehicle = await this.findOwnedById(userId, vehicleId, { transaction: t });
 
       const updatedVehicle = await vehicle.updateInfo(data, { transaction: t });
 
@@ -163,16 +169,16 @@ export class VehicleService {
    */
   public static async deleteVehicle(userId: string, vehicleId: string): Promise<void> {
     return await sequelize.transaction(async (t) => {
-      const vehicle = await this.findOwnedVehicleById(userId, vehicleId, {
+      const vehicle = await this.findOwnedById(userId, vehicleId, {
         transaction: t,
         lock: t.LOCK.UPDATE,
       });
 
-      const activeRide = await Ride.findOne({
+      const activeRide = await Trip.findOne({
         where: {
           vehicle_id: vehicle.id,
           status: {
-            [Op.notIn]: [RIDE_STATUSES.CANCELLED, RIDE_STATUSES.COMPLETED],
+            [Op.notIn]: [TRIP_STATUSES.CANCELLED, TRIP_STATUSES.COMPLETED],
           },
         },
         attributes: ["id"],

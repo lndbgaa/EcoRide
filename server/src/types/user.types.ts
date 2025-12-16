@@ -26,7 +26,7 @@ export interface UserPublicDTO {
   age: number | null;
   avatar: string | null;
   averageRating: number | null;
-  memberSince: string | null;
+  memberSince: string;
   emailIsVerified: boolean;
 }
 
@@ -37,19 +37,19 @@ export interface UserPrivateDTO extends UserPublicDTO {
   address: string | null;
   credits: number;
   birthDate: string | null;
-  lastLogin: DateTimeDTO;
+  lastLogin: DateTimeDTO | null;
 }
 
 export interface UserAdminDTO extends UserPrivateDTO {
   role: UserRolePublicDTO | null;
   status: UserStatus;
-  suspendedAt: DateTimeDTO;
-  pendingDeletionAt: DateTimeDTO;
-  deletedAt: DateTimeDTO;
+  suspendedAt: DateTimeDTO | null;
+  pendingDeletionAt: DateTimeDTO | null;
+  deletedAt: DateTimeDTO | null;
 }
 
 // ===========================
-//       Request Payloads
+//       Request Types
 // =========================== */
 
 export interface UpdateUserInfoPayload {

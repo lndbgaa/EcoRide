@@ -6,7 +6,7 @@ import { appConfig, sequelize, transporter } from "@/config";
 import {
   AUTH_ERROR_MESSAGES,
   BOOKING_STATUSES,
-  RIDE_STATUSES,
+  TRIP_STATUSES,
   USER_ACCOUNT_DELETION_DELAY_DAYS,
   USER_ERROR_MESSAGES,
   USER_STATUSES,
@@ -17,7 +17,7 @@ import {
   PasswordResetToken,
   Preference,
   RefreshToken,
-  Ride,
+  Trip,
   User,
   Vehicle,
 } from "@/models/mysql";
@@ -46,10 +46,10 @@ export class UserDeletionService {
       });
     }
 
-    const activeRide = await Ride.findOne({
+    const activeRide = await Trip.findOne({
       where: {
         driver_id: user.id,
-        status: { [Op.in]: [RIDE_STATUSES.OPEN, RIDE_STATUSES.FULL, RIDE_STATUSES.IN_PROGRESS] },
+        status: { [Op.in]: [TRIP_STATUSES.OPEN, TRIP_STATUSES.FULL, TRIP_STATUSES.IN_PROGRESS] },
       },
     });
 
@@ -71,29 +71,18 @@ export class UserDeletionService {
       await Promise.all([
         user.markAsPendingDeletion({ transaction: t }),
 
-        RefreshToken.update(
-          { revoked_at: dayjs().toDate() },
-          { where: { user_id: user.id, revoked_at: null }, transaction: t }
-        ),
+        RefreshToken.update({ revoked_at: dayjs().toDate() }, { where: { user_id: user.id, revoked_at: null }, transaction: t }),
       ]);
     });
 
     const content = await renderTemplate("deletionRequest.html", {
       firstName: user.first_name || "",
-      deletionDate: dayjs(user.pending_deletion_at)
-        .add(USER_ACCOUNT_DELETION_DELAY_DAYS, "days")
-        .format("DD/MM/YYYY"),
+      deletionDate: dayjs(user.pending_deletion_at).add(USER_ACCOUNT_DELETION_DELAY_DAYS, "days").format("DD/MM/YYYY"),
       loginLink: `${clientUrl}/login`,
     });
 
     try {
-      await sendEmail(
-        transporter,
-        gmail.user,
-        user.email,
-        "Confirmation de suppression de ton compte - EcoRide",
-        content
-      );
+      await sendEmail(transporter, gmail.user, user.email, "Confirmation de suppression de ton compte - EcoRide", content);
 
       // TODO ajouter i18n pour l'email
       // FIXME mettre un retry automatique pour sendEmail
@@ -143,10 +132,7 @@ export class UserDeletionService {
       });
     }
 
-    const expirationDate = dayjs(user.pending_deletion_at).add(
-      USER_ACCOUNT_DELETION_DELAY_DAYS,
-      "days"
-    );
+    const expirationDate = dayjs(user.pending_deletion_at).add(USER_ACCOUNT_DELETION_DELAY_DAYS, "days");
     if (dayjs().isAfter(expirationDate)) {
       throw new AppError({
         statusCode: 410,
@@ -163,13 +149,7 @@ export class UserDeletionService {
     });
 
     try {
-      await sendEmail(
-        transporter,
-        gmail.user,
-        user.email,
-        "Réactivation de ton compte - EcoRide",
-        content
-      );
+      await sendEmail(transporter, gmail.user, user.email, "Réactivation de ton compte - EcoRide", content);
 
       // TODO ajouter i18n pour l'email
       // FIXME mettre un retry automatique pour sendEmail
@@ -188,9 +168,7 @@ export class UserDeletionService {
    * @notes - Compares only the date (YYYY-MM-DD) in the database (ignoring time and timezone) to retrieve all users whose deletion period has expired.
    */
   public static async findExpiredDeletionRequests(): Promise<User[]> {
-    const expirationDateStr = dayjs()
-      .subtract(USER_ACCOUNT_DELETION_DELAY_DAYS, "day")
-      .format("YYYY-MM-DD");
+    const expirationDateStr = dayjs().subtract(USER_ACCOUNT_DELETION_DELAY_DAYS, "day").format("YYYY-MM-DD");
 
     return await User.findAll({
       where: {

@@ -64,12 +64,31 @@
     "invalid_option": "The selected option is not valid for this category"
   },
 
-  "ride": {
+  "trip": {
     "invalid_status_transition": "Invalid status transition for this ride",
     "cannot_modify_seats": "Cannot modify the number of seats for this ride in its current state",
     "invalid_seat_amount": "Number of seats must be a positive integer",
     "exceeds_offered_seats": "Cannot add this number of seats: it would exceed the total offered seats",
-    "not_enough_available_seats": "Cannot remove this number of seats: not enough seats available"
+    "not_enough_available_seats": "Cannot remove this number of seats: not enough seats available",
+
+    "create": {
+      "insufficient_vehicle_seats": "Your vehicle only has {{available}} passenger seat(s). Please select a larger vehicle or adjust the number of seats offered."
+    },
+
+    "cancel": {
+      "invalid_status": "This trip cannot be cancelled in its current state",
+      "too_close": "You cannot cancel this trip because it starts too soon and has active bookings"
+    },
+
+    "start": {
+      "invalid_status": "This trip cannot be started in its current state",
+      "too_early": "It is too early to start this trip",
+      "too_late": "It is too late to start this trip"
+    },
+
+    "end": {
+      "invalid_status": "This trip cannot be ended in its current state"
+    }
   },
 
   "booking": {

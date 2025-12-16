@@ -18,6 +18,11 @@
     "deletion_requested": "Demande de suppression enregistrée",
     "deletion_cancelled": "Compte réactivé"
   },
+  "preference": {
+    "retrieved_all": "Liste des préférences récupérée",
+    "retrieved": "Préférence récupérée",
+    "updated": "Préférence mise à jour"
+  },
   "vehicle": {
     "retrieved_all": "Liste des véhicules récupérée",
     "retrieved": "Véhicule récupéré",
@@ -25,9 +30,12 @@
     "updated": "Véhicule mis à jour",
     "deleted": "Véhicule supprimé"
   },
-  "preference": {
-    "retrieved_all": "Liste des préférences récupérée",
-    "retrieved": "Préférence récupérée",
-    "updated": "Préférence mise à jour"
+  "trip": {
+    "retrieved_all": "Liste des trajets récupérée",
+    "retrieved": "Trajet récupéré",
+    "created": "Trajet créé",
+    "cancelled": "Trajet annulé",
+    "started": "Trajet démarré",
+    "ended": "Trajet terminé"
   }
 }

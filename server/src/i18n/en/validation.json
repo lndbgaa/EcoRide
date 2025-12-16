@@ -14,14 +14,34 @@
   "number_min": "The value must be greater than or equal to {{limit}}",
   "number_max": "The value must be less than or equal to {{limit}}",
 
+  "boolean_base": "This field must be a boolean",
+
   "date_invalid": "The provided date is invalid",
-  "date_before_now": "The date must be earlier than today",
-  "date_too_young": "You must be at least {{minAge}} years old to proceed",
+  "time_invalid": "The provided time is invalid",
+  "datetime_invalid": "The provided dates or times are invalid",
 
   "pattern_username": "The username must start with a letter, and can only contain letters, numbers, hyphens, or underscores",
   "pattern_password": "The password must contain at least one uppercase letter, one lowercase letter, one number, and one special character",
   "pattern_first_name": "The first name can only contain letters and hyphens",
   "pattern_last_name": "The last name can only contain letters and hyphens",
   "pattern_phone": "The phone number must be a valid French format (e.g., 06XXXXXXXX or +33XXXXXXXX)",
-  "pattern_license_plate": "The license plate must follow the format AB-123-CD"
+  "pattern_license_plate": "The license plate must follow the format AB-123-CD",
+
+  "user": {
+    "birth_cannot_be_future": "The birth date cannot be in the future",
+    "too_young": "You must be at least {{minAge}} years old to proceed"
+  },
+
+  "vehicle": {
+    "first_registration_cannot_be_future": "The first registration date cannot be in the future"
+  },
+
+  "trip": {
+    "search_date_cannot_be_past": "Search date cannot be in the past",
+    "same_locations": "Departure and arrival locations must be different",
+    "departure_cannot_be_past": "The departure date and time must be in the future",
+    "arrival_before_departure": "The arrival time must be after the departure time",
+    "duration_too_short": "The trip duration must be at least {{minDuration}} minutes",
+    "duration_too_long": "The trip duration cannot exceed {{maxDuration}} hours"
+  }
 }

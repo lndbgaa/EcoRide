@@ -30,10 +30,10 @@ export async function up(queryInterface, Sequelize) {
       onUpdate: "CASCADE",
       onDelete: "RESTRICT",
     },
-    ride_id: {
+    trip_id: {
       type: Sequelize.UUID,
       allowNull: false,
-      references: { model: "rides", key: "id" },
+      references: { model: "trips", key: "id" },
       onUpdate: "CASCADE",
       onDelete: "RESTRICT",
     },
@@ -61,9 +61,9 @@ export async function up(queryInterface, Sequelize) {
     },
   });
 
-  await queryInterface.addIndex("reviews", ["author_id", "target_id", "ride_id"], {
+  await queryInterface.addIndex("reviews", ["author_id", "target_id", "trip_id"], {
     unique: true,
-    name: "unique_review_per_ride_author_target",
+    name: "unique_reviews_author_target_trip",
   });
 }
 

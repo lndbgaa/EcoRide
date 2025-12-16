@@ -10,6 +10,7 @@ export const SUCCESS_MESSAGES = {
     PASSWORD_RESET_TOKEN_VALID: "success:auth.password_reset_token_valid",
     PASSWORD_RESET_COMPLETED: "success:auth.password_reset_completed",
   },
+
   USER: {
     DATA_RETRIEVED: "success:user.data_retrieved",
     PROFILE_UPDATED: "success:user.profile_updated",
@@ -18,6 +19,13 @@ export const SUCCESS_MESSAGES = {
     DELETION_REQUESTED: "success:user.deletion_requested",
     DELETION_CANCELLED: "success:user.deletion_cancelled",
   },
+
+  PREFERENCE: {
+    RETRIEVED_ALL: "success:preference.retrieved_all",
+    RETRIEVED: "success:preference.retrieved",
+    UPDATED: "success:preference.updated",
+  },
+
   VEHICLE: {
     RETRIEVED_ALL: "success:vehicle.retrieved_all",
     RETRIEVED: "success:vehicle.retrieved",
@@ -25,9 +33,13 @@ export const SUCCESS_MESSAGES = {
     UPDATED: "success:vehicle.updated",
     DELETED: "success:vehicle.deleted",
   },
-  PREFERENCE: {
-    RETRIEVED_ALL: "success:preference.retrieved_all",
-    RETRIEVED: "success:preference.retrieved",
-    UPDATED: "success:preference.updated",
+
+  TRIP: {
+    RETRIEVED_ALL: "success:trip.retrieved_all",
+    RETRIEVED: "success:trip.retrieved",
+    CREATED: "success:trip.created",
+    CANCELLED: "success:trip.cancelled",
+    STARTED: "success:trip.started",
+    ENDED: "success:trip.ended",
   },
 } as const;

@@ -15,9 +15,9 @@ const errorHandler: ErrorRequestHandler = (err: unknown, req: Request, res: Resp
 
   // Handle custom application errors (AppError)
   if (err instanceof AppError) {
-    const { statusCode, statusText, userMessageKey, debugMessage, code, debugCode, stack } = err;
+    const { statusCode, statusText, userMessageKey, userMessageParams, debugMessage, code, debugCode, stack } = err;
     const level = statusCode < 500 ? "warn" : "error";
-    const message = req.t(userMessageKey);
+    const message = req.t(userMessageKey, userMessageParams);
 
     logger[level](message, {
       statusCode,

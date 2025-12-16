@@ -1,39 +1,64 @@
-import dayjs from "dayjs";
+import { dayjs } from "@/config";
 
-export function toDateOnly(datetime: Date | string | number) {
-  if (!datetime) return null;
+import type { DateTimeDTO } from "@/types";
+import type { ManipulateType } from "dayjs";
 
+/**
+ *
+ * @param {Date} datetime
+ * @returns {string}
+ */
+export function formatDateOnly(datetime: Date): string {
   return dayjs(datetime).format("YYYY-MM-DD");
 }
 
-export function toTimeOnly(datetime: Date | string | number) {
-  if (!datetime) return null;
+/**
+ *
+ * @param {string} date
+ * @param {string} time
+ * @returns {DateTimeDTO}
+ */
+export function parseDateTimeToUTC(date: string, time: string): Date {
+  const dateTimeStr = `${date} ${time}`;
 
-  return dayjs(datetime).format("HH:mm");
+  return dayjs.tz(dateTimeStr, "Europe/Paris").utc().toDate();
 }
 
-export function formatDateTime(date: Date | string | number | null) {
-  if (!date) return null;
+/**
+ *
+ * @param {Date} utcDate
+ * @returns {DateTimeDTO}
+ */
+export function formatDateTimeFromUTC(utcDate: Date): DateTimeDTO {
+  const parisDateTime = dayjs(utcDate).tz("Europe/Paris");
 
-  return { date: toDateOnly(date), time: toTimeOnly(date) };
+  return {
+    date: parisDateTime.format("YYYY-MM-DD"),
+    time: parisDateTime.format("HH:mm"),
+  };
 }
 
+/**
+ *
+ * @param {Date} startDate
+ * @param {Date} endDate
+ * @param {ManipulateType} unit
+ * @returns {number}
+ */
 export function calculateDuration(
-  startDate: Date | string | number | null,
-  endDate: Date | string | number | null,
-  unit: "second" | "minute" | "hour" | "day" | "month" | "year" = "minute"
-) {
-  if (!startDate || !endDate) return null;
-
-  const start = dayjs(startDate);
-  const end = dayjs(endDate);
-
-  return end.diff(start, unit);
+  startDate: Date,
+  endDate: Date,
+  unit: ManipulateType = "minute"
+): number {
+  return dayjs(endDate).diff(dayjs(startDate), unit);
 }
 
-export function calculateAge(birthDate: Date | string | number | null) {
-  if (!birthDate) return null;
-
+/**
+ *
+ * @param {Date} birthDate
+ * @returns {number}
+ */
+export function calculateAge(birthDate: Date): number {
   const today = dayjs();
   const birth = dayjs(birthDate);
 

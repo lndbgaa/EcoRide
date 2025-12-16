@@ -6,6 +6,7 @@ export interface AppErrorOptions {
   statusCode?: number;
   statusText?: string;
   userMessageKey?: string;
+  userMessageParams?: Record<string, any>;
   debugMessage?: string;
   code?: string;
   debugCode?: string;

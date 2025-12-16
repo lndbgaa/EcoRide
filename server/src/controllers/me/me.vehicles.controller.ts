@@ -28,7 +28,7 @@ export const getMyVehicle = catchAsync(async (req: Request, res: Response): Prom
   const userId = req.user.id;
   const vehicleId = req.params.id!;
 
-  const vehicle = await VehicleService.findOwnedVehicleById(userId, vehicleId);
+  const vehicle = await VehicleService.findOwnedById(userId, vehicleId);
   const dto = vehicle.toPrivateDTO(req.t);
 
   return res.status(200).json({
@@ -45,7 +45,7 @@ export const createMyVehicle = catchAsync(async (req: Request, res: Response): P
   const userId = req.user.id;
   const data: CreateVehiclePayload = req.body;
 
-  const vehicle = await VehicleService.createVehicle(userId, data);
+  const vehicle = await VehicleService.create(userId, data);
   const dto = vehicle.toPrivateDTO(req.t);
 
   return res.status(201).json({
