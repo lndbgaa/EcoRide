@@ -42,4 +42,9 @@ export const SUCCESS_MESSAGES = {
     STARTED: "success:trip.started",
     ENDED: "success:trip.ended",
   },
+
+  BOOKING: {
+    CREATED: "success:booking.created",
+    CANCELLED: "success:booking.cancelled",
+  },
 } as const;

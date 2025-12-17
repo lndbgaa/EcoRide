@@ -1,6 +1,7 @@
 export * from "./user";
 
 export * from "./auth.service.js";
+export * from "./booking.service.js";
 export * from "./email-verification.service.js";
 export * from "./email.service.js";
 export * from "./password-reset.service.js";

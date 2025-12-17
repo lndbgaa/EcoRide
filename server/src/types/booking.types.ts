@@ -1,13 +1,15 @@
 import type { BOOKING_STATUSES } from "@/constants";
-import type {
-  DateTimeDTO,
-  TripAdminDTO,
-  TripPublicDTO,
-  UserAdminDTO,
-  UserPublicDTO,
-} from "@/types";
+import type { DateTimeDTO, TripAdminDTO, TripPublicDTO, UserAdminDTO, UserPublicDTO } from "@/types";
+
+// ===========================
+//    Constants-based Types
+// =========================== */
 
 export type BookingStatus = (typeof BOOKING_STATUSES)[keyof typeof BOOKING_STATUSES];
+
+// ===========================
+//            DTOs
+// =========================== */
 
 export interface BookingPublicDTO {
   id: string;
@@ -38,4 +40,12 @@ export interface BookingAdminDTO {
   seatsBooked: number;
   status: BookingStatus;
   createdAt: DateTimeDTO;
+}
+
+// ===========================
+//        Request Types
+// =========================== */
+export interface CreateBookingPayload {
+  tripId: string;
+  seatsToBook: number;
 }

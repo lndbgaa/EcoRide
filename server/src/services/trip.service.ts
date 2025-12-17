@@ -142,9 +142,9 @@ export class TripService {
   /**
    * Creates a new trip for a given user.
    *
-   * @param {string} userId - The ID of the user.
-   * @param {CreateTripPayload} data - The data for the new trip.
-   * @returns {Promise<Trip>} - The newly created trip instance.
+   * @param {string} userId - The ID of the user creating the trip.
+   * @param {CreateTripPayload} data - The trip data.
+   * @returns {Promise<Trip>} - The newly created trip instance with vehicle relation loaded.
    * @throws {AppError} - If:
    *   - The vehicle is not found or the ownership check fails (HTTP 404, thrown by VehicleService.findOwnedById).
    *   - The vehicle does not have enough passenger seats (HTTP 400).
@@ -189,13 +189,13 @@ export class TripService {
   /**
    * Cancels a trip owned by a given user.
    *
-   * @param {string} userId - The ID of the user.
-   * @param {string} tripId - The ID of the trip.
-   * @returns {Promise<Trip>} - The updated trip instance.
+   * @param {string} userId - The ID of the user requesting the cancellation.
+   * @param {string} tripId - The ID of the trip to cancel.
+   * @returns {Promise<Trip>} - The updated trip instance with status set to cancelled.
    * @throws {AppError} - If:
    *   - The trip is not found or doesn't belong to the user (HTTP 404, thrown by this.findOwnedById).
    *   - The trip status is not OPEN or FULL (HTTP 409).
-   *   - Cancellation is attempted within minimum notice period with active bookings (HTTP 403).
+   *   - Cancellation is attempted within minimum notice period with active bookings (HTTP 409).
    */
   public static async cancel(userId: string, tripId: string): Promise<Trip> {
     const trip = await sequelize.transaction(async (t) => {
@@ -234,9 +234,12 @@ export class TripService {
         trip.bookings &&
         trip.bookings.length > 0
       ) {
+        const hoursBeforeCancellation = TRIP_MIN_MINUTES_BEFORE_CANCELLATION / 60;
+
         throw new AppError({
-          statusCode: 403,
+          statusCode: 409,
           userMessageKey: TRIP_ERROR_MESSAGES.CANCEL.TOO_CLOSE,
+          userMessageParams: { hours: hoursBeforeCancellation },
           debugMessage: `[TripService.cancel] Cannot cancel trip '${tripId}': too close to departure (${minutesBeforeDeparture} min remaining) with ${trip.bookings.length} active booking(s). Minimum required: ${TRIP_MIN_MINUTES_BEFORE_CANCELLATION} minutes.`,
         });
       }
@@ -297,13 +300,13 @@ export class TripService {
    * Starts a trip owned by a given user.
    *
    * @param {string} userId - The ID of the user.
-   * @param {string} tripId - The ID of the trip.
-   * @returns {Promise<Trip>} - The updated trip instance.
+   * @param {string} tripId - The ID of the trip to start.
+   * @returns {Promise<Trip>} - The updated trip instance with status set to in_progress.
    * @throws {AppError} - If:
    *   - The trip is not found or doesn't belong to the user (HTTP 404, thrown by this.findOwnedById).
    *   - The trip status is not OPEN or FULL (HTTP 409).
-   *   - The start is attempted too early before departure (HTTP 403).
-   *   - The start is attempted too late after departure (HTTP 403).
+   *   - The start is attempted too early before departure (HTTP 409).
+   *   - The start is attempted too late after departure (HTTP 409).
    */
   public static async start(userId: string, tripId: string): Promise<Trip> {
     return await sequelize.transaction(async (t) => {
@@ -330,8 +333,9 @@ export class TripService {
       // Too early to start
       if (minutesUntilDeparture > TRIP_MIN_MINUTES_BEFORE_STARTING) {
         throw new AppError({
-          statusCode: 403,
+          statusCode: 409,
           userMessageKey: TRIP_ERROR_MESSAGES.START.TOO_EARLY,
+          userMessageParams: { minutes: TRIP_MIN_MINUTES_BEFORE_STARTING },
           debugMessage: `[TripService.start] Cannot start trip '${tripId}': too early. Now is more than ${TRIP_MIN_MINUTES_BEFORE_STARTING} minutes before departure.`,
         });
       }
@@ -339,8 +343,9 @@ export class TripService {
       // Too late to start
       if (minutesUntilDeparture < -TRIP_MAX_MINUTES_AFTER_STARTING) {
         throw new AppError({
-          statusCode: 403,
+          statusCode: 409,
           userMessageKey: TRIP_ERROR_MESSAGES.START.TOO_LATE,
+          userMessageParams: { minutes: TRIP_MIN_MINUTES_BEFORE_STARTING },
           debugMessage: `[TripService.start] Cannot start trip '${tripId}': too late. Now is more than ${TRIP_MAX_MINUTES_AFTER_STARTING} minutes after departure.`,
         });
       }
@@ -355,8 +360,8 @@ export class TripService {
    * Ends a trip owned by a given user.
    *
    * @param {string} userId - The ID of the user.
-   * @param {string} tripId - The ID of the trip.
-   * @returns {Promise<Trip>} - The updated trip instance.
+   * @param {string} tripId - The ID of the trip to end.
+   * @returns {Promise<Trip>} - The updated trip instance with status set to completed.
    * @throws {AppError} - If:
    *   - The trip is not found or doesn't belong to the user (HTTP 404, thrown by this.findOwnedById).
    *   - The trip status is not IN_PROGRESS (HTTP 409).

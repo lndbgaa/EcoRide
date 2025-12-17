@@ -72,27 +72,41 @@
     "not_enough_available_seats": "Impossible de retirer ce nombre de places : il n'y a pas assez de places disponibles",
 
     "create": {
-      "insufficient_vehicle_seats": "Votre véhicule ne dispose que de {{available}} siège(s) passager(s). Veuillez sélectionner un véhicule plus large ou ajuster le nombre de sièges proposés."
+      "insufficient_vehicle_seats": "Votre véhicule ne dispose que de {{available}} siège(s) passager(s). Veuillez sélectionner un véhicule plus large ou ajuster le nombre de sièges proposés"
     },
 
     "cancel": {
-      "invalid_status": "Ce trajet ne peut pas être annulé dans son état actuel",
-      "too_close": "Vous ne pouvez pas annuler ce trajet car il débute trop prochainement et possède des réservations actives"
+      "invalid_status": "Impossible d'annuler ce trajet",
+      "too_close": "Tu ne peux plus annuler ce trajet car il existe des réservations actives et le départ a lieu dans moins de {{hours}} heures"
     },
 
     "start": {
-      "invalid_status": "Ce trajet ne peut pas être démarré dans son état actuel",
-      "too_early": "Il est trop tôt pour démarrer ce trajet",
-      "too_late": "Il est trop tard pour démarrer ce trajet"
+      "invalid_status": "Impossible de démarrer ce trajet",
+      "too_early": "Il est trop tôt pour démarrer ce trajet. Vous pouvez le démarrer au maximum {minutes} minutes avant le départ",
+      "too_late": "Il est trop tard pour démarrer ce trajet. Le démarrage n’est plus possible plus de {minutes} minutes après le départ"
     },
 
     "end": {
-      "invalid_status": "Ce trajet ne peut pas être terminé dans son état actuel"
+      "invalid_status": "Impossible de terminer ce trajet"
     }
   },
 
   "booking": {
-    "invalid_status_transition": "Transition de statut invalide pour cette réservation"
+    "invalid_status_transition": "Transition de statut invalide pour cette réservation",
+
+    "create": {
+      "trip_not_open": "Ce trajet n'est plus disponible à la réservation",
+      "is_driver": "Tu ne peux pas réserver une place sur ton propre trajet",
+      "already_booked": "Tu as déjà une réservation active pour ce trajet",
+      "not_enough_seats": "Seulement {{available}} place(s) disponible(s) sur ce trajet",
+      "insufficient_credits": "Tu as besoin de {{required}} crédit(s) pour réserver ce trajet"
+    },
+
+    "cancel": {
+      "already_cancelled": "Tu as déjà annulé cette réservation",
+      "invalid_status": "Impossible d'annuler cette réservation",
+      "too_close": "Tu ne peux plus annuler ta réservation (départ dans moins de {{hours}} heures)"
+    }
   },
 
   "review": {

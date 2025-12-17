@@ -37,5 +37,9 @@
     "cancelled": "Trajet annulé",
     "started": "Trajet démarré",
     "ended": "Trajet terminé"
+  },
+  "booking": {
+    "created": "Réservation créée",
+    "cancelled": "Réservation annulée"
   }
 }

@@ -1,6 +1,5 @@
 import { DataTypes, Model } from "sequelize";
 
-import { sequelize } from "@/config";
 import { TRIP_ERROR_MESSAGES, TRIP_MAX_PRICE, TRIP_MIN_PRICE, TRIP_STATUSES } from "@/constants";
 import { AppError, calculateDuration, formatDateTimeFromUTC } from "@/utils";
 
@@ -90,7 +89,7 @@ export default class Trip extends Model {
       });
     }
 
-    this.status = newStatus;
+    this.setDataValue("status", newStatus);
   }
 
   // ----------------------------
@@ -143,29 +142,21 @@ export default class Trip extends Model {
       });
     }
 
-    return sequelize.transaction(async (t) => {
-      await this.reload({ transaction: t, lock: true });
-
-      if (this.available_seats + amount > this.offered_seats) {
-        throw new AppError({
-          statusCode: 400,
-          userMessageKey: TRIP_ERROR_MESSAGES.GENERIC.EXCEEDS_OFFERED_SEATS,
-          debugMessage: `Adding ${amount} seats would exceed offered seats. Available: ${this.available_seats}, Offered: ${this.offered_seats}.`,
-        });
-      }
-
-      this.available_seats += amount;
-
-      if (this.isFull() && this.available_seats > 0) {
-        this.transitionTo(OPEN);
-      }
-
-      await this.save({
-        ...options,
-        transaction: t,
-        fields: ["available_seats", "status"],
+    if (this.available_seats + amount > this.offered_seats) {
+      throw new AppError({
+        statusCode: 400,
+        userMessageKey: TRIP_ERROR_MESSAGES.GENERIC.EXCEEDS_OFFERED_SEATS,
+        debugMessage: `Adding ${amount} seats would exceed offered seats. Available: ${this.available_seats}, Offered: ${this.offered_seats}.`,
       });
-    });
+    }
+
+    this.available_seats += amount;
+
+    if (this.isFull() && this.available_seats > 0) {
+      this.transitionTo(OPEN);
+    }
+
+    await this.save({ ...options, fields: ["available_seats", "status"] });
   }
 
   /**
@@ -195,29 +186,21 @@ export default class Trip extends Model {
       });
     }
 
-    return sequelize.transaction(async (t) => {
-      await this.reload({ transaction: t, lock: true });
-
-      if (amount > this.available_seats) {
-        throw new AppError({
-          statusCode: 400,
-          userMessageKey: TRIP_ERROR_MESSAGES.GENERIC.NOT_ENOUGH_AVAILABLE_SEATS,
-          debugMessage: `Cannot remove ${amount} seats for trip ${this.id}. Only ${this.available_seats} seats are available.`,
-        });
-      }
-
-      this.available_seats -= amount;
-
-      if (this.available_seats === 0) {
-        this.transitionTo(FULL);
-      }
-
-      await this.save({
-        ...options,
-        transaction: t,
-        fields: ["available_seats", "status"],
+    if (amount > this.available_seats) {
+      throw new AppError({
+        statusCode: 400,
+        userMessageKey: TRIP_ERROR_MESSAGES.GENERIC.NOT_ENOUGH_AVAILABLE_SEATS,
+        debugMessage: `Cannot remove ${amount} seats for trip ${this.id}. Only ${this.available_seats} seats are available.`,
       });
-    });
+    }
+
+    this.available_seats -= amount;
+
+    if (this.available_seats === 0) {
+      this.transitionTo(FULL);
+    }
+
+    await this.save({ ...options, fields: ["available_seats", "status"] });
   }
 
   // ----------------------------
@@ -372,9 +355,14 @@ export default class Trip extends Model {
           beforeValidate: (trip: Trip) => {
             trip.departure_location = trip.departure_location.trim();
             trip.arrival_location = trip.arrival_location.trim();
+          },
 
-            trip.available_seats = trip.offered_seats;
+          beforeSave: (trip: Trip) => {
             trip.duration_minutes = calculateDuration(trip.departure_datetime, trip.arrival_datetime);
+          },
+
+          beforeCreate: (trip: Trip) => {
+            trip.available_seats = trip.offered_seats;
           },
         },
       }

@@ -72,27 +72,41 @@
     "not_enough_available_seats": "Cannot remove this number of seats: not enough seats available",
 
     "create": {
-      "insufficient_vehicle_seats": "Your vehicle only has {{available}} passenger seat(s). Please select a larger vehicle or adjust the number of seats offered."
+      "insufficient_vehicle_seats": "Your vehicle only has {{available}} passenger seat(s). Please select a larger vehicle or adjust the number of seats offered"
     },
 
     "cancel": {
-      "invalid_status": "This trip cannot be cancelled in its current state",
-      "too_close": "You cannot cancel this trip because it starts too soon and has active bookings"
+      "invalid_status": "Cannot cancel this trip",
+      "too_close": "You can no longer cancel this trip because there are active reservations and the departure is in less than {{hours}} hours"
     },
 
     "start": {
-      "invalid_status": "This trip cannot be started in its current state",
-      "too_early": "It is too early to start this trip",
-      "too_late": "It is too late to start this trip"
+      "invalid_status": "Cannot start this trip",
+      "too_early": "It is too early to start this trip. You can start it at most {minutes} minutes before departure",
+      "too_late": "It is too late to start this trip. Starting is no longer possible more than {minutes} minutes after departure"
     },
 
     "end": {
-      "invalid_status": "This trip cannot be ended in its current state"
+      "invalid_status": "Cannot end this trip"
     }
   },
 
   "booking": {
-    "invalid_status_transition": "Invalid status transition for this booking"
+    "invalid_status_transition": "Invalid status transition for this booking",
+
+    "create": {
+      "trip_not_open": "This trip is no longer available for booking",
+      "is_driver": "You cannot book a seat on your own trip",
+      "already_booked": "You already have an active booking for this trip",
+      "not_enough_seats": "Only {{available}} seat(s) available on this trip",
+      "insufficient_credits": "You need {{required}} credit(s) to book this trip"
+    },
+
+    "cancel": {
+      "already_cancelled": "You have already cancelled this booking",
+      "invalid_status": "Cannot cancel this booking",
+      "too_close": "You can no longer cancel your booking (departure in less than {{hours}} hours)"
+    }
   },
 
   "review": {

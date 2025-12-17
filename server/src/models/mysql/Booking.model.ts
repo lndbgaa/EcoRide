@@ -4,13 +4,7 @@ import { BOOKING_ERROR_MESSAGES, BOOKING_STATUSES } from "@/constants";
 import { AppError, formatDateTimeFromUTC } from "@/utils";
 
 import type { Trip, User } from "@/models/mysql";
-import type {
-  BookingAdminDTO,
-  BookingDriverDTO,
-  BookingPassengerDTO,
-  BookingPublicDTO,
-  BookingStatus,
-} from "@/types";
+import type { BookingAdminDTO, BookingPassengerDTO, BookingPublicDTO, BookingStatus } from "@/types";
 import type { TFunction } from "i18next";
 import type { SaveOptions, Sequelize } from "sequelize";
 
@@ -69,7 +63,7 @@ export default class Booking extends Model {
     if (!this.canTransitionTo(newStatus)) {
       throw new AppError({
         statusCode: 400,
-        userMessageKey: BOOKING_ERROR_MESSAGES.INVALID_STATUS_TRANSITION,
+        userMessageKey: BOOKING_ERROR_MESSAGES.GENERIC.INVALID_STATUS_TRANSITION,
         debugMessage: `Booking ${this.id} cannot transition from ${this.status} to ${newStatus}.`,
       });
     }
@@ -112,16 +106,6 @@ export default class Booking extends Model {
     return {
       id: this.id,
       trip: this.trip?.toPublicDTO(t) ?? null,
-      seatsBooked: this.seats_booked,
-      status: this.status,
-      createdAt: formatDateTimeFromUTC(this.created_at),
-    };
-  }
-
-  public toDriverDTO(): BookingDriverDTO {
-    return {
-      id: this.id,
-      passenger: this.passenger?.toPublicDTO() ?? null,
       seatsBooked: this.seats_booked,
       status: this.status,
       createdAt: formatDateTimeFromUTC(this.created_at),

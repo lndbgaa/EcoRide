@@ -37,5 +37,9 @@
     "cancelled": "Trip cancelled",
     "started": "Trip started",
     "ended": "Trip ended"
+  },
+  "booking": {
+    "created": "Booking created",
+    "cancelled": "Booking cancelled"
   }
 }
