@@ -2,17 +2,17 @@ import dayjs from "dayjs";
 import mongoose from "mongoose";
 import { v4 as uuid } from "uuid";
 
-import { INCIDENT_STATUSES } from "@/constants";
-import { AppError, formatDateTime, toDateOnly, toTimeOnly } from "@/utils";
+import { INCIDENT_ERROR_MESSAGES, INCIDENT_STATUSES } from "@/constants";
+import { AppError, formatDateTimeFromUTC } from "@/utils";
 
 import type {
+  AssignmentEmbedded,
   IncidentDetailedDTO,
   IncidentDocument,
   IncidentPreviewDTO,
   ResolutionEmbedded,
-  RideEmbedded,
+  TripEmbedded,
   UserEmbedded,
-  VehicleEmbedded,
 } from "@/types";
 
 const { PENDING, ASSIGNED, RESOLVED } = INCIDENT_STATUSES;
@@ -23,25 +23,15 @@ const userSchema = new Schema<UserEmbedded>(
   {
     id: { type: String, required: true },
     email: { type: String, required: true },
+    username: { type: String, required: true },
+    firstName: { type: String, required: false },
+    lastName: { type: String, required: false },
+    phone: { type: String, required: false },
   },
   { _id: false }
 );
 
-const vehicleSchema = new Schema<VehicleEmbedded>(
-  {
-    id: { type: String, required: true },
-    brand: { type: String, required: true },
-    model: { type: String, required: true },
-    color: { type: String, required: true },
-    energy: { type: String, required: true },
-    seats: { type: Number, required: true },
-    licensePlate: { type: String, required: true },
-    firstRegistrationDate: { type: Date, required: true },
-  },
-  { _id: false }
-);
-
-const rideSchema = new Schema<RideEmbedded>(
+const tripSchema = new Schema<TripEmbedded>(
   {
     id: { type: String, required: true },
     departureLocation: { type: String, required: true },
@@ -49,10 +39,14 @@ const rideSchema = new Schema<RideEmbedded>(
     departureDatetime: { type: Date, required: true },
     arrivalDatetime: { type: Date, required: true },
     driver: { type: userSchema, required: true },
-    vehicle: { type: vehicleSchema, required: true },
-    price: { type: Number, required: true },
-    offeredSeats: { type: Number, required: true },
-    createdAt: { type: Date, required: true },
+  },
+  { _id: false }
+);
+
+const assignmentSchema = new Schema<AssignmentEmbedded>(
+  {
+    at: { type: Date, default: Date.now },
+    to: userSchema,
   },
   { _id: false }
 );
@@ -69,7 +63,7 @@ const incidentSchema = new Schema<IncidentDocument>(
   {
     _id: { type: String, required: true, default: uuid },
     description: { type: String, required: true },
-    ride: { type: rideSchema, required: true },
+    trip: { type: tripSchema, required: true },
     passenger: { type: userSchema, required: true },
     amountInDispute: { type: Number, required: true },
     status: {
@@ -77,13 +71,13 @@ const incidentSchema = new Schema<IncidentDocument>(
       enum: Object.values(INCIDENT_STATUSES),
       default: PENDING,
     },
-    assignedTo: {
-      type: userSchema,
+    assignment: {
+      type: assignmentSchema,
       required: function (this: IncidentDocument): boolean {
         return this.status === ASSIGNED;
       },
     },
-    closure: {
+    resolution: {
       type: resolutionSchema,
       required: function (this: IncidentDocument): boolean {
         return this.status === RESOLVED;
@@ -97,15 +91,21 @@ const incidentSchema = new Schema<IncidentDocument>(
 // Status Checks
 // ----------------------------
 
-incidentSchema.methods.isPending = function (this: IncidentDocument): boolean {
+incidentSchema.methods.isPending = function (
+  this: IncidentDocument
+): boolean {
   return this.status === PENDING;
 };
 
-incidentSchema.methods.isAssigned = function (this: IncidentDocument): boolean {
+incidentSchema.methods.isAssigned = function (
+  this: IncidentDocument
+): boolean {
   return this.status === ASSIGNED;
 };
 
-incidentSchema.methods.isResolved = function (this: IncidentDocument): boolean {
+incidentSchema.methods.isResolved = function (
+  this: IncidentDocument
+): boolean {
   return this.status === RESOLVED;
 };
 
@@ -132,29 +132,32 @@ incidentSchema.methods.markAsAssigned = async function (
   if (!canTransitionTo(this.status, ASSIGNED)) {
     throw new AppError({
       statusCode: 400,
-      userMessageKey: "",
+      userMessageKey: INCIDENT_ERROR_MESSAGES.INVALID_STATUS_TRANSITION,
       debugMessage: `Incident ${this.id} cannot transition from ${this.status} to ${ASSIGNED}`,
     });
   }
 
   this.status = ASSIGNED;
-  this.assignedTo = moderator;
+  this.assignment = { at: dayjs().toDate(), to: moderator };
   await this.save();
 };
 
-incidentSchema.methods.markAsResolved = async function (this: IncidentDocument, note: string): Promise<void> {
+incidentSchema.methods.markAsResolved = async function (
+  this: IncidentDocument,
+  note: string
+): Promise<void> {
   if (this.status === RESOLVED) return;
 
   if (!canTransitionTo(this.status, RESOLVED)) {
     throw new AppError({
       statusCode: 400,
-      userMessageKey: "",
-      debugMessage: `Incident${this.id} cannot transition from ${this.status} to ${RESOLVED}`,
+      userMessageKey: INCIDENT_ERROR_MESSAGES.INVALID_STATUS_TRANSITION,
+      debugMessage: `Incident ${this.id} cannot transition from ${this.status} to ${RESOLVED}`,
     });
   }
 
   this.status = RESOLVED;
-  this.closure = { at: dayjs().toDate(), note };
+  this.resolution = { at: dayjs().toDate(), note };
   await this.save();
 };
 
@@ -162,46 +165,57 @@ incidentSchema.methods.markAsResolved = async function (this: IncidentDocument, 
 // DTOs
 // ----------------------------
 
-incidentSchema.methods.toPreviewDTO = function (this: IncidentDocument): IncidentPreviewDTO {
+incidentSchema.methods.toPreviewDTO = function (
+  this: IncidentDocument
+): IncidentPreviewDTO {
   return {
     id: this._id,
     description: this.description,
-    createdAt: formatDateTime(this.createdAt),
+    createdAt: formatDateTimeFromUTC(this.createdAt),
   };
 };
 
-incidentSchema.methods.toDetailedDTO = function (this: IncidentDocument): IncidentDetailedDTO {
+incidentSchema.methods.toDetailedDTO = function (
+  this: IncidentDocument
+): IncidentDetailedDTO {
+  const departure = formatDateTimeFromUTC(this.trip.departureDatetime);
+  const arrival = formatDateTimeFromUTC(this.trip.arrivalDatetime);
+
   return {
     id: this._id,
     description: this.description,
-    ride: {
-      id: this.ride.id,
-      departureLocation: this.ride.departureLocation,
-      arrivalLocation: this.ride.arrivalLocation,
-      departureDate: toDateOnly(this.ride.departureDatetime),
-      departureTime: toTimeOnly(this.ride.departureDatetime),
-      arrivalDate: toDateOnly(this.ride.arrivalDatetime),
-      arrivalTime: toTimeOnly(this.ride.arrivalDatetime),
-      driver: this.ride.driver,
-      vehicle: this.ride.vehicle,
-      price: this.ride.price,
-      offeredSeats: this.ride.offeredSeats,
-      createdAt: this.ride.createdAt,
+    trip: {
+      id: this.trip.id,
+      departureLocation: this.trip.departureLocation,
+      arrivalLocation: this.trip.arrivalLocation,
+      departureDate: departure.date,
+      departureTime: departure.time,
+      arrivalDate: arrival.date,
+      arrivalTime: arrival.time,
+      driver: this.trip.driver,
     },
     passenger: this.passenger,
     amountInDispute: this.amountInDispute,
     status: this.status,
-    createdAt: formatDateTime(this.createdAt),
-    assignedTo: this.assignedTo ?? undefined,
-    closure: this.closure
+    createdAt: formatDateTimeFromUTC(this.createdAt),
+    assignment: this.assignment
       ? {
-          at: formatDateTime(this.closure.at),
-          note: this.closure.note,
+          at: formatDateTimeFromUTC(this.assignment.at),
+          to: this.assignment.to,
+        }
+      : undefined,
+    resolution: this.resolution
+      ? {
+          at: formatDateTimeFromUTC(this.resolution.at),
+          note: this.resolution.note,
         }
       : undefined,
   };
 };
 
-const Incident = mongoose.model<IncidentDocument>("Incident", incidentSchema);
+const Incident = mongoose.model<IncidentDocument>(
+  "Incident",
+  incidentSchema
+);
 
 export default Incident;

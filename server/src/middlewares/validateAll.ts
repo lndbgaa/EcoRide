@@ -12,7 +12,15 @@ const validateAll = (schema: ObjectSchema, target: "body" | "params" | "query" =
       stripUnknown: true,
     });
 
-    req[target] = validatedData;
+    if (target === "query") {
+      Object.keys(req.query).forEach((key) => {
+        delete req.query[key];
+      });
+
+      Object.assign(req.query, validatedData);
+    } else {
+      req[target] = validatedData;
+    }
 
     next();
   });

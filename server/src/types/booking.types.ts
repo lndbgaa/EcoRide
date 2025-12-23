@@ -49,3 +49,7 @@ export interface CreateBookingPayload {
   tripId: string;
   seatsToBook: number;
 }
+
+export interface ReportBookingIncidentPayload {
+  description: string;
+}

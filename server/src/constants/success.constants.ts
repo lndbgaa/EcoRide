@@ -46,5 +46,15 @@ export const SUCCESS_MESSAGES = {
   BOOKING: {
     CREATED: "success:booking.created",
     CANCELLED: "success:booking.cancelled",
+    COMPLETED: "success:booking.completed",
+    INCIDENT_REPORTED: "success:booking.incident_reported",
+  },
+
+  INCIDENT: {
+    RETRIEVED_ALL: "success:incident.retrieved_all",
+    RETRIEVED: "success:incident.retrieved",
+    CREATED: "success:incident.created",
+    ASSIGNED: "success:incident.assigned",
+    RESOLVED: "success:incident.resolved",
   },
 } as const;

@@ -54,6 +54,7 @@ export async function up(queryInterface, Sequelize) {
     duration_minutes: {
       type: Sequelize.INTEGER,
       allowNull: false,
+      defaultValue: 0,
     },
     status: {
       type: Sequelize.ENUM("open", "full", "in_progress", "completed", "cancelled"),

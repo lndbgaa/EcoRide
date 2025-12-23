@@ -40,6 +40,15 @@
   },
   "booking": {
     "created": "Booking created",
-    "cancelled": "Booking cancelled"
+    "cancelled": "Booking cancelled",
+    "completed": "Booking completed",
+    "incident_reported": "Incident reported"
+  },
+  "incident": {
+    "retrieved_all": "Incidents list retrieved",
+    "retrieved": "Incident retrieved",
+    "created": "Incident created",
+    "assigned": "Incident assigned",
+    "resolved": "Incident resolved"
   }
 }

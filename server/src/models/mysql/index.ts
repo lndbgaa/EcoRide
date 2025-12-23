@@ -136,6 +136,7 @@ export {
   PreferenceCategory,
   PreferenceOption,
   RefreshToken,
+  Review,
   Role,
   Trip,
   User,

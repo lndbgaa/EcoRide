@@ -2,35 +2,37 @@ import type { INCIDENT_STATUSES } from "@/constants";
 import type { DateTimeDTO } from "@/types";
 import type { Document } from "mongoose";
 
-export type IncidentStatus = (typeof INCIDENT_STATUSES)[keyof typeof INCIDENT_STATUSES];
+// ===========================
+//    Constants-based Types
+// ===========================
 
+export type IncidentStatus =
+  (typeof INCIDENT_STATUSES)[keyof typeof INCIDENT_STATUSES];
+
+// ===========================
+//       Embedded Types
+// ===========================
 export interface UserEmbedded {
   id: string;
   email: string;
+  username: string;
+  firstName?: string;
+  lastName?: string;
+  phone?: string;
 }
 
-export interface VehicleEmbedded {
-  id: string;
-  brand: string;
-  model: string;
-  color: string;
-  energy: string;
-  seats: number;
-  licensePlate: string;
-  firstRegistrationDate: Date;
-}
-
-export interface RideEmbedded {
+export interface TripEmbedded {
   id: string;
   departureLocation: string;
   arrivalLocation: string;
   departureDatetime: Date;
   arrivalDatetime: Date;
   driver: UserEmbedded;
-  vehicle: VehicleEmbedded;
-  price: number;
-  offeredSeats: number;
-  createdAt: Date;
+}
+
+export interface AssignmentEmbedded {
+  at: Date;
+  to: UserEmbedded;
 }
 
 export interface ResolutionEmbedded {
@@ -38,15 +40,19 @@ export interface ResolutionEmbedded {
   note: string;
 }
 
+// ===========================
+//     Document Interface
+// ===========================
+
 export interface IncidentDocument extends Document {
   _id: string;
   description: string;
-  ride: RideEmbedded;
+  trip: TripEmbedded;
   passenger: UserEmbedded;
   amountInDispute: number;
   status: IncidentStatus;
-  assignedTo?: UserEmbedded;
-  closure?: ResolutionEmbedded;
+  assignment?: AssignmentEmbedded;
+  resolution?: ResolutionEmbedded;
   createdAt: Date;
   updatedAt: Date;
 
@@ -59,6 +65,21 @@ export interface IncidentDocument extends Document {
   toDetailedDTO(): IncidentDetailedDTO;
 }
 
+// ===========================
+//       DTOs (Responses)
+// =========================== */
+
+export interface TripEmbeddedDTO {
+  id: string;
+  departureLocation: string;
+  arrivalLocation: string;
+  departureDate: string;
+  departureTime: string;
+  arrivalDate: string;
+  arrivalTime: string;
+  driver: UserEmbedded;
+}
+
 export interface IncidentPreviewDTO {
   id: string;
   description: string;
@@ -66,20 +87,53 @@ export interface IncidentPreviewDTO {
 }
 
 export interface IncidentDetailedDTO extends IncidentPreviewDTO {
-  ride: Omit<RideEmbedded, "departureDatetime" | "arrivalDatetime"> & {
-    departureDate: string | null;
-    departureTime: string | null;
-    arrivalDate: string | null;
-    arrivalTime: string | null;
-  };
+  trip: TripEmbeddedDTO;
   passenger: UserEmbedded;
   amountInDispute: number;
   status: IncidentStatus;
-  assignedTo?: UserEmbedded | undefined;
-  closure?:
-    | {
-        at: DateTimeDTO;
-        note: string;
-      }
-    | undefined;
+  assignment?: {
+    at: DateTimeDTO;
+    to: UserEmbedded;
+  };
+  resolution?: {
+    at: DateTimeDTO;
+    note: string;
+  };
+}
+
+// ===========================
+//       Request Types
+// ===========================
+
+export interface GetIncidentsQuery {
+  status?: IncidentStatus;
+  sortDir?: "asc" | "desc";
+}
+
+export interface GetMyIncidentsQuery {
+  status?: Exclude<IncidentStatus, "pending">;
+  sortDir?: "asc" | "desc";
+}
+
+// ===========================
+//       Service Types
+// ===========================
+
+export interface GetIncidentsFilters {
+  status?: IncidentStatus;
+  moderatorId?: string;
+}
+
+export interface GetIncidentsSortOptions {
+  by?: "createdAt" | "assignedAt" | "resolvedAt";
+  dir: "asc" | "desc";
+}
+
+// ===========================
+//         DB Types
+// ===========================
+
+export interface IncidentDBFilter {
+  status?: IncidentStatus;
+  "assignment.to.id"?: string;
 }

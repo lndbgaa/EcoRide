@@ -1,6 +1,7 @@
 export * from "./auth.errors.constants.js";
 export * from "./booking.errors.constants.js";
 export * from "./common.errors.constants.js";
+export * from "./incident.errors.constants.js";
 export * from "./preference.errors.constants.js";
 export * from "./review.errors.constants.js";
 export * from "./trip.errors.constants.js";

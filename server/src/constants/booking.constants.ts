@@ -6,3 +6,4 @@ export const BOOKING_STATUSES = {
 } as const;
 
 export const BOOKING_MIN_MINUTES_BEFORE_CANCELLATION = 120; // 2h
+export const PLATFORM_FEE_PER_SEAT = 2;

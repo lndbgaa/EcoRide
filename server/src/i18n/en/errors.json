@@ -106,6 +106,14 @@
       "already_cancelled": "You have already cancelled this booking",
       "invalid_status": "Cannot cancel this booking",
       "too_close": "You can no longer cancel your booking (departure in less than {{hours}} hours)"
+    },
+
+    "complete": {
+      "not_awaiting_feedback": "This booking cannot be completed yet"
+    },
+
+    "report_incident": {
+      "not_awaiting_feedback": "You cannot report an incident for this booking"
     }
   },
 
@@ -113,5 +121,24 @@
     "invalid_status_transition": "Invalid status transition for this review"
   },
 
-  "incident": {}
+  "incident": {
+    "invalid_status_transition": "Invalid status transition for this incident",
+
+    "create": {
+      "trip_not_completed": "You can only report an incident for a completed trip",
+      "already_reported": "You have already reported an incident for this trip"
+    },
+
+    "assign": {
+      "already_resolved": "This incident has already been resolved",
+      "already_assigned_to_user": "This incident is already assigned to you",
+      "already_assigned_to_other": "This incident is already assigned to another moderator"
+    },
+
+    "resolve": {
+      "already_resolved": "This incident has already been resolved",
+      "not_assigned": "This incident must be assigned before it can be resolved",
+      "assigned_to_other": "You cannot resolve an incident assigned to another moderator"
+    }
+  }
 }

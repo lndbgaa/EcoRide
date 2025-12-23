@@ -288,9 +288,7 @@ export default class User extends Model {
       role: this.role?.toPublicDTO(t) ?? null,
       status: this.status,
       suspendedAt: this.suspended_at ? formatDateTimeFromUTC(this.suspended_at) : null,
-      pendingDeletionAt: this.pending_deletion_at
-        ? formatDateTimeFromUTC(this.pending_deletion_at)
-        : null,
+      pendingDeletionAt: this.pending_deletion_at ? formatDateTimeFromUTC(this.pending_deletion_at) : null,
       deletedAt: this.deleted_at ? formatDateTimeFromUTC(this.deleted_at) : null,
     };
   }
@@ -492,8 +490,7 @@ export default class User extends Model {
             if (typeof user.last_name === "string") user.last_name = capitalize(user.last_name);
             if (typeof user.phone === "string") user.phone = user.phone.trim();
             if (typeof user.address === "string") user.address = user.address.trim();
-            if (typeof user.profile_picture === "string")
-              user.profile_picture = user.profile_picture.trim();
+            if (typeof user.profile_picture === "string") user.profile_picture = user.profile_picture.trim();
           },
         },
       }

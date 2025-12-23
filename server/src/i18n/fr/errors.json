@@ -106,6 +106,14 @@
       "already_cancelled": "Tu as déjà annulé cette réservation",
       "invalid_status": "Impossible d'annuler cette réservation",
       "too_close": "Tu ne peux plus annuler ta réservation (départ dans moins de {{hours}} heures)"
+    },
+
+    "complete": {
+      "not_awaiting_feedback": "Cette réservation ne peut pas encore être finalisée"
+    },
+
+    "report_incident": {
+      "not_awaiting_feedback": "Tu ne peux pas signaler d'incident pour cette réservation"
     }
   },
 
@@ -113,5 +121,24 @@
     "invalid_status_transition": "Transition de statut invalide pour cet avis"
   },
 
-  "incident": {}
+  "incident": {
+    "invalid_status_transition": "Transition de statut invalide pour cet incident",
+
+    "create": {
+      "trip_not_completed": "Tu ne peux signaler un incident que pour un trajet terminé",
+      "already_reported": "Tu as déjà signalé un incident pour ce trajet"
+    },
+
+    "assign": {
+      "already_resolved": "Cet incident a déjà été résolu",
+      "already_assigned_to_user": "Cet incident t'est déjà assigné",
+      "already_assigned_to_other": "Cet incident est déjà assigné à un autre modérateur"
+    },
+
+    "resolve": {
+      "already_resolved": "Cet incident a déjà été résolu",
+      "not_assigned": "Cet incident doit être assigné avant de pouvoir être résolu",
+      "assigned_to_other": "Tu ne peux pas résoudre un incident assigné à un autre modérateur"
+    }
+  }
 }

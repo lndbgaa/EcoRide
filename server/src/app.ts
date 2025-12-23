@@ -18,8 +18,8 @@ const app = express();
 app.use(handle(i18next));
 
 app.use(helmet());
-app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+app.use(express.json());
 app.use(cookieParser());
 
 app.use(cors(corsOptions));

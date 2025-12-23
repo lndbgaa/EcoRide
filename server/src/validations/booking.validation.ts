@@ -12,3 +12,13 @@ export const createBookingBodySchema = Joi.object({
     "number.min": VALIDATION_MESSAGES.NUMBER_MIN,
   }),
 });
+
+export const reportBookingIncidentBodySchema = Joi.object({
+  description: Joi.string().trim().min(10).max(500).required().messages({
+    "any.required": VALIDATION_MESSAGES.REQUIRED,
+    "string.base": VALIDATION_MESSAGES.STRING_BASE,
+    "string.empty": VALIDATION_MESSAGES.STRING_EMPTY,
+    "string.min": VALIDATION_MESSAGES.STRING_MIN,
+    "string.max": VALIDATION_MESSAGES.STRING_MAX,
+  }),
+});

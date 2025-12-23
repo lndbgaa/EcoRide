@@ -337,6 +337,7 @@ export default class Trip extends Model {
         duration_minutes: {
           type: DataTypes.INTEGER,
           allowNull: false,
+          defaultValue: 0,
         },
         status: {
           type: DataTypes.ENUM(...Object.values(TRIP_STATUSES)),
@@ -357,11 +358,12 @@ export default class Trip extends Model {
             trip.arrival_location = trip.arrival_location.trim();
           },
 
-          beforeSave: (trip: Trip) => {
-            trip.duration_minutes = calculateDuration(trip.departure_datetime, trip.arrival_datetime);
-          },
-
           beforeCreate: (trip: Trip) => {
+            trip.duration_minutes = calculateDuration(
+              trip.departure_datetime,
+              trip.arrival_datetime
+            );
+
             trip.available_seats = trip.offered_seats;
           },
         },

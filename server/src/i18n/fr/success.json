@@ -40,6 +40,15 @@
   },
   "booking": {
     "created": "Réservation créée",
-    "cancelled": "Réservation annulée"
+    "cancelled": "Réservation annulée",
+    "completed": "Réservation finalisée",
+    "incident_reported": "Incident signalé"
+  },
+  "incident": {
+    "retrieved_all": "Liste des incidents récupérée",
+    "retrieved": "Incident récupéré",
+    "created": "Incident créé",
+    "assigned": "Incident assigné",
+    "resolved": "Incident résolu"
   }
 }

@@ -8,7 +8,7 @@ import type { CreateTripPayload, SearchTripsPayload } from "@/types";
 import type { Request, Response } from "express";
 
 /**
- * Searches for trips based on user-provided criteria and returns paginated results.
+ * Search for trips based on user-provided criteria and returns paginated results.
  */
 export const searchTrips = catchAsync(async (req: Request, res: Response): Promise<Response> => {
   const userId = req.user?.id;
@@ -37,7 +37,7 @@ export const searchTrips = catchAsync(async (req: Request, res: Response): Promi
 });
 
 /**
- * Retrieves public trip details including driver info, vehicle, preferences and passengers.
+ * Retrieve public trip details including driver info, vehicle, preferences and passengers.
  */
 export const getPublicTripDetails = catchAsync(async (req: Request, res: Response): Promise<Response> => {
   const tripId = req.params.id!;
@@ -88,7 +88,7 @@ export const createTrip = catchAsync(async (req: Request, res: Response): Promis
 });
 
 /**
- * Cancels an existing trip for the authenticated user.
+ * Cancel an existing trip for the authenticated user.
  */
 export const cancelTrip = catchAsync(async (req: Request, res: Response): Promise<Response> => {
   const userId = req.user.id;
@@ -105,7 +105,7 @@ export const cancelTrip = catchAsync(async (req: Request, res: Response): Promis
 });
 
 /**
- * Marks a trip as started for the authenticated user.
+ * Mark a trip as started for the authenticated user.
  */
 export const startTrip = catchAsync(async (req: Request, res: Response): Promise<Response> => {
   const userId = req.user.id;
@@ -122,7 +122,7 @@ export const startTrip = catchAsync(async (req: Request, res: Response): Promise
 });
 
 /**
- * Marks a trip as ended for the authenticated user.
+ * Mark a trip as ended for the authenticated user.
  */
 export const endTrip = catchAsync(async (req: Request, res: Response): Promise<Response> => {
   const userId = req.user.id;

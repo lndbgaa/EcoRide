@@ -16,7 +16,7 @@ export function formatDateOnly(datetime: Date): string {
  *
  * @param {string} date
  * @param {string} time
- * @returns {DateTimeDTO}
+ * @returns {Date}
  */
 export function parseDateTimeToUTC(date: string, time: string): Date {
   const dateTimeStr = `${date} ${time}`;
@@ -45,11 +45,7 @@ export function formatDateTimeFromUTC(utcDate: Date): DateTimeDTO {
  * @param {ManipulateType} unit
  * @returns {number}
  */
-export function calculateDuration(
-  startDate: Date,
-  endDate: Date,
-  unit: ManipulateType = "minute"
-): number {
+export function calculateDuration(startDate: Date, endDate: Date, unit: ManipulateType = "minute"): number {
   return dayjs(endDate).diff(dayjs(startDate), unit);
 }
 

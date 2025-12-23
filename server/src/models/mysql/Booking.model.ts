@@ -63,7 +63,7 @@ export default class Booking extends Model {
     if (!this.canTransitionTo(newStatus)) {
       throw new AppError({
         statusCode: 400,
-        userMessageKey: BOOKING_ERROR_MESSAGES.GENERIC.INVALID_STATUS_TRANSITION,
+        userMessageKey: BOOKING_ERROR_MESSAGES.INVALID_STATUS_TRANSITION,
         debugMessage: `Booking ${this.id} cannot transition from ${this.status} to ${newStatus}.`,
       });
     }
