@@ -117,10 +117,6 @@
     }
   },
 
-  "review": {
-    "invalid_status_transition": "Transition de statut invalide pour cet avis"
-  },
-
   "incident": {
     "invalid_status_transition": "Transition de statut invalide pour cet incident",
 
@@ -139,6 +135,17 @@
       "already_resolved": "Cet incident a déjà été résolu",
       "not_assigned": "Cet incident doit être assigné avant de pouvoir être résolu",
       "assigned_to_other": "Tu ne peux pas résoudre un incident assigné à un autre modérateur"
+    }
+  },
+
+  "review": {
+    "invalid_status_transition": "Transition de statut invalide pour cet avis",
+
+    "create": {
+      "is_driver": "Tu ne peux pas laisser un avis sur ton propre trajet",
+      "trip_not_completed": "Tu ne peux laisser un avis que pour un trajet terminé",
+      "booking_not_completed": "Tu dois d'abord valider ta réservation avant de pouvoir laisser un avis",
+      "already_reviewed": "Tu as déjà laissé un avis pour ce trajet"
     }
   }
 }

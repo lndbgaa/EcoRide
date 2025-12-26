@@ -50,5 +50,11 @@
     "created": "Incident created",
     "assigned": "Incident assigned",
     "resolved": "Incident resolved"
+  },
+  "review": {
+    "retrieved_all": "Reviews list retrieved",
+    "created": "Review created",
+    "approved": "Review approved",
+    "rejected": "Review rejected"
   }
 }

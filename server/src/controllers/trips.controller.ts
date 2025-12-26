@@ -11,12 +11,12 @@ import type { Request, Response } from "express";
  * Search for trips based on user-provided criteria and returns paginated results.
  */
 export const searchTrips = catchAsync(async (req: Request, res: Response): Promise<Response> => {
-  const userId = req.user?.id;
+  const user = req.user;
   const data: SearchTripsPayload = req.body;
 
   const { page, limit, offset } = parsePagination(req);
 
-  const { count, trips } = await TripService.search(data, limit, offset, userId);
+  const { count, trips } = await TripService.search(data, limit, offset, user);
 
   const totalPages = Math.ceil(count / limit);
   const dto = trips.map((t) => t.toPublicDTO(req.t));
@@ -74,10 +74,10 @@ export const getPublicTripDetails = catchAsync(async (req: Request, res: Respons
  * Create a new trip for the authenticated user.
  */
 export const createTrip = catchAsync(async (req: Request, res: Response): Promise<Response> => {
-  const userId = req.user.id;
+  const user = req.user!;
   const data: CreateTripPayload = req.body;
 
-  const trip = await TripService.create(userId, data);
+  const trip = await TripService.create(user, data);
   const dto = trip.toPrivateDTO(req.t);
 
   return res.status(201).json({
@@ -91,10 +91,10 @@ export const createTrip = catchAsync(async (req: Request, res: Response): Promis
  * Cancel an existing trip for the authenticated user.
  */
 export const cancelTrip = catchAsync(async (req: Request, res: Response): Promise<Response> => {
-  const userId = req.user.id;
+  const user = req.user!;
   const tripId = req.params.id!;
 
-  const trip = await TripService.cancel(userId, tripId);
+  const trip = await TripService.cancel(user, tripId);
   const dto = trip.toPrivateDTO(req.t);
 
   return res.status(200).json({
@@ -108,10 +108,10 @@ export const cancelTrip = catchAsync(async (req: Request, res: Response): Promis
  * Mark a trip as started for the authenticated user.
  */
 export const startTrip = catchAsync(async (req: Request, res: Response): Promise<Response> => {
-  const userId = req.user.id;
+  const user = req.user!;
   const tripId = req.params.id!;
 
-  const trip = await TripService.start(userId, tripId);
+  const trip = await TripService.start(user, tripId);
   const dto = trip.toPrivateDTO(req.t);
 
   return res.status(200).json({
@@ -125,10 +125,10 @@ export const startTrip = catchAsync(async (req: Request, res: Response): Promise
  * Mark a trip as ended for the authenticated user.
  */
 export const endTrip = catchAsync(async (req: Request, res: Response): Promise<Response> => {
-  const userId = req.user.id;
+  const user = req.user!;
   const tripId = req.params.id!;
 
-  const trip = await TripService.end(userId, tripId);
+  const trip = await TripService.end(user, tripId);
   const dto = trip.toPrivateDTO(req.t);
 
   return res.status(200).json({

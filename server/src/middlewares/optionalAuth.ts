@@ -1,5 +1,6 @@
 import { appConfig } from "@/config";
 import { AUTH_ERROR_CODES } from "@/constants";
+import { UserService } from "@/services";
 import { validateJwt } from "@/utils";
 
 import type { NextFunction, Request, Response } from "express";
@@ -7,7 +8,7 @@ import type { NextFunction, Request, Response } from "express";
 const { auth } = appConfig;
 const { accessSecret } = auth;
 
-const optionalAuth = (req: Request, res: Response, next: NextFunction): void => {
+const optionalAuth = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   const authHeader = req.headers.authorization;
 
   if (!authHeader?.startsWith("Bearer ")) return next();
@@ -18,7 +19,12 @@ const optionalAuth = (req: Request, res: Response, next: NextFunction): void => 
 
   try {
     const decoded = validateJwt(token, accessSecret);
-    req.user = decoded;
+
+    const user = await UserService.findById(decoded.id, {
+      include: [{ association: "role" }],
+    });
+
+    req.user = user;
 
     return next();
   } catch (err: any) {

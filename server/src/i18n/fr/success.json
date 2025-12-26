@@ -50,5 +50,11 @@
     "created": "Incident créé",
     "assigned": "Incident assigné",
     "resolved": "Incident résolu"
+  },
+  "review": {
+    "retrieved_all": "Liste des avis récupérée",
+    "created": "Avis créé",
+    "approved": "Avis approuvé",
+    "rejected": "Avis rejeté"
   }
 }

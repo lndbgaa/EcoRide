@@ -57,4 +57,11 @@ export const SUCCESS_MESSAGES = {
     ASSIGNED: "success:incident.assigned",
     RESOLVED: "success:incident.resolved",
   },
+
+  REVIEW: {
+    RETRIEVED_ALL: "success:review.retrieved_all",
+    CREATED: "success:review.created",
+    APPROVED: "success:review.approved",
+    REJECTED: "success:review.rejected",
+  },
 } as const;

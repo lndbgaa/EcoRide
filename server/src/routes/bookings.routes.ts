@@ -1,17 +1,8 @@
 import Router from "express";
 
-import {
-  cancelBooking,
-  completeBooking,
-  createBooking,
-  reportBookingIncident,
-} from "@/controllers";
+import { cancelBooking, completeBooking, createBooking, reportBookingIncident } from "@/controllers";
 import { requireAuth, validateAll } from "@/middlewares";
-import {
-  createBookingBodySchema,
-  idParamSchema,
-  reportBookingIncidentBodySchema,
-} from "@/validations";
+import { createBookingBodySchema, idParamSchema, reportBookingIncidentBodySchema } from "@/validations";
 
 const router = Router();
 

@@ -117,10 +117,6 @@
     }
   },
 
-  "review": {
-    "invalid_status_transition": "Invalid status transition for this review"
-  },
-
   "incident": {
     "invalid_status_transition": "Invalid status transition for this incident",
 
@@ -139,6 +135,17 @@
       "already_resolved": "This incident has already been resolved",
       "not_assigned": "This incident must be assigned before it can be resolved",
       "assigned_to_other": "You cannot resolve an incident assigned to another moderator"
+    }
+  },
+
+  "review": {
+    "invalid_status_transition": "Invalid status transition for this review",
+
+    "create": {
+      "is_driver": "You cannot leave a review on your own trip",
+      "trip_not_completed": "You can only leave a review for a completed trip",
+      "booking_not_completed": "You must complete your booking before leaving a review",
+      "already_reviewed": "You have already left a review for this trip"
     }
   }
 }

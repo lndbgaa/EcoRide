@@ -483,9 +483,8 @@ export default class User extends Model {
             }
           },
           beforeValidate: (user: User) => {
-            user.email = user.email.trim().toLowerCase();
-            user.username = user.username.trim();
-
+            if (typeof user.email === "string") user.email = user.email.trim().toLowerCase();
+            if (typeof user.username === "string") user.username = user.username.trim();
             if (typeof user.first_name === "string") user.first_name = capitalize(user.first_name);
             if (typeof user.last_name === "string") user.last_name = capitalize(user.last_name);
             if (typeof user.phone === "string") user.phone = user.phone.trim();

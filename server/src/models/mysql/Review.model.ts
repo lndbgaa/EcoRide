@@ -1,6 +1,11 @@
 import { DataTypes, Model } from "sequelize";
 
-import { REVIEW_ERROR_MESSAGES, REVIEW_MAX_RATING, REVIEW_MIN_RATING, REVIEW_STATUSES } from "@/constants";
+import {
+  REVIEW_ERROR_MESSAGES,
+  REVIEW_MAX_RATING,
+  REVIEW_MIN_RATING,
+  REVIEW_STATUSES,
+} from "@/constants";
 import { AppError, formatDateTimeFromUTC } from "@/utils";
 
 import type { Trip, User } from "@/models/mysql";
@@ -9,7 +14,6 @@ import type {
   ReviewAuthorDTO,
   ReviewPublicDTO,
   ReviewStatus,
-  ReviewTargetDTO,
 } from "@/types";
 import type { TFunction } from "i18next";
 import type { SaveOptions, Sequelize } from "sequelize";
@@ -53,14 +57,20 @@ export default class Review extends Model {
   // Private Status Transitions
   // ----------------------------
 
-  private static readonly allowedStatusTransitions: Record<ReviewStatus, ReviewStatus[]> = {
+  private static readonly allowedStatusTransitions: Record<
+    ReviewStatus,
+    ReviewStatus[]
+  > = {
     pending: [APPROVED, REJECTED],
     approved: [],
     rejected: [],
   } as const;
 
   private canTransitionTo(newStatus: ReviewStatus): boolean {
-    return Review.allowedStatusTransitions[this.status]?.includes(newStatus) ?? false;
+    return (
+      Review.allowedStatusTransitions[this.status]?.includes(newStatus) ??
+      false
+    );
   }
 
   private transitionTo(newStatus: ReviewStatus): void {
@@ -81,13 +91,19 @@ export default class Review extends Model {
   // Public Status Transitions
   // ----------------------------
 
-  public async markAsApproved(moderatorId: string, options?: SaveOptions): Promise<void> {
+  public async markAsApproved(
+    moderatorId: string,
+    options?: SaveOptions
+  ): Promise<void> {
     this.transitionTo(APPROVED);
     this.moderator_id = moderatorId;
     await this.save({ ...options, fields: ["status", "moderator_id"] });
   }
 
-  public async markAsRejected(moderatorId: string, options?: SaveOptions): Promise<void> {
+  public async markAsRejected(
+    moderatorId: string,
+    options?: SaveOptions
+  ): Promise<void> {
     this.transitionTo(REJECTED);
     this.moderator_id = moderatorId;
     await this.save({ ...options, fields: ["status", "moderator_id"] });
@@ -107,24 +123,12 @@ export default class Review extends Model {
     };
   }
 
-  public toAuthorDTO(t: TFunction): ReviewAuthorDTO {
+  public toAuthorDTO(): ReviewAuthorDTO {
     return {
       id: this.id,
       rating: this.rating,
       comment: this.comment,
       target: this.target?.toPublicDTO() ?? null,
-      trip: this.trip?.toPublicDTO(t) ?? null,
-      createdAt: formatDateTimeFromUTC(this.created_at),
-    };
-  }
-
-  public toTargetDTO(t: TFunction): ReviewTargetDTO {
-    return {
-      id: this.id,
-      rating: this.rating,
-      comment: this.comment,
-      author: this.author?.toPublicDTO() ?? null,
-      trip: this.trip?.toPrivateDTO(t) ?? null,
       createdAt: formatDateTimeFromUTC(this.created_at),
     };
   }
@@ -159,7 +163,10 @@ export default class Review extends Model {
               args: [REVIEW_MIN_RATING],
               msg: `Rating must be at least ${REVIEW_MIN_RATING}.`,
             },
-            max: { args: [REVIEW_MAX_RATING], msg: `Rating cannot exceed ${REVIEW_MAX_RATING}.` },
+            max: {
+              args: [REVIEW_MAX_RATING],
+              msg: `Rating cannot exceed ${REVIEW_MAX_RATING}.`,
+            },
           },
         },
         comment: {

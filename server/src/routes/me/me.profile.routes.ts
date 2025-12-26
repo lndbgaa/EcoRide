@@ -1,12 +1,10 @@
 import { Router } from "express";
 
 import { getMyInfo, requestMyDeletion, updateMyInfo, updateMyPassword, updateMyPicture } from "@/controllers";
-import { imageUpload, requireAuth, validateAll } from "@/middlewares";
+import { imageUpload, validateAll } from "@/middlewares";
 import { updateUserInfoBodySchema, updateUserPasswordBodySchema } from "@/validations";
 
 const router = Router();
-
-router.use(requireAuth);
 
 router.get("/", getMyInfo);
 router.patch("/", validateAll(updateUserInfoBodySchema), updateMyInfo);

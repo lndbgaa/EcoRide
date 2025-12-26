@@ -1,5 +1,6 @@
 import { Op } from "sequelize";
 
+import { appConfig, dayjs, sequelize } from "@/config";
 import {
   BOOKING_STATUSES,
   COMMON_ERROR_MESSAGES,
@@ -11,12 +12,11 @@ import {
   VEHICLE_ASSOCIATIONS,
   VEHICLE_ECO_ENERGY_KEYS,
 } from "@/constants";
-
-import { appConfig, dayjs, sequelize } from "@/config";
 import { Trip } from "@/models/mysql";
 import { EmailService, VehicleService } from "@/services";
 import { AppError, formatDateTimeFromUTC, parseDateTimeToUTC } from "@/utils";
 
+import type { User } from "@/models";
 import type { CreateTripData, CreateTripPayload, SearchTripsPayload, SearchTripsResponse } from "@/types";
 import type { FindOptions, WhereOptions } from "sequelize";
 
@@ -80,14 +80,14 @@ export class TripService {
    * @param {SearchTripsPayload} data - The search parameters.
    * @param {number} limit - Maximum number of trips to return.
    * @param {number} offset - Number of trips to skip (for pagination).
-   * @param {string} [userId] - ID of the user performing the search. Trips where this user is the driver will be excluded.
-   * @returns {SearchTripsResponse} - Object containing the total count of matching trips and an array of trip instances.
+   * @param {User} [user] - The user performing the search. Trips where this user is the driver will be excluded.
+   * @returns {Promise<SearchTripsResponse>} - Object containing the total count of matching trips and an array of trip instances.
    */
   public static async search(
     data: SearchTripsPayload,
     limit: number,
     offset: number,
-    userId?: string
+    user?: User
   ): Promise<SearchTripsResponse> {
     const dateParis = dayjs.tz(data.date, "Europe/Paris");
 
@@ -105,7 +105,7 @@ export class TripService {
       status: TRIP_STATUSES.OPEN,
     };
 
-    if (userId) conditions.driver_id = { [Op.ne]: userId };
+    if (user?.id) conditions.driver_id = { [Op.ne]: user.id };
     if (data.seats) conditions.available_seats = { [Op.gte]: data.seats };
     if (data.maxPrice) conditions.price = { [Op.lte]: data.maxPrice };
     if (data.maxDuration) conditions.duration_minutes = { [Op.lte]: data.maxDuration };
@@ -142,15 +142,15 @@ export class TripService {
   /**
    * Creates a new trip for a given user.
    *
-   * @param {string} userId - The ID of the user creating the trip.
+   * @param {User} user - The user creating the trip.
    * @param {CreateTripPayload} data - The trip data.
    * @returns {Promise<Trip>} - The newly created trip instance with vehicle relation loaded.
    * @throws {AppError} - If:
    *   - The vehicle is not found or the ownership check fails (HTTP 404, thrown by VehicleService.findOwnedById).
    *   - The vehicle does not have enough passenger seats (HTTP 400).
    */
-  public static async create(userId: string, data: CreateTripPayload): Promise<Trip> {
-    const vehicle = await VehicleService.findOwnedById(userId, data.vehicleId);
+  public static async create(user: User, data: CreateTripPayload): Promise<Trip> {
+    const vehicle = await VehicleService.findOwnedById(user.id, data.vehicleId);
 
     const availablePassengerSeats = vehicle.seats - 1;
 
@@ -168,7 +168,7 @@ export class TripService {
       departure_location: data.departureLocation,
       arrival_datetime: parseDateTimeToUTC(data.arrivalDate, data.arrivalTime),
       arrival_location: data.arrivalLocation,
-      driver_id: userId,
+      driver_id: user.id,
       vehicle_id: data.vehicleId,
       price: data.price,
       offered_seats: data.offeredSeats,
@@ -189,7 +189,7 @@ export class TripService {
   /**
    * Cancels a trip owned by a given user.
    *
-   * @param {string} userId - The ID of the user requesting the cancellation.
+   * @param {User} user - The user requesting the cancellation.
    * @param {string} tripId - The ID of the trip to cancel.
    * @returns {Promise<Trip>} - The updated trip instance with status set to cancelled.
    * @throws {AppError} - If:
@@ -197,9 +197,9 @@ export class TripService {
    *   - The trip status is not OPEN or FULL (HTTP 409).
    *   - Cancellation is attempted within minimum notice period with active bookings (HTTP 409).
    */
-  public static async cancel(userId: string, tripId: string): Promise<Trip> {
+  public static async cancel(user: User, tripId: string): Promise<Trip> {
     const trip = await sequelize.transaction(async (t) => {
-      const trip = await this.findOwnedById(userId, tripId, {
+      const trip = await this.findOwnedById(user.id, tripId, {
         include: [
           { association: "driver" },
           { association: "vehicle", include: VEHICLE_ASSOCIATIONS },
@@ -299,7 +299,7 @@ export class TripService {
   /**
    * Starts a trip owned by a given user.
    *
-   * @param {string} userId - The ID of the user.
+   * @param {User} user - The user starting the trip.
    * @param {string} tripId - The ID of the trip to start.
    * @returns {Promise<Trip>} - The updated trip instance with status set to in_progress.
    * @throws {AppError} - If:
@@ -308,9 +308,9 @@ export class TripService {
    *   - The start is attempted too early before departure (HTTP 409).
    *   - The start is attempted too late after departure (HTTP 409).
    */
-  public static async start(userId: string, tripId: string): Promise<Trip> {
+  public static async start(user: User, tripId: string): Promise<Trip> {
     return await sequelize.transaction(async (t) => {
-      const trip = await this.findOwnedById(userId, tripId, {
+      const trip = await this.findOwnedById(user.id, tripId, {
         include: [{ association: "driver" }, { association: "vehicle", include: VEHICLE_ASSOCIATIONS }],
         lock: true,
         transaction: t,
@@ -359,16 +359,16 @@ export class TripService {
   /**
    * Ends a trip owned by a given user.
    *
-   * @param {string} userId - The ID of the user.
+   * @param {User} user - The user ending the trip.
    * @param {string} tripId - The ID of the trip to end.
    * @returns {Promise<Trip>} - The updated trip instance with status set to completed.
    * @throws {AppError} - If:
    *   - The trip is not found or doesn't belong to the user (HTTP 404, thrown by this.findOwnedById).
    *   - The trip status is not IN_PROGRESS (HTTP 409).
    */
-  public static async end(userId: string, tripId: string): Promise<Trip> {
+  public static async end(user: User, tripId: string): Promise<Trip> {
     const trip = await sequelize.transaction(async (t) => {
-      const trip = await this.findOwnedById(userId, tripId, {
+      const trip = await this.findOwnedById(user.id, tripId, {
         include: [
           { association: "driver" },
           { association: "vehicle", include: VEHICLE_ASSOCIATIONS },

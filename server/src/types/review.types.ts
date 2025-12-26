@@ -2,13 +2,20 @@ import type { REVIEW_STATUSES } from "@/constants";
 import type {
   DateTimeDTO,
   TripAdminDTO,
-  TripPrivateDTO,
-  TripPublicDTO,
   UserAdminDTO,
   UserPublicDTO,
 } from "@/types";
 
-export type ReviewStatus = (typeof REVIEW_STATUSES)[keyof typeof REVIEW_STATUSES];
+// ===========================
+//    Constants-based Types
+// ===========================
+
+export type ReviewStatus =
+  (typeof REVIEW_STATUSES)[keyof typeof REVIEW_STATUSES];
+
+// ===========================
+//       DTOs (Responses)
+// =========================== */
 
 export interface ReviewPublicDTO {
   id: string;
@@ -23,16 +30,6 @@ export interface ReviewAuthorDTO {
   rating: number;
   comment: string | null;
   target: UserPublicDTO | null;
-  trip: TripPublicDTO | null;
-  createdAt: DateTimeDTO;
-}
-
-export interface ReviewTargetDTO {
-  id: string;
-  rating: number;
-  comment: string | null;
-  author: UserPublicDTO | null;
-  trip: TripPrivateDTO | null;
   createdAt: DateTimeDTO;
 }
 
@@ -45,4 +42,44 @@ export interface ReviewAdminDTO {
   trip: TripAdminDTO | null;
   status: ReviewStatus;
   createdAt: DateTimeDTO;
+}
+
+// ===========================
+//       Request Types
+// ===========================
+
+export interface CreateReviewPayload {
+  tripId: string;
+  rating: number;
+  comment?: string;
+}
+
+export interface GetMyReviewsQuery {
+  sortBy?: "createdAt" | "rating";
+  sortDir?: "asc" | "desc";
+}
+
+// ===========================
+//       Service Types
+// ===========================
+
+export interface GetReviewsFilters {
+  status?: ReviewStatus;
+  targetId?: string;
+  authorId?: string;
+}
+
+export interface GetReviewsSortOptions {
+  by?: "createdAt" | "rating";
+  dir?: "asc" | "desc";
+}
+
+// ===========================
+//         DB Types
+// ===========================
+
+export interface ReviewDBFilter {
+  status?: ReviewStatus;
+  target_id?: string;
+  author_id?: string;
 }
