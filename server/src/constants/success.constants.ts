@@ -44,6 +44,7 @@ export const SUCCESS_MESSAGES = {
   },
 
   BOOKING: {
+    RETRIEVED_ALL: "success:booking.retrieved_all",
     CREATED: "success:booking.created",
     CANCELLED: "success:booking.cancelled",
     COMPLETED: "success:booking.completed",

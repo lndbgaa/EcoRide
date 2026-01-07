@@ -123,6 +123,10 @@ export default class Booking extends Model {
     };
   }
 
+  // ----------------------------
+  // Model Initialisation
+  // ----------------------------
+
   public static initModel(sequelize: Sequelize) {
     this.init(
       {

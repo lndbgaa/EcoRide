@@ -39,6 +39,7 @@
     "ended": "Trip ended"
   },
   "booking": {
+    "retrieved_all": "Bookings list retrieved",
     "created": "Booking created",
     "cancelled": "Booking cancelled",
     "completed": "Booking completed",

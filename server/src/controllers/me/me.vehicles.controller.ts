@@ -9,7 +9,7 @@ import type { Request, Response } from "express";
  * Retrieve the authenticated user's vehicles.
  */
 export const getMyVehicles = catchAsync(async (req: Request, res: Response): Promise<Response> => {
-  const userId = req.user.id;
+  const userId = req.user!.id;
 
   const vehicles = await VehicleService.getUserVehicles(userId);
   const dto = vehicles.map((v) => v.toPrivateDTO(req.t));
@@ -25,7 +25,7 @@ export const getMyVehicles = catchAsync(async (req: Request, res: Response): Pro
  * Retrieve a specific vehicle owned by the authenticated user.
  */
 export const getMyVehicle = catchAsync(async (req: Request, res: Response): Promise<Response> => {
-  const userId = req.user.id;
+  const userId = req.user!.id;
   const vehicleId = req.params.id!;
 
   const vehicle = await VehicleService.findOwnedById(userId, vehicleId);
@@ -42,7 +42,7 @@ export const getMyVehicle = catchAsync(async (req: Request, res: Response): Prom
  * Create a new vehicle for the authenticated user.
  */
 export const createMyVehicle = catchAsync(async (req: Request, res: Response): Promise<Response> => {
-  const userId = req.user.id;
+  const userId = req.user!.id;
   const data: CreateVehiclePayload = req.body;
 
   const vehicle = await VehicleService.create(userId, data);
@@ -59,7 +59,7 @@ export const createMyVehicle = catchAsync(async (req: Request, res: Response): P
  * Update a specific vehicle owned by the authenticated user.
  */
 export const updateMyVehicle = catchAsync(async (req: Request, res: Response): Promise<Response> => {
-  const userId = req.user.id;
+  const userId = req.user!.id;
   const vehicleId = req.params.id!;
   const data: UpdateVehiclePayload = req.body;
 
@@ -77,7 +77,7 @@ export const updateMyVehicle = catchAsync(async (req: Request, res: Response): P
  * Delete a specific vehicle owned by the authenticated user.
  */
 export const deleteMyVehicle = catchAsync(async (req: Request, res: Response): Promise<Response> => {
-  const userId = req.user.id;
+  const userId = req.user!.id;
   const vehicleId = req.params.id!;
 
   await VehicleService.deleteVehicle(userId, vehicleId);

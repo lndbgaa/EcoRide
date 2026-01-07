@@ -117,6 +117,7 @@ export default class Trip extends Model {
 
   /**
    *
+   *
    * @param {number} amount - The number of seats to add.
    * @param {SaveOptions} [options] - Additional Sequelize save options.
    * @returns {Promise<void>}
@@ -160,6 +161,7 @@ export default class Trip extends Model {
   }
 
   /**
+   *
    *
    * @param {number} amount - The number of seats to remove.
    * @param {SaveOptions} [options] - Additional Sequelize save options.
@@ -230,7 +232,7 @@ export default class Trip extends Model {
     };
   }
 
-  public toPrivateDTO(t: TFunction): TripPrivateDTO {
+  public toDriverDTO(t: TFunction): TripPrivateDTO {
     const departure = formatDateTimeFromUTC(this.departure_datetime);
     const arrival = formatDateTimeFromUTC(this.arrival_datetime);
 
@@ -255,7 +257,7 @@ export default class Trip extends Model {
 
   public toAdminDTO(t: TFunction): TripAdminDTO {
     return {
-      ...this.toPrivateDTO(t),
+      ...this.toDriverDTO(t),
       driver: this.driver?.toAdminDTO(t) ?? null,
       vehicle: this.vehicle?.toAdminDTO(t) ?? null,
     };
@@ -359,10 +361,7 @@ export default class Trip extends Model {
           },
 
           beforeCreate: (trip: Trip) => {
-            trip.duration_minutes = calculateDuration(
-              trip.departure_datetime,
-              trip.arrival_datetime
-            );
+            trip.duration_minutes = calculateDuration(trip.departure_datetime, trip.arrival_datetime);
 
             trip.available_seats = trip.offered_seats;
           },

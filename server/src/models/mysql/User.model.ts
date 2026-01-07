@@ -11,24 +11,10 @@ import {
   USER_ROLES_ID,
   USER_STATUSES,
 } from "@/constants";
-import {
-  AppError,
-  calculateAge,
-  capitalize,
-  formatDateOnly,
-  formatDateTimeFromUTC,
-  setIfChanged,
-} from "@/utils";
+import { AppError, calculateAge, capitalize, formatDateOnly, formatDateTimeFromUTC, setIfChanged } from "@/utils";
 
 import type { Role } from "@/models/mysql";
-import type {
-  UpdateUserInfoPayload,
-  UserAdminDTO,
-  UserPrivateDTO,
-  UserPublicDTO,
-  UserRoleId,
-  UserStatus,
-} from "@/types";
+import type { UpdateUserInfoPayload, UserAdminDTO, UserPrivateDTO, UserPublicDTO, UserRoleId, UserStatus } from "@/types";
 import type { TFunction } from "i18next";
 import type { SaveOptions, Sequelize } from "sequelize";
 
@@ -217,8 +203,8 @@ export default class User extends Model {
       });
     }
 
-    this.credits += amount;
-    await this.save({ ...options, fields: ["credits"] });
+    await this.increment("credits", { by: amount, ...options });
+    this.credits = (this.credits ?? 0) + amount;
   }
 
   /**
@@ -248,8 +234,8 @@ export default class User extends Model {
       });
     }
 
-    this.credits -= amount;
-    await this.save({ ...options, fields: ["credits"] });
+    await this.decrement("credits", { by: amount, ...options });
+    this.credits = (this.credits ?? 0) - amount;
   }
 
   // ------------------------------------

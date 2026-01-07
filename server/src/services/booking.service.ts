@@ -1,3 +1,5 @@
+import { Op } from "sequelize";
+
 import { dayjs, sequelize } from "@/config";
 import {
   BOOKING_ERROR_MESSAGES,
@@ -10,8 +12,15 @@ import { Booking, Incident, User } from "@/models";
 import { IncidentService, TripService } from "@/services";
 import { AppError } from "@/utils";
 
-import type { CreateBookingPayload, IncidentDocument, ReportBookingIncidentPayload } from "@/types";
-import type { FindOptions } from "sequelize";
+import type {
+  CreateBookingPayload,
+  GetBookingsFilters,
+  GetBookingsResponse,
+  GetBookingsSortOptions,
+  IncidentDocument,
+  ReportBookingIncidentPayload,
+} from "@/types";
+import type { FindOptions, Order, WhereOptions } from "sequelize";
 
 export class BookingService {
   /**
@@ -20,16 +29,10 @@ export class BookingService {
    * @param {string} userId - The ID of the user.
    * @param {string} bookingId - The ID of the booking.
    * @param {FindOptions} [options] - Additional Sequelize find options.
-   * @returns {Promise<Booking>} - The returned booking instance.
-   * @throws {AppError} - If:
-   *   - The booking does not exist, or
-   *   - The booking exists but does not belong to the user (HTTP 404).
+   * @returns {Promise<Booking>} Returned booking instance.
+   * @throws {AppError} 404 if the booking does not exist or does not belong to user.
    */
-  public static async findOwnedById(
-    userId: string,
-    bookingId: string,
-    options?: FindOptions
-  ): Promise<Booking> {
+  public static async findOwnedById(userId: string, bookingId: string, options?: FindOptions): Promise<Booking> {
     const booking = await Booking.findOne({
       where: { id: bookingId, passenger_id: userId },
       ...options,
@@ -47,18 +50,60 @@ export class BookingService {
   }
 
   /**
+   * Retrieves all bookings with pagination, optional filters, and sorting.
+   *
+   * @param {number} limit - Maximum number of bookings to return.
+   * @param {number} offset - Number of bookings to skip (for pagination).
+   * @param {GetBookingsFilters} [filters] - Optional filters:
+   *  - status: single status or an array of statuses
+   *  - passengerId: filter bookings by passenger ID
+   * @param {GetBookingsSortOptions} [sortOptions] - Optional sort options:
+   *  - by: 'createdAt' | 'departureDate' (default: 'createdAt')
+   *  - dir: 'asc' | 'desc' (default: 'desc')
+   *  Note: Sorting by 'departureDate' requires the 'trip' association to be included.
+   * @param {Partial<FindOptions>} [options] - Additional Sequelize find options (include, attributes, etc.).
+   * @returns {Promise<GetBookingsResponse>} Object containing total count and list of bookings.
+   */
+  public static async findAll(
+    limit: number,
+    offset: number,
+    filters?: GetBookingsFilters,
+    sortOptions?: GetBookingsSortOptions,
+    options?: Partial<FindOptions>
+  ): Promise<GetBookingsResponse> {
+    const where: WhereOptions = {};
+
+    if (filters?.status) where.status = Array.isArray(filters.status) ? { [Op.in]: filters.status } : filters.status;
+    if (filters?.passengerId) where.passenger_id = filters.passengerId;
+
+    const sortDirection = sortOptions?.dir === "asc" ? "ASC" : "DESC";
+    const order: Order =
+      sortOptions?.by === "departureDate" ? [["trip", "departure_datetime", sortDirection]] : [["created_at", sortDirection]];
+
+    const { count, rows } = await Booking.findAndCountAll({
+      where,
+      limit,
+      offset,
+      order,
+      ...options,
+      distinct: true,
+    });
+
+    return { count, bookings: rows };
+  }
+
+  /**
    * Creates a booking for a given user.
    *
    * @param {User} user - The user (passenger) making the booking.
    * @param {CreateBookingPayload} data - The booking data containing tripId and seatsToBook.
-   * @returns {Promise<Booking>} - The newly created booking instance with trip relation loaded.
-   * @throws {AppError} - If:
-   *   - The trip is not found (HTTP 404, thrown by TripService.findById).
-   *   - The user is the driver of the trip (HTTP 409).
-   *   - The trip is not open for bookings (HTTP 409).
-   *   - There are not enough available seats (HTTP 409).
-   *   - The user has insufficient credits (HTTP 402).
-   *   - The user already has an active booking for this trip (HTTP 409).
+   * @returns {Promise<Booking>} Newly created booking with trip relation loaded.
+   * @throws {AppError} 404 if the trip is not found.
+   * @throws {AppError} 409 if the user is the driver of the trip.
+   * @throws {AppError} 409 if the trip is not open for bookings.
+   * @throws {AppError} 409 if there are not enough available seats.
+   * @throws {AppError} 402 if the user has insufficient credits.
+   * @throws {AppError} 409 if the user already has an active booking for this trip.
    */
   public static async create(user: User, data: CreateBookingPayload): Promise<Booking> {
     const { tripId, seatsToBook } = data;
@@ -154,12 +199,12 @@ export class BookingService {
    *
    * @param {User} user - The user (passenger) requesting the cancellation.
    * @param {string} bookingId - The ID of the booking to cancel.
-   * @returns {Promise<Booking>} - The updated booking instance with status set to cancelled.
-   * @throws {AppError} - If:
-   *   - The booking is not found or doesn't belong to the user (HTTP 404, thrown by this.findOwnedById).
-   *   - The booking is already cancelled (HTTP 409).
-   *   - The booking is not in a confirmed state (HTTP 409)
-   *   - Required relations (trip or passenger) are missing (HTTP 500).
+   * @returns {Promise<Booking>} Updated booking with status set to cancelled.
+   * @throws {AppError} 404 if the booking does not exist or does not belong to the user.
+   * @throws {AppError} 409 if the booking is already cancelled.
+   * @throws {AppError} 409 if the booking is not in a confirmed state.
+   * @throws {AppError} 500 if required relations (trip or passenger) are missing.
+   * @throws {AppError} 409 if cancellation is attempted too close to departure.
    */
   public static async cancel(user: User, bookingId: string): Promise<Booking> {
     return await sequelize.transaction(async (t) => {
@@ -195,7 +240,6 @@ export class BookingService {
         });
       }
 
-      // Prevent cancellation if too close to departure
       const now = dayjs.utc();
       const departure = dayjs.utc(trip.departure_datetime);
       const minutesBeforeDeparture = departure.diff(now, "minute");
@@ -230,12 +274,11 @@ export class BookingService {
    *
    * @param {User} user - The user (passenger) completing the booking.
    * @param {string} bookingId - The ID of the booking to complete.
-   * @returns {Promise<Booking>} - The updated booking instance with status set to completed.
-   * @throws {AppError} - If:
-   *   - The booking is not found or doesn't belong to the user (HTTP 404, thrown by this.findOwnedById).
-   *   - The booking is already completed (HTTP 409).
-   *   - The booking is not in 'awaiting_feedback' status (HTTP 409).
-   *   - Required relations (trip or driver) are missing (HTTP 500).
+   * @returns {Promise<Booking>} Updated booking with status set to completed.
+   * @throws {AppError} 404 if the booking does not exist or does not belong to the user.
+   * @throws {AppError} 409 if the booking is already completed.
+   * @throws {AppError} 409 if the booking is not in 'awaiting_feedback' status.
+   * @throws {AppError} 500 if required relations (trip or driver) are missing.
    */
   public static async complete(user: User, bookingId: string): Promise<Booking> {
     return await sequelize.transaction(async (t) => {
@@ -293,21 +336,19 @@ export class BookingService {
    * Reports an incident for a booking owned by a given user and marks it as completed.
    * The driver payment is suspended until the incident is resolved by a moderator.
    *
-   * Note: The incident creation and booking completion are not atomic.
-   * If marking the booking as completed fails, the incident is manually deleted.
+   * @note Incident creation and booking completion are not atomic. If completion fails, the incident is deleted manually.
    *
    * @param {User} user - The user (passenger) reporting the incident.
    * @param {string} bookingId - The ID of the booking.
-   * @param {ReportBookingIncidentPayload} data - The incident data containing the description.
-   * @returns {Promise<{ booking: Booking; incident: IncidentDocument }>} - The updated booking and created incident.
-   * @throws {AppError} - If:
-   *   - The booking is not found or doesn't belong to the user (HTTP 404, thrown by this.findOwnedById).
-   *   - The booking is already completed (HTTP 409).
-   *   - The booking is not in 'awaiting_feedback' status (HTTP 409).
-   *   - The associated trip is not found (HTTP 404, thrown by IncidentService.create).
-   *   - The associated trip is not completed (HTTP 409, thrown by IncidentService.create).
-   *   - The user has already reported an incident for this trip (HTTP 409, thrown by IncidentService.create).
-   *   - Required relations (driver) are missing (HTTP 500, thrown by IncidentService.create).
+   * @param {ReportBookingIncidentPayload} data - Incident details (description).
+   * @returns {Promise<{ booking: Booking; incident: IncidentDocument }>} Updated booking and created incident.
+   * @throws {AppError} 404 if the booking does not exist or does not belong to the user.
+   * @throws {AppError} 409 if the booking is already completed.
+   * @throws {AppError} 409 if the booking is not in 'awaiting_feedback' status.
+   * @throws {AppError} 404 if the associated trip is not found (from IncidentService.create).
+   * @throws {AppError} 409 if the associated trip is not completed (from IncidentService.create).
+   * @throws {AppError} 409 if the user has already reported an incident for this trip (from IncidentService.create).
+   * @throws {AppError} 500 if required trip relations (driver) are missing (from IncidentService.create).
    */
   public static async reportIncident(
     user: User,

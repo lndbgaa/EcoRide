@@ -17,8 +17,16 @@ import { EmailService, VehicleService } from "@/services";
 import { AppError, formatDateTimeFromUTC, parseDateTimeToUTC } from "@/utils";
 
 import type { User } from "@/models";
-import type { CreateTripData, CreateTripPayload, SearchTripsPayload, SearchTripsResponse } from "@/types";
-import type { FindOptions, WhereOptions } from "sequelize";
+import type {
+  CreateTripData,
+  CreateTripPayload,
+  GetTripsFilters,
+  GetTripsResponse,
+  GetTripsSortOptions,
+  SearchTripsPayload,
+  TripSortField,
+} from "@/types";
+import type { FindOptions, Order, WhereOptions } from "sequelize";
 
 const { clientUrl, gmail } = appConfig;
 
@@ -26,11 +34,10 @@ export class TripService {
   /**
    * Finds a trip by ID.
    *
-   * @param {string} tripId -  The ID of the trip.
+   * @param {string} tripId - The ID of the trip.
    * @param {FindOptions} options - Additional Sequelize find options.
-   * @returns {Promise<Trip>} - The returned trip instance.
-   * @throws {AppError} - If:
-   *   - The trip is not found (HTTP 404).
+   * @returns {Promise<Trip>} Returned trip instance.
+   * @throws {AppError} 404 if trip is not found.
    */
   public static async findById(tripId: string, options?: FindOptions): Promise<Trip> {
     const trip = await Trip.findByPk(tripId, options);
@@ -52,10 +59,8 @@ export class TripService {
    * @param {string} userId - The ID of the user.
    * @param {string} tripId - The ID of the trip.
    * @param {FindOptions} [options] - Additional Sequelize find options.
-   * @returns {Promise<Trip>} - The returned trip instance.
-   * @throws {AppError} - If:
-   *   - The trip does not exist, or
-   *   - The trip exists but does not belong to the user (HTTP 404).
+   * @returns {Promise<Trip>} Returned trip instance.
+   * @throws {AppError} 404 if trip does not exist or does not belong to user.
    */
   public static async findOwnedById(userId: string, tripId: string, options?: FindOptions): Promise<Trip> {
     const trip = await Trip.findOne({
@@ -75,20 +80,62 @@ export class TripService {
   }
 
   /**
+   * Retrieves all trips with pagination, optional filters, and sorting.
+   *
+   * @param {number} limit - Maximum number of trips to return.
+   * @param {number} offset - Number of trips to skip (for pagination).
+   * @param {GetTripsFilters} [filters] - Optional filters:
+   *  - status: single status or an array of statuses
+   *  - driverId: filter trips by driver ID
+   * @param {GetTripsSortOptions} [sortOptions] - Optional sort options:
+   *  - by: 'createdAt' | 'departureDate' (default: 'createdAt')
+   *  - dir: 'asc' | 'desc' (default: 'desc')
+   * @param {Partial<FindOptions>} [options] - Additional Sequelize find options (include, attributes, etc.).
+   * @returns {Promise<GetTripsResponse>} Object containing total count and list of trips.
+   */
+  public static async findAll(
+    limit: number,
+    offset: number,
+    filters?: GetTripsFilters,
+    sortOptions?: GetTripsSortOptions,
+    options?: Partial<FindOptions>
+  ): Promise<GetTripsResponse> {
+    const where: WhereOptions = {};
+
+    if (filters?.status) where.status = Array.isArray(filters.status) ? { [Op.in]: filters.status } : filters.status;
+    if (filters?.driverId) where.driver_id = filters.driverId;
+
+    const sortFieldMap: Record<TripSortField, string> = {
+      createdAt: "created_at",
+      departureDate: "departure_datetime",
+    };
+
+    const sortField = sortFieldMap[sortOptions?.by ?? "createdAt"] ?? "created_at";
+    const sortDirection = sortOptions?.dir === "asc" ? "ASC" : "DESC";
+    const order: Order = [[sortField, sortDirection]];
+
+    const { count, rows } = await Trip.findAndCountAll({
+      where,
+      limit,
+      offset,
+      order,
+      ...options,
+      distinct: true,
+    });
+
+    return { count, trips: rows };
+  }
+
+  /**
    * Searches for trips based on given criteria.
    *
    * @param {SearchTripsPayload} data - The search parameters.
    * @param {number} limit - Maximum number of trips to return.
    * @param {number} offset - Number of trips to skip (for pagination).
    * @param {User} [user] - The user performing the search. Trips where this user is the driver will be excluded.
-   * @returns {Promise<SearchTripsResponse>} - Object containing the total count of matching trips and an array of trip instances.
+   * @returns {Promise<GetTripsResponse>} Object containing the total count of matching trips and an array of trip instances.
    */
-  public static async search(
-    data: SearchTripsPayload,
-    limit: number,
-    offset: number,
-    user?: User
-  ): Promise<SearchTripsResponse> {
+  public static async search(data: SearchTripsPayload, limit: number, offset: number, user?: User): Promise<GetTripsResponse> {
     const dateParis = dayjs.tz(data.date, "Europe/Paris");
 
     let startUtc = dateParis.startOf("day").utc().toDate();
@@ -110,7 +157,7 @@ export class TripService {
     if (data.maxPrice) conditions.price = { [Op.lte]: data.maxPrice };
     if (data.maxDuration) conditions.duration_minutes = { [Op.lte]: data.maxDuration };
 
-    const { count, rows: trips } = await Trip.findAndCountAll({
+    const { count, rows } = await Trip.findAndCountAll({
       where: conditions,
       limit,
       offset,
@@ -136,7 +183,7 @@ export class TripService {
       ],
     });
 
-    return { count, trips };
+    return { count, trips: rows };
   }
 
   /**
@@ -144,10 +191,9 @@ export class TripService {
    *
    * @param {User} user - The user creating the trip.
    * @param {CreateTripPayload} data - The trip data.
-   * @returns {Promise<Trip>} - The newly created trip instance with vehicle relation loaded.
-   * @throws {AppError} - If:
-   *   - The vehicle is not found or the ownership check fails (HTTP 404, thrown by VehicleService.findOwnedById).
-   *   - The vehicle does not have enough passenger seats (HTTP 400).
+   * @returns {Promise<Trip>} Newly created trip with vehicle relation loaded.
+   * @throws {AppError} 404 if vehicle is not found or does not belong to user.
+   * @throws {AppError} 400 if vehicle does not have enough passenger seats.
    */
   public static async create(user: User, data: CreateTripPayload): Promise<Trip> {
     const vehicle = await VehicleService.findOwnedById(user.id, data.vehicleId);
@@ -191,11 +237,11 @@ export class TripService {
    *
    * @param {User} user - The user requesting the cancellation.
    * @param {string} tripId - The ID of the trip to cancel.
-   * @returns {Promise<Trip>} - The updated trip instance with status set to cancelled.
-   * @throws {AppError} - If:
-   *   - The trip is not found or doesn't belong to the user (HTTP 404, thrown by this.findOwnedById).
-   *   - The trip status is not OPEN or FULL (HTTP 409).
-   *   - Cancellation is attempted within minimum notice period with active bookings (HTTP 409).
+   * @returns {Promise<Trip>} Updated trip with status set to cancelled.
+   * @throws {AppError} 404 if trip does not exist or does not belong to user.
+   * @throws {AppError} 409 if trip status is not OPEN or FULL.
+   * @throws {AppError} 409 if cancellation is attempted within minimum notice period with active bookings.
+   * @note Refunds are applied to passengers and emails are sent after transaction commit.
    */
   public static async cancel(user: User, tripId: string): Promise<Trip> {
     const trip = await sequelize.transaction(async (t) => {
@@ -210,13 +256,11 @@ export class TripService {
             required: false,
           },
         ],
-        lock: true,
+        lock: t.LOCK.UPDATE,
         transaction: t,
       });
 
-      // Validate trip status
-      const isCancellable = trip.isOpen() || trip.isFull();
-      if (!isCancellable) {
+      if (!(trip.isOpen() || trip.isFull())) {
         throw new AppError({
           statusCode: 409,
           userMessageKey: TRIP_ERROR_MESSAGES.CANCEL.INVALID_STATUS,
@@ -224,16 +268,11 @@ export class TripService {
         });
       }
 
-      // Prevent cancellation if too close to departure with active bookings
       const now = dayjs.utc();
       const departure = dayjs.utc(trip.departure_datetime);
       const minutesBeforeDeparture = departure.diff(now, "minute");
 
-      if (
-        minutesBeforeDeparture < TRIP_MIN_MINUTES_BEFORE_CANCELLATION &&
-        trip.bookings &&
-        trip.bookings.length > 0
-      ) {
+      if (minutesBeforeDeparture < TRIP_MIN_MINUTES_BEFORE_CANCELLATION && trip.bookings && trip.bookings.length > 0) {
         const hoursBeforeCancellation = TRIP_MIN_MINUTES_BEFORE_CANCELLATION / 60;
 
         throw new AppError({
@@ -246,17 +285,14 @@ export class TripService {
 
       await trip.markAsCancelled({ transaction: t });
 
-      // Refund all passengers
       if (trip.bookings?.length) {
         await Promise.all(
           trip.bookings.map(async (b) => {
             await b.markAsCancelled({ transaction: t });
 
-            const passenger = b.passenger;
-            const refundAmount = b.seats_booked * trip.price;
-
-            if (passenger) {
-              await passenger.addCredits(refundAmount, { transaction: t });
+            if (b.passenger) {
+              const refundAmount = b.seats_booked * trip.price;
+              await b.passenger.addCredits(refundAmount, { transaction: t });
             }
           })
         );
@@ -265,7 +301,6 @@ export class TripService {
       return trip;
     });
 
-    // Notify affected passengers via email
     if (trip.bookings?.length) {
       const departure = formatDateTimeFromUTC(trip.departure_datetime);
 
@@ -285,12 +320,7 @@ export class TripService {
           },
         }));
 
-      await EmailService.sendBulkEmail(
-        gmail.user,
-        recipients,
-        "Ta réservation a été annulée",
-        "trip.cancelled.passenger.html"
-      );
+      await EmailService.sendBulkEmail(gmail.user, recipients, "Ta réservation a été annulée", "trip.cancelled.passenger.html");
     }
 
     return trip;
@@ -301,24 +331,21 @@ export class TripService {
    *
    * @param {User} user - The user starting the trip.
    * @param {string} tripId - The ID of the trip to start.
-   * @returns {Promise<Trip>} - The updated trip instance with status set to in_progress.
-   * @throws {AppError} - If:
-   *   - The trip is not found or doesn't belong to the user (HTTP 404, thrown by this.findOwnedById).
-   *   - The trip status is not OPEN or FULL (HTTP 409).
-   *   - The start is attempted too early before departure (HTTP 409).
-   *   - The start is attempted too late after departure (HTTP 409).
+   * @returns {Promise<Trip>} Updated trip with status set to in_progress.
+   * @throws {AppError} 404 if trip does not exist or does not belong to user.
+   * @throws {AppError} 409 if trip status is not OPEN or FULL.
+   * @throws {AppError} 409 if start is attempted too early before departure.
+   * @throws {AppError} 409 if start is attempted too late after departure.
    */
   public static async start(user: User, tripId: string): Promise<Trip> {
     return await sequelize.transaction(async (t) => {
       const trip = await this.findOwnedById(user.id, tripId, {
         include: [{ association: "driver" }, { association: "vehicle", include: VEHICLE_ASSOCIATIONS }],
-        lock: true,
+        lock: t.LOCK.UPDATE,
         transaction: t,
       });
 
-      // Validate trip status
-      const canBeStarted = trip.isOpen() || trip.isFull();
-      if (!canBeStarted) {
+      if (!(trip.isOpen() || trip.isFull())) {
         throw new AppError({
           statusCode: 409,
           userMessageKey: TRIP_ERROR_MESSAGES.START.INVALID_STATUS,
@@ -330,7 +357,6 @@ export class TripService {
       const departure = dayjs.utc(trip.departure_datetime);
       const minutesUntilDeparture = departure.diff(now, "minute");
 
-      // Too early to start
       if (minutesUntilDeparture > TRIP_MIN_MINUTES_BEFORE_STARTING) {
         throw new AppError({
           statusCode: 409,
@@ -340,12 +366,11 @@ export class TripService {
         });
       }
 
-      // Too late to start
       if (minutesUntilDeparture < -TRIP_MAX_MINUTES_AFTER_STARTING) {
         throw new AppError({
           statusCode: 409,
           userMessageKey: TRIP_ERROR_MESSAGES.START.TOO_LATE,
-          userMessageParams: { minutes: TRIP_MIN_MINUTES_BEFORE_STARTING },
+          userMessageParams: { minutes: TRIP_MAX_MINUTES_AFTER_STARTING },
           debugMessage: `[TripService.start] Cannot start trip '${tripId}': too late. Now is more than ${TRIP_MAX_MINUTES_AFTER_STARTING} minutes after departure.`,
         });
       }
@@ -361,10 +386,10 @@ export class TripService {
    *
    * @param {User} user - The user ending the trip.
    * @param {string} tripId - The ID of the trip to end.
-   * @returns {Promise<Trip>} - The updated trip instance with status set to completed.
-   * @throws {AppError} - If:
-   *   - The trip is not found or doesn't belong to the user (HTTP 404, thrown by this.findOwnedById).
-   *   - The trip status is not IN_PROGRESS (HTTP 409).
+   * @returns {Promise<Trip>} Updated trip with status set to completed.
+   * @throws {AppError} 404 if trip does not exist or does not belong to user.
+   * @throws {AppError} 409 if trip status is not IN_PROGRESS.
+   * @note Bookings are marked as awaiting feedback and review request emails are sent after transaction commit.
    */
   public static async end(user: User, tripId: string): Promise<Trip> {
     const trip = await sequelize.transaction(async (t) => {
@@ -379,11 +404,10 @@ export class TripService {
             required: false,
           },
         ],
-        lock: true,
+        lock: t.LOCK.UPDATE,
         transaction: t,
       });
 
-      // Validate trip status
       const canBeEnded = trip.isInProgress();
       if (!canBeEnded) {
         throw new AppError({
@@ -395,7 +419,6 @@ export class TripService {
 
       await trip.markAsCompleted({ transaction: t });
 
-      // Mark all bookings as awaiting feedback
       if (trip.bookings?.length) {
         await Promise.all(
           trip.bookings.map(async (b) => {
@@ -407,7 +430,6 @@ export class TripService {
       return trip;
     });
 
-    // Send review requests to all passengers
     if (trip.bookings?.length) {
       const recipients = trip.bookings
         .filter((b) => b.passenger?.email)
@@ -422,12 +444,7 @@ export class TripService {
           },
         }));
 
-      await EmailService.sendBulkEmail(
-        gmail.user,
-        recipients,
-        "Ton avis compte !",
-        "trip.completed.passenger.html"
-      );
+      await EmailService.sendBulkEmail(gmail.user, recipients, "Ton avis compte !", "trip.completed.passenger.html");
     }
 
     return trip;

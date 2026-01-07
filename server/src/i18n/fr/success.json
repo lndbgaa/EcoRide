@@ -39,6 +39,7 @@
     "ended": "Trajet terminé"
   },
   "booking": {
+    "retrieved_all": "Liste des réservations récupérée",
     "created": "Réservation créée",
     "cancelled": "Réservation annulée",
     "completed": "Réservation finalisée",

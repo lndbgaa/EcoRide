@@ -78,7 +78,7 @@ export const createTrip = catchAsync(async (req: Request, res: Response): Promis
   const data: CreateTripPayload = req.body;
 
   const trip = await TripService.create(user, data);
-  const dto = trip.toPrivateDTO(req.t);
+  const dto = trip.toDriverDTO(req.t);
 
   return res.status(201).json({
     success: true,
@@ -95,7 +95,7 @@ export const cancelTrip = catchAsync(async (req: Request, res: Response): Promis
   const tripId = req.params.id!;
 
   const trip = await TripService.cancel(user, tripId);
-  const dto = trip.toPrivateDTO(req.t);
+  const dto = trip.toDriverDTO(req.t);
 
   return res.status(200).json({
     success: true,
@@ -112,7 +112,7 @@ export const startTrip = catchAsync(async (req: Request, res: Response): Promise
   const tripId = req.params.id!;
 
   const trip = await TripService.start(user, tripId);
-  const dto = trip.toPrivateDTO(req.t);
+  const dto = trip.toDriverDTO(req.t);
 
   return res.status(200).json({
     success: true,
@@ -129,7 +129,7 @@ export const endTrip = catchAsync(async (req: Request, res: Response): Promise<R
   const tripId = req.params.id!;
 
   const trip = await TripService.end(user, tripId);
-  const dto = trip.toPrivateDTO(req.t);
+  const dto = trip.toDriverDTO(req.t);
 
   return res.status(200).json({
     success: true,

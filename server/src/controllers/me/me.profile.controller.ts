@@ -14,7 +14,7 @@ const { refreshExpiration } = auth;
  * Retrieve the authenticated user's private information.
  */
 export const getMyInfo = catchAsync(async (req: Request, res: Response): Promise<Response> => {
-  const user = req.user;
+  const user = req.user!;
   const dto = user.toPrivateDTO();
 
   return res.status(200).json({
@@ -28,7 +28,7 @@ export const getMyInfo = catchAsync(async (req: Request, res: Response): Promise
  * Update the authenticated user's profile information.
  */
 export const updateMyInfo = catchAsync(async (req: Request, res: Response): Promise<Response> => {
-  const user = req.user;
+  const user = req.user!;
   const data: UpdateUserInfoPayload = req.body;
 
   const updatedUser = await UserProfileService.updateProfile(user, data);
@@ -45,7 +45,7 @@ export const updateMyInfo = catchAsync(async (req: Request, res: Response): Prom
  * Update the authenticated user's password.
  */
 export const updateMyPassword = catchAsync(async (req: Request, res: Response): Promise<Response> => {
-  const user = req.user;
+  const user = req.user!;
   const data: UpdateUserPasswordPayload = req.body;
 
   await UserProfileService.updatePassword(user, data);
@@ -60,7 +60,7 @@ export const updateMyPassword = catchAsync(async (req: Request, res: Response): 
  * Update the authenticated user's profile picture.
  */
 export const updateMyPicture = catchAsync(async (req: MulterRequest, res: Response): Promise<Response> => {
-  const user = req.user;
+  const user = req.user!;
 
   const { file } = req;
 
@@ -84,7 +84,7 @@ export const updateMyPicture = catchAsync(async (req: MulterRequest, res: Respon
  * Handle the authenticated user's account deletion request.
  */
 export const requestMyDeletion = catchAsync(async (req: Request, res: Response): Promise<Response> => {
-  const user = req.user;
+  const user = req.user!;
 
   await UserDeletionService.requestDeletion(user);
 

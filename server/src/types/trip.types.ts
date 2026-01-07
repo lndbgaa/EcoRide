@@ -1,13 +1,6 @@
 import type { TRIP_STATUSES } from "@/constants";
 import type { Trip } from "@/models/mysql";
-import type {
-  DateTimeDTO,
-  UserAdminDTO,
-  UserPublicDTO,
-  VehicleAdminDTO,
-  VehiclePrivateDTO,
-  VehiclePublicDTO,
-} from "@/types";
+import type { DateTimeDTO, UserAdminDTO, UserPublicDTO, VehicleAdminDTO, VehiclePrivateDTO, VehiclePublicDTO } from "@/types";
 
 // ===========================
 //    Constants-based Types
@@ -16,7 +9,7 @@ import type {
 export type TripStatus = (typeof TRIP_STATUSES)[keyof typeof TRIP_STATUSES];
 
 // ===========================
-//            DTOs
+//       DTOs (Responses)
 // =========================== */
 
 export interface TripPublicDTO {
@@ -51,8 +44,8 @@ export interface TripPrivateDTO {
   availableSeats: number;
   offeredSeats: number;
   vehicle: VehiclePrivateDTO | null;
-  status: TripStatus;
   createdAt: DateTimeDTO;
+  status: TripStatus;
 }
 
 export interface TripAdminDTO extends TripPrivateDTO {
@@ -88,16 +81,32 @@ export interface CreateTripPayload {
 }
 
 // ===========================
+//       Service Types
+// ===========================
+
+export type TripSortField = "createdAt" | "departureDate";
+
+export interface GetTripsSortOptions {
+  by?: TripSortField;
+  dir?: "asc" | "desc";
+}
+
+export interface GetTripsFilters {
+  status?: TripStatus | TripStatus[];
+  driverId?: string;
+}
+
+// ===========================
 //        Response Types
 // =========================== */
 
-export interface SearchTripsResponse {
+export interface GetTripsResponse {
   count: number;
   trips: Trip[];
 }
 
 // ===========================
-//  Internal / DB Data Types
+//         DB Types
 // =========================== */
 
 export type CreateTripData = {
