@@ -10,7 +10,7 @@ import type { UpdateUserInfoPayload, UpdateUserPasswordPayload } from "@/types";
 
 const { env } = appConfig;
 
-export class UserProfileService {
+export class ProfileService {
   /**
    * Updates the profile information of a user.
    *
@@ -77,10 +77,7 @@ export class UserProfileService {
    *   - The file size exceeds the maximum allowed limit (HTTP 400)
    *   - The image upload fails (HTTP 500, thrown by UploadService.uploadImage, e.g., Cloudinary error)
    */
-  public static async updatePicture(
-    user: User,
-    file: Express.Multer.File
-  ): Promise<{ url: string }> {
+  public static async updatePicture(user: User, file: Express.Multer.File): Promise<{ url: string }> {
     const allowedImageMimedTypes = ["image/jpeg", "image/png", "image/webp"];
 
     if (!allowedImageMimedTypes.includes(file.mimetype)) {

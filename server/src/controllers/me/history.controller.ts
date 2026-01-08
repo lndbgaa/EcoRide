@@ -6,7 +6,7 @@ import type { GetBookingsFilters, GetBookingsSortOptions, GetTripsFilters, GetTr
 import type { Request, Response } from "express";
 
 /**
- * Retrieve paginated trips for the authenticated driver with status COMPLETED or CANCELLED.
+ * Retrieve paginated trips for the authenticated user with status COMPLETED or CANCELLED.
  */
 export const getMyTripsHistory = catchAsync(async (req: Request, res: Response): Promise<Response> => {
   const user = req.user!;
@@ -46,7 +46,7 @@ export const getMyTripsHistory = catchAsync(async (req: Request, res: Response):
 });
 
 /**
- * Retrieve paginated bookings for the authenticated passenger with statuses AWAITING_FEEDBACK, COMPLETED, or CANCELLED, including related trip data.
+ * Retrieve paginated bookings for the authenticated user with status AWAITING_FEEDBACK, COMPLETED, or CANCELLED.
  */
 export const getMyBookingsHistory = catchAsync(async (req: Request, res: Response): Promise<Response> => {
   const user = req.user!;

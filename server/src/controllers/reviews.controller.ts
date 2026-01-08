@@ -51,7 +51,7 @@ export const createReview = catchAsync(async (req: Request, res: Response): Prom
 });
 
 /**
- * Approve a pending review.
+ * Approve a pending review by the authenticated moderator/admin.
  */
 export const approveReview = catchAsync(async (req: Request, res: Response): Promise<Response> => {
   const moderator = req.user!;
@@ -66,7 +66,7 @@ export const approveReview = catchAsync(async (req: Request, res: Response): Pro
 });
 
 /**
- * Reject a pending review.
+ * Reject a pending review by the authenticated moderator/admin.
  */
 export const rejectReview = catchAsync(async (req: Request, res: Response): Promise<Response> => {
   const moderator = req.user!;

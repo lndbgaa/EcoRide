@@ -4,7 +4,7 @@ import { TRIP_ERROR_MESSAGES, TRIP_MAX_PRICE, TRIP_MIN_PRICE, TRIP_STATUSES } fr
 import { AppError, calculateDuration, formatDateTimeFromUTC } from "@/utils";
 
 import type { Booking, User, Vehicle } from "@/models/mysql";
-import type { TripAdminDTO, TripPrivateDTO, TripPublicDTO, TripStatus } from "@/types";
+import type { TripAdminDTO, TripDriverDTO, TripPublicDTO, TripStatus } from "@/types";
 import type { TFunction } from "i18next";
 import type { SaveOptions, Sequelize } from "sequelize";
 
@@ -232,7 +232,7 @@ export default class Trip extends Model {
     };
   }
 
-  public toDriverDTO(t: TFunction): TripPrivateDTO {
+  public toDriverDTO(t: TFunction): TripDriverDTO {
     const departure = formatDateTimeFromUTC(this.departure_datetime);
     const arrival = formatDateTimeFromUTC(this.arrival_datetime);
 

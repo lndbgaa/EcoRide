@@ -1,6 +1,6 @@
 import { appConfig } from "@/config";
 import { COMMON_ERROR_MESSAGES, SUCCESS_MESSAGES } from "@/constants";
-import { UserDeletionService, UserProfileService } from "@/services";
+import { UserDeletionService, ProfileService } from "@/services";
 import { AppError, catchAsync, generateRefreshTokenCookieOptions } from "@/utils";
 
 import type { MulterRequest } from "@/@types/express";
@@ -31,7 +31,7 @@ export const updateMyInfo = catchAsync(async (req: Request, res: Response): Prom
   const user = req.user!;
   const data: UpdateUserInfoPayload = req.body;
 
-  const updatedUser = await UserProfileService.updateProfile(user, data);
+  const updatedUser = await ProfileService.updateProfile(user, data);
   const dto = updatedUser.toPrivateDTO();
 
   return res.status(200).json({
@@ -48,7 +48,7 @@ export const updateMyPassword = catchAsync(async (req: Request, res: Response): 
   const user = req.user!;
   const data: UpdateUserPasswordPayload = req.body;
 
-  await UserProfileService.updatePassword(user, data);
+  await ProfileService.updatePassword(user, data);
 
   return res.status(200).json({
     success: true,
@@ -71,7 +71,7 @@ export const updateMyPicture = catchAsync(async (req: MulterRequest, res: Respon
     });
   }
 
-  const { url } = await UserProfileService.updatePicture(user, file);
+  const { url } = await ProfileService.updatePicture(user, file);
 
   return res.status(200).json({
     success: true,

@@ -57,5 +57,9 @@
     "created": "Avis créé",
     "approved": "Avis approuvé",
     "rejected": "Avis rejeté"
+  },
+  "event": {
+    "next_event_retrieved": "Prochain événement récupéré",
+    "upcoming_events_retrieved": "Événements à venir récupérés"
   }
 }

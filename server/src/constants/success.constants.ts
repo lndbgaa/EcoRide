@@ -65,4 +65,9 @@ export const SUCCESS_MESSAGES = {
     APPROVED: "success:review.approved",
     REJECTED: "success:review.rejected",
   },
+
+  EVENT: {
+    NEXT_EVENT_RETRIEVED: "success:event.next_event_retrieved",
+    UPCOMING_EVENTS_RETRIEVED: "success:event.upcoming_events_retrieved",
+  },
 } as const;

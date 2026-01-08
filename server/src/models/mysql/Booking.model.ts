@@ -105,9 +105,9 @@ export default class Booking extends Model {
   public toPassengerDTO(t: TFunction): BookingPassengerDTO {
     return {
       id: this.id,
-      trip: this.trip?.toPublicDTO(t) ?? null,
-      seatsBooked: this.seats_booked,
       status: this.status,
+      seatsBooked: this.seats_booked,
+      trip: this.trip?.toPublicDTO(t) ?? null,
       createdAt: formatDateTimeFromUTC(this.created_at),
     };
   }

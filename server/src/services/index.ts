@@ -1,13 +1,15 @@
-export * from "./user";
-
 export * from "./auth.service.js";
 export * from "./booking.service.js";
+export * from "./user-deletion.service.js";
 export * from "./email-verification.service.js";
 export * from "./email.service.js";
+export * from "./event.service.js";
 export * from "./incident.service.js";
 export * from "./password-reset.service.js";
 export * from "./preference.service.js";
+export * from "./profile.service.js";
 export * from "./review.service.js";
 export * from "./trip.service.js";
 export * from "./upload.service.js";
+export * from "./user.service.js";
 export * from "./vehicle.service.js";

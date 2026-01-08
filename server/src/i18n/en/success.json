@@ -57,5 +57,9 @@
     "created": "Review created",
     "approved": "Review approved",
     "rejected": "Review rejected"
+  },
+  "event": {
+    "next_event_retrieved": "Next event retrieved",
+    "upcoming_events_retrieved": "Upcoming events retrieved"
   }
 }

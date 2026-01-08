@@ -30,7 +30,7 @@ export interface TripPublicDTO {
   status: TripStatus;
 }
 
-export interface TripPrivateDTO {
+export interface TripDriverDTO {
   id: string;
   departureDate: string;
   departureTime: string;
@@ -48,7 +48,7 @@ export interface TripPrivateDTO {
   status: TripStatus;
 }
 
-export interface TripAdminDTO extends TripPrivateDTO {
+export interface TripAdminDTO extends TripDriverDTO {
   driver: UserAdminDTO | null;
   vehicle: VehicleAdminDTO | null;
 }

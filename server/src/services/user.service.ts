@@ -14,10 +14,7 @@ export class UserService {
    * @throws {AppError} - If:
    *   - The user is not found (HTTP 404).
    */
-  public static async findById(
-    userId: string,
-    options?: FindOptions
-  ): Promise<User> {
+  public static async findById(userId: string, options?: FindOptions): Promise<User> {
     const user = await User.findByPk(userId, options);
 
     if (!user) {

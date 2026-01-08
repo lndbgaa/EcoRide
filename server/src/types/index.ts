@@ -3,6 +3,7 @@ export * from "./booking.types.js";
 export * from "./common.types.js";
 export * from "./config.types.js";
 export * from "./error.types.js";
+export * from "./event.types.js";
 export * from "./incident.types.js";
 export * from "./preference.types.js";
 export * from "./review.types.js";

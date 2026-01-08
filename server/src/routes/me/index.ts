@@ -2,7 +2,14 @@ import { Router } from "express";
 
 import { requireAuth } from "@/middlewares";
 
-import { getMyBookingsHistory, getMyReceivedReviews, getMyTripsHistory, getMyWrittenReviews } from "@/controllers";
+import {
+  getMyBookingsHistory,
+  getMyNextEvent,
+  getMyReceivedReviews,
+  getMyTripsHistory,
+  getMyUpcomingEvents,
+  getMyWrittenReviews,
+} from "@/controllers";
 
 import incidentsRouter from "./me.incidents.routes.js";
 import preferencesRouter from "./me.preferences.routes.js";
@@ -17,8 +24,8 @@ router.use("/", profileRouter);
 router.use("/vehicles", vehiclesRouter);
 router.use("/preferences", preferencesRouter);
 
-// router.get("/events/next");
-// router.get("/events/upcoming");
+router.get("/events/next", getMyNextEvent);
+router.get("/events/upcoming", getMyUpcomingEvents);
 
 router.get("/trips/history", getMyTripsHistory);
 router.get("/bookings/history", getMyBookingsHistory);
