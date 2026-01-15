@@ -12,7 +12,7 @@ export const getMyPreferences = catchAsync(async (req: Request, res: Response): 
   const userId = req.user!.id;
 
   const preferences = await PreferenceService.getUserPreferences(userId);
-  const dto = preferences.map((p) => p.toPrivateDTO(req.t));
+  const dto = preferences.map((p) => p.toDTO(req.t));
 
   return res.status(200).json({
     success: true,
@@ -30,7 +30,7 @@ export const updateMyPreference = catchAsync(async (req: Request, res: Response)
   const optionKey: string = req.body.optionKey;
 
   const preference = await PreferenceService.updateUserPreferenceForCategory(userId, categoryKey, optionKey);
-  const dto = preference.toPrivateDTO(req.t);
+  const dto = preference.toDTO(req.t);
 
   return res.status(200).json({
     success: true,

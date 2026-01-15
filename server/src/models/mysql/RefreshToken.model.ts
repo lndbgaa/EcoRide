@@ -1,5 +1,6 @@
-import dayjs from "dayjs";
 import { DataTypes, Model } from "sequelize";
+
+import { dayjs } from "@/config";
 
 import type { SaveOptions, Sequelize } from "sequelize";
 

@@ -11,12 +11,21 @@
     "password_reset_completed": "Password reset"
   },
   "user": {
+    "retrieved_all": "Users list retrieved",
     "data_retrieved": "Data retrieved",
     "profile_updated": "Profile updated",
     "password_updated": "Password updated",
     "picture_updated": "Profile picture updated",
     "deletion_requested": "Deletion request recorded",
-    "deletion_cancelled": "Account reactivated"
+    "deletion_cancelled": "Account reactivated",
+    "suspended": "User account suspended",
+    "reactivated": "User account reactivated",
+    "role_changed": "User role changed"
+  },
+  "reference": {
+    "vehicle_brands_retrieved": "Vehicle brands list retrieved",
+    "vehicle_colors_retrieved": "Vehicle colors list retrieved",
+    "vehicle_energies_retrieved": "Vehicle energy types list retrieved"
   },
   "preference": {
     "retrieved_all": "Preferences list retrieved",

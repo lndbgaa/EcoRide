@@ -1,8 +1,8 @@
-import dayjs from "dayjs";
+import { dayjs } from "@/config";
 import Joi from "joi";
 
 import { MINIMUM_USER_AGE, REGEX, VALIDATION_MESSAGES } from "@/constants";
-import { dateField } from "./common.validation";
+import { dateField } from "@/validations";
 
 export const registerUserBodySchema = Joi.object({
   email: Joi.string().trim().lowercase().email().required().messages({

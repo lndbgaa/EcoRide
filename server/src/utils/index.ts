@@ -4,7 +4,6 @@ export { default as logger } from "./logger/index.js";
 export { default as parseJoiError } from "./parseJoiError.js";
 export { default as parsePagination } from "./parsePagination.js";
 export { default as renderTemplate } from "./renderTemplate.js";
-export { default as sendEmail } from "./sendEmail.js";
 
 export * from "./cookie.utils.js";
 export * from "./dataUriFromBuffer.js";

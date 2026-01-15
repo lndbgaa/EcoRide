@@ -1,12 +1,7 @@
 import { DataTypes, Model } from "sequelize";
 
 import type { PreferenceCategory } from "@/models/mysql";
-import type {
-  PreferenceCategoryId,
-  PreferenceCategoryKey,
-  PreferenceOptionPrivateDTO,
-  PreferenceOptionPublicDTO,
-} from "@/types";
+import type { PreferenceCategoryId, PreferenceCategoryKey, PreferenceOptionDTO } from "@/types";
 import type { TFunction } from "i18next";
 import type { Sequelize } from "sequelize";
 
@@ -21,13 +16,7 @@ export default class PreferenceOption extends Model {
     return `ui:preference_options.${categoryKey}.${this.key}`;
   }
 
-  public toPublicDTO(t: TFunction): PreferenceOptionPublicDTO {
-    return {
-      display: t(this.getDisplayTranslationKey(this.category!.key)),
-    };
-  }
-
-  public toPrivateDTO(t: TFunction): PreferenceOptionPrivateDTO {
+  public toDTO(t: TFunction): PreferenceOptionDTO {
     return {
       id: this.id,
       category: this.category?.toPrivateDTO(t) ?? null,

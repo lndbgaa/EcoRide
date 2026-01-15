@@ -25,7 +25,7 @@ export interface LoginUserPayload {
 
 export interface ResetPasswordPayload {
   token: string;
-  password: string;
+  newPassword: string;
 }
 
 // ===========================

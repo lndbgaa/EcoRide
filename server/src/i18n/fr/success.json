@@ -11,12 +11,21 @@
     "password_reset_completed": "Mot de passe réinitialisé"
   },
   "user": {
+    "retrieved_all": "Liste des utilisateurs récupérée",
     "data_retrieved": "Données récupérées",
     "profile_updated": "Profil mis à jour",
     "password_updated": "Mot de passe mis à jour",
     "picture_updated": "Photo de profil mise à jour",
     "deletion_requested": "Demande de suppression enregistrée",
-    "deletion_cancelled": "Compte réactivé"
+    "deletion_cancelled": "Compte réactivé",
+    "suspended": "Compte utilisateur suspendu",
+    "reactivated": "Compte utilisateur réactivé",
+    "role_changed": "Rôle utilisateur modifié"
+  },
+  "reference": {
+    "vehicle_brands_retrieved": "Liste des marques de véhicules récupérée",
+    "vehicle_colors_retrieved": "Liste des couleurs de véhicules récupérée",
+    "vehicle_energies_retrieved": "Liste des types d’énergie de véhicules récupérée"
   },
   "preference": {
     "retrieved_all": "Liste des préférences récupérée",

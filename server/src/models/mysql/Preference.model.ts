@@ -2,7 +2,7 @@ import { DataTypes, Model } from "sequelize";
 
 import { PREFERENCE_ERROR_MESSAGES } from "@/constants";
 import type { PreferenceOption } from "@/models/mysql";
-import type { PreferencePrivateDTO, PreferencePublicDTO } from "@/types";
+import type { PreferenceDTO } from "@/types";
 import { AppError } from "@/utils";
 import type { TFunction } from "i18next";
 import type { Sequelize } from "sequelize";
@@ -15,16 +15,10 @@ export default class Preference extends Model {
 
   declare option?: PreferenceOption;
 
-  public toPublicDTO(t: TFunction): PreferencePublicDTO {
-    return {
-      option: this.option?.toPublicDTO(t) ?? null,
-    };
-  }
-
-  public toPrivateDTO(t: TFunction): PreferencePrivateDTO {
+  public toDTO(t: TFunction): PreferenceDTO {
     return {
       id: this.id,
-      option: this.option?.toPrivateDTO(t) ?? null,
+      option: this.option?.toDTO(t) ?? null,
     };
   }
 
@@ -70,10 +64,9 @@ export default class Preference extends Model {
         hooks: {
           async beforeValidate(preference: Preference) {
             if (preference.option_id) {
-              const option = (await preference.sequelize.models.PreferenceOption?.findByPk(
-                preference.option_id,
-                { attributes: ["category_id"] }
-              )) as PreferenceOption | null;
+              const option = (await preference.sequelize.models.PreferenceOption?.findByPk(preference.option_id, {
+                attributes: ["category_id"],
+              })) as PreferenceOption | null;
 
               if (!option) {
                 throw new AppError({

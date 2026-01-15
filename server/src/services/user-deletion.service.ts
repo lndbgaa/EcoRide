@@ -2,7 +2,7 @@ import bcrypt from "bcrypt";
 import dayjs from "dayjs";
 import { Op, col, fn, where } from "sequelize";
 
-import { appConfig, sequelize, transporter } from "@/config";
+import { appConfig, sequelize } from "@/config";
 import {
   AUTH_ERROR_MESSAGES,
   BOOKING_STATUSES,
@@ -21,7 +21,8 @@ import {
   User,
   Vehicle,
 } from "@/models/mysql";
-import { AppError, logger, renderTemplate, sendEmail } from "@/utils";
+import { EmailService } from "@/services";
+import { AppError, logger, renderTemplate } from "@/utils";
 
 import type { CancelUserDeletionPayload } from "@/types";
 import type { Transaction } from "sequelize";
@@ -75,14 +76,14 @@ export class UserDeletionService {
       ]);
     });
 
-    const content = await renderTemplate("deletionRequest.html", {
+    const content = await renderTemplate("user.account-deletion-request.html", {
       firstName: user.first_name || "",
       deletionDate: dayjs(user.pending_deletion_at).add(USER_ACCOUNT_DELETION_DELAY_DAYS, "days").format("DD/MM/YYYY"),
       loginLink: `${clientUrl}/login`,
     });
 
     try {
-      await sendEmail(transporter, gmail.user, user.email, "Confirmation de suppression de ton compte - EcoRide", content);
+      await EmailService.sendEmail(gmail.user, user.email, "Confirmation de suppression de ton compte - EcoRide", content);
 
       // TODO ajouter i18n pour l'email
       // FIXME mettre un retry automatique pour sendEmail
@@ -142,14 +143,14 @@ export class UserDeletionService {
 
     await user.markAsActive();
 
-    const content = await renderTemplate("accountReactivated.html", {
+    const content = await renderTemplate("user.account-reactivation.html", {
       firstName: user.first_name || "",
       loginLink: `${clientUrl}/login`,
       contactLink: `${clientUrl}/contact`,
     });
 
     try {
-      await sendEmail(transporter, gmail.user, user.email, "Réactivation de ton compte - EcoRide", content);
+      await EmailService.sendEmail(gmail.user, user.email, "Réactivation de ton compte - EcoRide", content);
 
       // TODO ajouter i18n pour l'email
       // FIXME mettre un retry automatique pour sendEmail

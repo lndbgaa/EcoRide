@@ -12,12 +12,22 @@ export const SUCCESS_MESSAGES = {
   },
 
   USER: {
+    RETRIEVED_ALL: "success:user.retrieved_all",
     DATA_RETRIEVED: "success:user.data_retrieved",
     PROFILE_UPDATED: "success:user.profile_updated",
     PASSWORD_UPDATED: "success:user.password_updated",
     PICTURE_UPDATED: "success:user.picture_updated",
     DELETION_REQUESTED: "success:user.deletion_requested",
     DELETION_CANCELLED: "success:user.deletion_cancelled",
+    SUSPENDED: "success:user.suspended",
+    REACTIVATED: "success:user.reactivated",
+    ROLE_CHANGED: "success:user.role_changed",
+  },
+
+  REFERENCE: {
+    VEHICLE_BRANDS_RETRIEVED: "success:reference.vehicle_brands_retrieved",
+    VEHICLE_COLORS_RETRIEVED: "success:reference.vehicle_colors_retrieved",
+    VEHICLE_ENERGIES_RETRIEVED: "success:reference.vehicle_energies_retrieved",
   },
 
   PREFERENCE: {

@@ -1,6 +1,5 @@
 import { appConfig } from "@/config";
-import { DEBUG_CODES, SUCCESS_MESSAGES } from "@/constants";
-import { AUTH_ERROR_CODES, AUTH_ERROR_MESSAGES } from "@/constants/errors";
+import { AUTH_ERROR_CODES, AUTH_ERROR_MESSAGES, DEBUG_CODES, SUCCESS_MESSAGES } from "@/constants";
 import { AuthService } from "@/services";
 import { AppError, catchAsync, generateRefreshTokenCookieOptions } from "@/utils";
 
@@ -76,14 +75,14 @@ export const refreshUserToken = catchAsync(async (req: Request, res: Response): 
     throw new AppError({
       statusCode: 401,
       userMessageKey: AUTH_ERROR_MESSAGES.SESSION_INVALID,
-      debugMessage: "Refresh token not found in cookies",
+      debugMessage: "Refresh token not found in cookies.",
       code: AUTH_ERROR_CODES.SESSION_INVALID,
       debugCode: DEBUG_CODES.AUTH.REFRESH_TOKEN_MISSING,
     });
   }
 
   try {
-    const { accessToken, refreshToken } = await AuthService.refreshToken(token);
+    const { refreshToken, accessToken } = await AuthService.refreshToken(token);
 
     res.cookie("refreshToken", refreshToken, cookieOptions);
 

@@ -2,7 +2,7 @@ import Joi from "joi";
 
 import { PREFERENCE_CATEGORIES_KEY, VALIDATION_MESSAGES } from "@/constants";
 
-export const categoryKeyParamSchema = Joi.object({
+export const preferenceCategoryKeyParamSchema = Joi.object({
   categoryKey: Joi.string()
     .trim()
     .valid(...Object.values(PREFERENCE_CATEGORIES_KEY))

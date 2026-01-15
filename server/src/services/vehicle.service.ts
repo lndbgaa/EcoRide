@@ -37,11 +37,7 @@ export class VehicleService {
    *   - The vehicle does not exist, or
    *   - The vehicle exists but does not belong to the user (HTTP 404).
    */
-  public static async findOwnedById(
-    userId: string,
-    vehicleId: string,
-    options?: FindOptions
-  ): Promise<Vehicle> {
+  public static async findOwnedById(userId: string, vehicleId: string, options?: FindOptions): Promise<Vehicle> {
     const vehicle = await Vehicle.findOne({
       where: { id: vehicleId, owner_id: userId },
       include: VEHICLE_ASSOCIATIONS,
@@ -138,11 +134,7 @@ export class VehicleService {
    *   - Provided brandId, colorId, or energyId is invalid (HTTP 400, thrown by vehicle.updateInfo).
    *   - No changes were detected in the provided data (HTTP 400, thrown by vehicle.updateInfo)
    */
-  public static async updateVehicle(
-    userId: string,
-    vehicleId: string,
-    data: UpdateVehiclePayload
-  ): Promise<Vehicle> {
+  public static async updateVehicle(userId: string, vehicleId: string, data: UpdateVehiclePayload): Promise<Vehicle> {
     return await sequelize.transaction(async (t) => {
       const vehicle = await this.findOwnedById(userId, vehicleId, { transaction: t });
 

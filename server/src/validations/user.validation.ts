@@ -1,8 +1,17 @@
 import dayjs from "dayjs";
 import Joi from "joi";
 
-import { MINIMUM_USER_AGE, REGEX, VALIDATION_MESSAGES } from "@/constants";
+import {
+  MINIMUM_USER_AGE,
+  REGEX,
+  USER_FILTERABLE_STATUSES,
+  USER_ROLES_KEY,
+  USER_SORT_FIELDS,
+  VALIDATION_MESSAGES,
+} from "@/constants";
 import { dateField } from "@/validations";
+
+const { USER, MODERATOR } = USER_ROLES_KEY;
 
 export const updateUserPasswordBodySchema = Joi.object({
   currentPassword: Joi.string().trim().required().messages({
@@ -73,4 +82,52 @@ export const updateUserInfoBodySchema = Joi.object({
         "user.too_young": VALIDATION_MESSAGES.USER.TOO_YOUNG,
       })
   ),
+});
+
+export const updateUserRoleBodySchema = Joi.object({
+  role: Joi.string().valid(USER, MODERATOR).required().messages({
+    "any.required": VALIDATION_MESSAGES.REQUIRED,
+    "string.base": VALIDATION_MESSAGES.STRING_BASE,
+    "any.only": VALIDATION_MESSAGES.ONLY,
+  }),
+});
+
+export const getUsersQuerySchema = Joi.object({
+  role: Joi.string()
+    .trim()
+    .valid(...Object.values(USER_ROLES_KEY))
+    .optional()
+    .messages({
+      "string.base": VALIDATION_MESSAGES.STRING_BASE,
+      "string.empty": VALIDATION_MESSAGES.STRING_EMPTY,
+      "any.only": VALIDATION_MESSAGES.ONLY,
+    }),
+  status: Joi.string()
+    .trim()
+    .valid(...USER_FILTERABLE_STATUSES)
+    .optional()
+    .messages({
+      "string.base": VALIDATION_MESSAGES.STRING_BASE,
+      "string.empty": VALIDATION_MESSAGES.STRING_EMPTY,
+      "any.only": VALIDATION_MESSAGES.ONLY,
+    }),
+  search: Joi.string().trim().optional().messages({
+    "string.base": VALIDATION_MESSAGES.STRING_BASE,
+    "string.empty": VALIDATION_MESSAGES.STRING_EMPTY,
+    "any.only": VALIDATION_MESSAGES.ONLY,
+  }),
+  sortBy: Joi.string()
+    .trim()
+    .valid(...USER_SORT_FIELDS)
+    .optional()
+    .messages({
+      "string.base": VALIDATION_MESSAGES.STRING_BASE,
+      "string.empty": VALIDATION_MESSAGES.STRING_EMPTY,
+      "any.only": VALIDATION_MESSAGES.ONLY,
+    }),
+  sortDir: Joi.string().trim().valid("asc", "desc").optional().messages({
+    "string.base": VALIDATION_MESSAGES.STRING_BASE,
+    "string.empty": VALIDATION_MESSAGES.STRING_EMPTY,
+    "any.only": VALIDATION_MESSAGES.ONLY,
+  }),
 });

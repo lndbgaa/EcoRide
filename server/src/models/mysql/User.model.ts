@@ -250,8 +250,8 @@ export default class User extends Model {
       age: this.birth_date ? calculateAge(this.birth_date) : null,
       avatar: this.profile_picture,
       averageRating: this.average_rating,
-      memberSince: formatDateOnly(this.created_at),
       emailIsVerified: this.email_is_verified,
+      createdAt: formatDateTimeFromUTC(this.created_at),
     };
   }
 

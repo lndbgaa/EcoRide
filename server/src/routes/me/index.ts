@@ -11,10 +11,10 @@ import {
   getMyWrittenReviews,
 } from "@/controllers";
 
-import incidentsRouter from "./me.incidents.routes.js";
-import preferencesRouter from "./me.preferences.routes.js";
-import profileRouter from "./me.profile.routes.js";
-import vehiclesRouter from "./me.vehicles.routes.js";
+import incidentsRouter from "./incidents.routes.js";
+import preferencesRouter from "./preferences.routes.js";
+import profileRouter from "./profile.routes.js";
+import vehiclesRouter from "./vehicles.routes.js";
 
 const router = Router();
 

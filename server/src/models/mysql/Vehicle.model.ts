@@ -12,12 +12,7 @@ import { VehicleBrand, VehicleColor, VehicleEnergy } from "@/models/mysql";
 import { AppError, formatDateOnly, setIfChanged } from "@/utils";
 
 import type { User } from "@/models/mysql";
-import type {
-  UpdateVehiclePayload,
-  VehicleAdminDTO,
-  VehiclePrivateDTO,
-  VehiclePublicDTO,
-} from "@/types";
+import type { UpdateVehiclePayload, VehicleAdminDTO, VehiclePrivateDTO, VehiclePublicDTO } from "@/types";
 import type { TFunction } from "i18next";
 import type { SaveOptions, Sequelize } from "sequelize";
 
@@ -141,10 +136,10 @@ export default class Vehicle extends Model {
   public toPublicDTO(t: TFunction): VehiclePublicDTO {
     return {
       id: this.id,
-      brand: this.brand?.toPublicDTO(t).display ?? null,
+      brand: this.brand?.toDTO(t).display ?? null,
       model: this.model,
-      color: this.color?.toPublicDTO(t).display ?? null,
-      energy: this.energy?.toPublicDTO(t).display ?? null,
+      color: this.color?.toDTO(t).display ?? null,
+      energy: this.energy?.toDTO(t).display ?? null,
       seats: this.seats,
       isEco: this.isEco,
     };
@@ -269,8 +264,7 @@ export default class Vehicle extends Model {
         hooks: {
           beforeValidate: (vehicle: Vehicle) => {
             if (typeof vehicle.model === "string") vehicle.model = vehicle.model.trim();
-            if (typeof vehicle.license_plate === "string")
-              vehicle.license_plate = vehicle.license_plate.trim();
+            if (typeof vehicle.license_plate === "string") vehicle.license_plate = vehicle.license_plate.trim();
           },
         },
       }

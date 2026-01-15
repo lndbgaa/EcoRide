@@ -1,6 +1,6 @@
 import { DataTypes, Model } from "sequelize";
 
-import type { VehicleEnergyPublicDTO } from "@/types";
+import type { VehicleEnergyDTO } from "@/types";
 import type { TFunction } from "i18next";
 import type { Sequelize } from "sequelize";
 
@@ -8,7 +8,7 @@ export default class VehicleEnergy extends Model {
   declare id: number;
   declare key: string;
 
-  public toPublicDTO(t: TFunction): VehicleEnergyPublicDTO {
+  public toDTO(t: TFunction): VehicleEnergyDTO {
     const translationKey = `ui:vehicle_energies.${this.key}`;
 
     return {

@@ -1,6 +1,6 @@
 import { DataTypes, Model } from "sequelize";
 
-import type { VehicleColorPublicDTO } from "@/types";
+import type { VehicleColorDTO } from "@/types";
 import type { TFunction } from "i18next";
 import type { Sequelize } from "sequelize";
 
@@ -8,7 +8,7 @@ export default class VehicleColor extends Model {
   declare id: number;
   declare key: string;
 
-  public toPublicDTO(t: TFunction): VehicleColorPublicDTO {
+  public toDTO(t: TFunction): VehicleColorDTO {
     const translationKey = `ui:vehicle_colors.${this.key}`;
 
     return {

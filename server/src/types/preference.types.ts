@@ -11,28 +11,20 @@ export type PreferenceCategoryKey = (typeof PREFERENCE_CATEGORIES_KEY)[keyof typ
 //           DTOs
 // =========================== */
 
-export interface PreferenceCategoryPrivateDTO {
+export interface PreferenceCategoryDTO {
   id: PreferenceCategoryId;
   key: PreferenceCategoryKey;
   display: string;
 }
 
-export interface PreferenceOptionPublicDTO {
-  display: string;
-}
-
-export interface PreferenceOptionPrivateDTO {
+export interface PreferenceOptionDTO {
   id: number;
-  category: PreferenceCategoryPrivateDTO | null;
+  category: PreferenceCategoryDTO | null;
   key: string;
   display: string;
 }
 
-export interface PreferencePublicDTO {
-  option: PreferenceOptionPublicDTO | null;
-}
-
-export interface PreferencePrivateDTO {
+export interface PreferenceDTO {
   id: string;
-  option: PreferenceOptionPrivateDTO | null;
+  option: PreferenceOptionDTO | null;
 }

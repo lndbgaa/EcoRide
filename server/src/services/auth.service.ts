@@ -1,10 +1,9 @@
 import bcrypt from "bcrypt";
-import dayjs from "dayjs";
 import ms from "ms";
 import { nanoid } from "nanoid";
 import { UniqueConstraintError } from "sequelize";
 
-import { appConfig, sequelize } from "@/config";
+import { appConfig, dayjs, sequelize } from "@/config";
 import {
   AUTH_ERROR_CODES,
   AUTH_ERROR_MESSAGES,
@@ -29,9 +28,8 @@ export class AuthService {
    *
    * @param {RegisterUserPayload} data - The user data to register.
    * @returns {Promise<User>} The registered user instance.
-   * @throws {AppError} - If:
-   *   - The email or username is already in use (HTTP 409).
-   *   - Sending the verification email fails (HTTP 500, thrown by EmailVerificationService.sendVerificationLinkToUser).
+   * @throws {AppError} 409 if email or username is already in use.
+   * @throws {AppError} 500 if sending the verification email fails (from EmailVerificationService.sendVerificationLinkToUser).
    */
   public static async register(data: RegisterUserPayload): Promise<User> {
     const { email, username, password, firstName, lastName, birthDate } = data;
@@ -78,12 +76,10 @@ export class AuthService {
    *
    * @param {LoginUserPayload} data - The user data to log in.
    * @returns {Promise<AuthResponse>} The authentication response.
-   * @throws {AppError} - If:
-   *   - The user does not exist (HTTP 401)
-   *   - The password is invalid (HTTP 401)
-   *   - The account is not verified (HTTP 403)
-   *   - The account is suspended (HTTP 403)
-   *   - The account is pending deletion (HTTP 403)
+   * @throws {AppError} 401 if user does not exist or password is invalid.
+   * @throws {AppError} 403 if user account is not verified.
+   * @throws {AppError} 403 if user account is suspended.
+   * @throws {AppError} 403 if user account is pending deletion.
    */
   public static async login(data: LoginUserPayload): Promise<AuthResponse> {
     const { email, password } = data;
@@ -155,14 +151,23 @@ export class AuthService {
   }
 
   /**
+   * Logs out a user by revoking their refresh token.
+   *
+   * @param {string} refreshToken - The refresh token to revoke.
+   * @returns {Promise<void>}
+   */
+  public static async logout(refreshToken: string): Promise<void> {
+    await RefreshToken.update({ revoked_at: dayjs().toDate() }, { where: { token: refreshToken, revoked_at: null } });
+  }
+
+  /**
    * Refreshes a user's access token.
    *
    * @param {string} refreshToken - The refresh token to use for refreshing the access token.
    * @returns {Promise<AuthResponse>} The authentication response.
-   * @throws {AppError} - If:
-   *   - The token is not found, expired, revoked, or already used (HTTP 401)
-   *   - The associated user does not exist (HTTP 401)
-   *   - The user account is suspended or pending deletion (HTTP 403)
+   * @throws {AppError} 401 if token is not found, expired, revoked, or already used.
+   * @throws {AppError} 401 if associated user does not exist.
+   * @throws {AppError} 403 if user account is suspended or pending deletion.
    */
   public static async refreshToken(refreshToken: string): Promise<AuthResponse> {
     const refreshTokenRecord = await RefreshToken.findOne({ where: { token: refreshToken } });
@@ -171,7 +176,7 @@ export class AuthService {
       throw new AppError({
         statusCode: 401,
         userMessageKey: AUTH_ERROR_MESSAGES.SESSION_INVALID,
-        debugMessage: "Refresh token not found in database",
+        debugMessage: "[AuthService.refreshToken] Refresh token not found in database.",
         code: AUTH_ERROR_CODES.SESSION_INVALID,
         debugCode: DEBUG_CODES.AUTH.REFRESH_TOKEN_NOT_FOUND,
       });
@@ -183,10 +188,12 @@ export class AuthService {
         { where: { user_id: refreshTokenRecord.user_id, revoked_at: null } }
       );
 
+      // TODO envoyer un mail à l'utilisateur
+
       throw new AppError({
         statusCode: 401,
         userMessageKey: AUTH_ERROR_MESSAGES.SESSION_INVALID,
-        debugMessage: "Refresh token has already been used",
+        debugMessage: "[AuthService.refreshToken] Refresh token has already been used.",
         code: AUTH_ERROR_CODES.SESSION_INVALID,
         debugCode: DEBUG_CODES.AUTH.REFRESH_TOKEN_REUSED,
       });
@@ -196,7 +203,7 @@ export class AuthService {
       throw new AppError({
         statusCode: 401,
         userMessageKey: AUTH_ERROR_MESSAGES.SESSION_INVALID,
-        debugMessage: "Refresh token has been revoked",
+        debugMessage: "[AuthService.refreshToken] Refresh token has been revoked.",
         code: AUTH_ERROR_CODES.SESSION_INVALID,
         debugCode: DEBUG_CODES.AUTH.REFRESH_TOKEN_REVOKED,
       });
@@ -206,7 +213,7 @@ export class AuthService {
       throw new AppError({
         statusCode: 401,
         userMessageKey: AUTH_ERROR_MESSAGES.SESSION_INVALID,
-        debugMessage: "Refresh token has expired",
+        debugMessage: "[AuthService.refreshToken] Refresh token has expired.",
         code: AUTH_ERROR_CODES.SESSION_INVALID,
         debugCode: DEBUG_CODES.AUTH.REFRESH_TOKEN_EXPIRED,
       });
@@ -219,9 +226,9 @@ export class AuthService {
 
     if (!user) {
       throw new AppError({
-        statusCode: 401,
+        statusCode: 500,
         userMessageKey: AUTH_ERROR_MESSAGES.SESSION_INVALID,
-        debugMessage: "User not found for valid refresh token",
+        debugMessage: "[AuthService.refreshToken] User not found for valid refresh token.",
         code: AUTH_ERROR_CODES.SESSION_INVALID,
         debugCode: DEBUG_CODES.USER.NOT_FOUND,
       });
@@ -263,15 +270,5 @@ export class AuthService {
     const newAccessToken = generateJwt({ id: user.id, role: userRole }, accessSecret, accessExpiration);
 
     return { refreshToken: newRefreshToken, accessToken: newAccessToken };
-  }
-
-  /**
-   * Logs out a user by revoking their refresh token.
-   *
-   * @param {string} refreshToken - The refresh token to revoke.
-   * @returns {Promise<void>}
-   */
-  public static async logout(refreshToken: string): Promise<void> {
-    await RefreshToken.update({ revoked_at: dayjs().toDate() }, { where: { token: refreshToken, revoked_at: null } });
   }
 }

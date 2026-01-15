@@ -1,4 +1,6 @@
-import type { USER_ROLES_ID, USER_ROLES_KEY, USER_STATUSES } from "@/constants";
+import { USER_FILTERABLE_STATUSES, USER_ROLES_ID, USER_ROLES_KEY, USER_SORT_FIELDS, USER_STATUSES } from "@/constants";
+
+import type { User } from "@/models";
 import type { DateTimeDTO } from "@/types";
 
 // ===========================
@@ -6,8 +8,11 @@ import type { DateTimeDTO } from "@/types";
 // =========================== */
 
 export type UserRoleId = (typeof USER_ROLES_ID)[keyof typeof USER_ROLES_ID];
-export type UserRoleKey = (typeof USER_ROLES_KEY)[keyof typeof USER_ROLES_ID];
+export type UserRoleKey = (typeof USER_ROLES_KEY)[keyof typeof USER_ROLES_KEY];
 export type UserStatus = (typeof USER_STATUSES)[keyof typeof USER_STATUSES];
+
+export type UserFilterableStatus = (typeof USER_FILTERABLE_STATUSES)[number];
+export type UserSortField = (typeof USER_SORT_FIELDS)[number];
 
 // ===========================
 //           DTOs
@@ -26,8 +31,8 @@ export interface UserPublicDTO {
   age: number | null;
   avatar: string | null;
   averageRating: number | null;
-  memberSince: string;
   emailIsVerified: boolean;
+  createdAt: DateTimeDTO;
 }
 
 export interface UserPrivateDTO extends UserPublicDTO {
@@ -69,4 +74,40 @@ export interface UpdateUserPasswordPayload {
 export interface CancelUserDeletionPayload {
   email: string;
   password: string;
+}
+
+export interface UpdateUserRolePayload {
+  role: "user" | "moderator";
+}
+
+export interface GetUsersQuery {
+  status?: UserFilterableStatus;
+  role?: UserRoleKey;
+  search?: string;
+  sortBy?: UserSortField;
+  sortDir?: "asc" | "desc";
+}
+
+// ===========================
+//       Service Types
+// ===========================
+
+export interface GetUsersSortOptions {
+  by?: UserSortField;
+  dir?: "asc" | "desc";
+}
+
+export interface GetUsersFilters {
+  status?: UserFilterableStatus;
+  role?: UserRoleKey;
+  search?: string;
+}
+
+// ===========================
+//        Response Types
+// =========================== */
+
+export interface GetUsersResponse {
+  count: number;
+  users: User[];
 }

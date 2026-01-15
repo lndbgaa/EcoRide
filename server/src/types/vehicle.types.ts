@@ -4,19 +4,19 @@ import type { UserPublicDTO } from "@/types";
 //           DTOs
 // =========================== */
 
-export interface VehicleEnergyPublicDTO {
+export interface VehicleEnergyDTO {
   id: number;
   key: string;
   display: string;
 }
 
-export interface VehicleColorPublicDTO {
+export interface VehicleColorDTO {
   id: number;
   key: string;
   display: string;
 }
 
-export interface VehicleBrandPublicDTO {
+export interface VehicleBrandDTO {
   id: number;
   key: string;
   display: string;

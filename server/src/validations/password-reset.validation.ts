@@ -25,7 +25,7 @@ export const resetUserPasswordBodySchema = Joi.object({
     "string.base": VALIDATION_MESSAGES.STRING_BASE,
     "string.empty": VALIDATION_MESSAGES.STRING_EMPTY,
   }),
-  password: Joi.string().trim().min(8).pattern(REGEX.password).required().messages({
+  newPassword: Joi.string().trim().min(8).pattern(REGEX.password).required().messages({
     "any.required": VALIDATION_MESSAGES.REQUIRED,
     "string.base": VALIDATION_MESSAGES.STRING_BASE,
     "string.empty": VALIDATION_MESSAGES.STRING_EMPTY,

@@ -7,12 +7,7 @@ const { combine, timestamp, label, uncolorize, colorize, errors, json } = format
 
 const logger = createLogger({
   level: process.env.LOG_LEVEL || "info",
-  format: combine(
-    label({ label: "EcoRide API" }),
-    timestamp({ format: "YYYY-MM-DD HH:mm:ss" }),
-    errors({ stack: true })
-  ),
-
+  format: combine(label({ label: "EcoRide API" }), timestamp({ format: "YYYY-MM-DD HH:mm:ss" }), errors({ stack: true })),
   exitOnError: false,
 });
 

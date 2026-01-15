@@ -1,8 +1,8 @@
-import dayjs from "dayjs";
+import { dayjs } from "@/config";
 import { nanoid } from "nanoid";
-import { Op, Transaction } from "sequelize";
+import { Op } from "sequelize";
 
-import { appConfig, sequelize, transporter } from "@/config";
+import { appConfig, sequelize } from "@/config";
 import {
   AUTH_ERROR_CODES,
   AUTH_ERROR_MESSAGES,
@@ -10,8 +10,9 @@ import {
   PASSWORD_RESET_TOKEN_EXPIRY_HOURS,
   PASSWORD_RESET_TOKEN_LENGTH,
 } from "@/constants";
-import { PasswordResetToken, User } from "@/models/mysql";
-import { AppError, renderTemplate, sendEmail } from "@/utils";
+import { PasswordResetToken, User } from "@/models";
+import { EmailService } from "@/services";
+import { AppError, logger, renderTemplate } from "@/utils";
 
 import type { ResetPasswordPayload } from "@/types";
 import type { FindOptions } from "sequelize";
@@ -19,112 +20,6 @@ import type { FindOptions } from "sequelize";
 const { clientUrl, gmail } = appConfig;
 
 export class PasswordResetService {
-  /**
-   * Sends a password reset link by email.
-   
-   * @param {string} email - The user's email.
-   * @returns {Promise<void>}
-   * @throws {AppError} - If sending the email fails.
-   * @note Returns silently if the user does not exist.
-   */
-  public static async sendPasswordResetLinkByEmail(email: string): Promise<void> {
-    const user = await User.findOne({ where: { email } });
-
-    if (!user) return;
-
-    const token = await this.createResetToken(user.id);
-    const link = `${clientUrl}/reset-password?token=${token}`;
-    const content = await renderTemplate("resetPassword.html", {
-      firstName: user.first_name || "",
-      resetLink: link,
-    });
-
-    try {
-      await sendEmail(transporter, gmail.user, user.email, "Réinitialisation de ton mot de passe – EcoRide", content);
-      // TODO ajouter i18n pour l'email
-      // FIXME mettre un retry automatique pour sendEmail
-    } catch (err) {
-      // FIXME logging des erreurs
-
-      await PasswordResetToken.destroy({ where: { token } });
-
-      throw new AppError({
-        statusCode: 500,
-        userMessageKey: AUTH_ERROR_MESSAGES.PASSWORD_RESET_SEND_FAILED,
-        debugMessage: err instanceof Error ? err.message : String(err),
-      });
-    }
-  }
-
-  /**
-   * Verifies a password reset token.
-   
-   * @param {string} token - The token to verify.
-   * @returns {Promise<PasswordResetToken>}
-   * @throws {AppError} - If the token is not found, expired, or already used
-   */
-  public static async verifyResetToken(token: string, options?: FindOptions): Promise<PasswordResetToken> {
-    const tokenRecord = await PasswordResetToken.findOne({ where: { token }, ...options });
-
-    if (!tokenRecord) {
-      throw new AppError({
-        statusCode: 400,
-        userMessageKey: AUTH_ERROR_MESSAGES.PASSWORD_RESET_TOKEN_INVALID,
-        debugMessage: "Password reset token not found",
-        code: AUTH_ERROR_CODES.PASSWORD_RESET_TOKEN_INVALID,
-        debugCode: DEBUG_CODES.AUTH.PASSWORD_RESET_TOKEN_NOT_FOUND,
-      });
-    }
-
-    if (!tokenRecord.isValid()) {
-      throw new AppError({
-        statusCode: 400,
-        userMessageKey: AUTH_ERROR_MESSAGES.PASSWORD_RESET_TOKEN_INVALID,
-        debugMessage: tokenRecord.used_at ? "Password reset token already used" : "Password reset token expired",
-        code: AUTH_ERROR_CODES.PASSWORD_RESET_TOKEN_INVALID,
-        debugCode: tokenRecord.used_at
-          ? DEBUG_CODES.AUTH.PASSWORD_RESET_TOKEN_ALREADY_USED
-          : DEBUG_CODES.AUTH.PASSWORD_RESET_TOKEN_EXPIRED,
-      });
-    }
-
-    return tokenRecord;
-  }
-
-  /**
-   * Resets the user's password.
-   
-   * @param {ResetPasswordPayload} data - The data to reset the password.
-   * @returns {Promise<void>}
-   * @throws {AppError} - If:
-   *   - The token is not found, expired, or already used
-   *   - The associated user does not exist
-   * @note The password is hashed automatically before being saved via a Sequelize hook.
-   */
-  public static async resetPassword(data: ResetPasswordPayload): Promise<void> {
-    const { token, password } = data;
-
-    await sequelize.transaction(async (t: Transaction): Promise<void> => {
-      const tokenRecord = await this.verifyResetToken(token, { transaction: t, lock: true });
-
-      const user = await User.findByPk(tokenRecord.user_id, { transaction: t, lock: true });
-
-      if (!user) {
-        throw new AppError({
-          statusCode: 500,
-          userMessageKey: AUTH_ERROR_MESSAGES.PASSWORD_RESET_TOKEN_INVALID,
-          debugMessage: "User not found for valid password reset token",
-          code: AUTH_ERROR_CODES.PASSWORD_RESET_TOKEN_INVALID,
-          debugCode: DEBUG_CODES.USER.NOT_FOUND,
-        });
-      }
-
-      user.password = password;
-
-      await Promise.all([user.save({ transaction: t, fields: ["password"] }), tokenRecord.markAsUsed({ transaction: t })]);
-    });
-  }
-
   /**
    * Creates a new password reset token for a user and invalidates existing valid tokens.
    *
@@ -136,7 +31,7 @@ export class PasswordResetService {
     const now = dayjs();
     const nowDate = now.toDate();
 
-    return sequelize.transaction(async (t: Transaction): Promise<string> => {
+    return sequelize.transaction(async (t) => {
       await PasswordResetToken.update(
         { used_at: nowDate },
         {
@@ -159,6 +54,129 @@ export class PasswordResetService {
       );
 
       return tokenRecord.token;
+    });
+  }
+
+  /**
+   * Sends a password reset link by email (silent fail).
+   *
+   * - Returns silently if the user does not exist.
+   * - Ensures a minimum response time to prevent revealing whether the email exists.
+   *
+   * @param {string} email - The user's email.
+   * @returns {Promise<void>}
+   */
+  public static async sendPasswordResetLinkByEmail(email: string): Promise<void> {
+    const MIN_DELAY_MS = 700;
+    const startTime = dayjs();
+    let user: User | null = null;
+
+    try {
+      user = await User.findOne({ where: { email } });
+
+      if (!user) return;
+
+      const token = await this.createResetToken(user.id);
+      const link = `${clientUrl}/reset-password?token=${token}`;
+      const content = await renderTemplate("user.password-reset.html", {
+        firstName: user.first_name || "",
+        resetLink: link,
+      });
+
+      try {
+        await EmailService.sendEmail(gmail.user, user.email, "Réinitialisation de ton mot de passe – EcoRide", content);
+        // TODO ajouter système de traduction pour email
+      } catch (err) {
+        await PasswordResetToken.destroy({ where: { token } });
+        throw err;
+      }
+    } catch (err) {
+      logger.error("Failed to send password reset email (silent fail)", {
+        service: "PasswordResetService",
+        email: user?.email,
+        userId: user?.id,
+        debugMessage: err instanceof AppError ? err.debugMessage : err instanceof Error ? err.message : String(err),
+        stack: err instanceof Error ? err.stack : undefined,
+      });
+    } finally {
+      const elapsed = dayjs().diff(startTime, "millisecond");
+
+      if (elapsed < MIN_DELAY_MS) {
+        await new Promise((resolve) => setTimeout(resolve, MIN_DELAY_MS - elapsed));
+      }
+    }
+  }
+
+  /**
+   * Verifies a password reset token.
+   
+   * @param {string} token - The token to verify.
+   * @returns {Promise<PasswordResetToken>}
+   * @throws {AppError} 400 if token is not found, expired, or already used.
+   */
+  public static async verifyResetToken(token: string, options?: FindOptions): Promise<PasswordResetToken> {
+    const tokenRecord = await PasswordResetToken.findOne({ where: { token }, ...options });
+
+    if (!tokenRecord) {
+      throw new AppError({
+        statusCode: 400,
+        userMessageKey: AUTH_ERROR_MESSAGES.PASSWORD_RESET_TOKEN_INVALID,
+        debugMessage: "[PasswordResetService] Password reset token not found.",
+        code: AUTH_ERROR_CODES.PASSWORD_RESET_TOKEN_INVALID,
+        debugCode: DEBUG_CODES.AUTH.PASSWORD_RESET_TOKEN_NOT_FOUND,
+      });
+    }
+
+    if (!tokenRecord.isValid()) {
+      throw new AppError({
+        statusCode: 400,
+        userMessageKey: AUTH_ERROR_MESSAGES.PASSWORD_RESET_TOKEN_INVALID,
+        debugMessage: `[PasswordResetService.verifyResetToken] ${
+          tokenRecord.used_at ? "Password reset token already used." : "Password reset token expired."
+        }`,
+        code: AUTH_ERROR_CODES.PASSWORD_RESET_TOKEN_INVALID,
+        debugCode: tokenRecord.used_at
+          ? DEBUG_CODES.AUTH.PASSWORD_RESET_TOKEN_ALREADY_USED
+          : DEBUG_CODES.AUTH.PASSWORD_RESET_TOKEN_EXPIRED,
+      });
+    }
+
+    return tokenRecord;
+  }
+
+  /**
+   * Resets the user's password.
+   
+   * @param {ResetPasswordPayload} data - The data to reset the password.
+   * @returns {Promise<void>}
+   * @throws {AppError} 400 if token is not found, expired, or already used (from this.verifyRestToken()).
+   * @throws {AppError} 500 if associated user does not exist.
+   * @note The password is hashed automatically before being saved via a Sequelize hook.
+   */
+  public static async resetPassword(data: ResetPasswordPayload): Promise<void> {
+    const { token, newPassword } = data;
+
+    await sequelize.transaction(async (t) => {
+      const tokenRecord = await this.verifyResetToken(token, { transaction: t, lock: t.LOCK.UPDATE });
+
+      const user = await User.findByPk(tokenRecord.user_id, {
+        transaction: t,
+        lock: t.LOCK.UPDATE,
+      });
+
+      if (!user) {
+        throw new AppError({
+          statusCode: 500,
+          userMessageKey: AUTH_ERROR_MESSAGES.PASSWORD_RESET_TOKEN_INVALID,
+          debugMessage: "[PasswordResetService.resetPassword] User not found for valid password reset token.",
+          code: AUTH_ERROR_CODES.PASSWORD_RESET_TOKEN_INVALID,
+          debugCode: DEBUG_CODES.USER.NOT_FOUND,
+        });
+      }
+
+      user.password = newPassword;
+
+      await Promise.all([user.save({ transaction: t, fields: ["password"] }), tokenRecord.markAsUsed({ transaction: t })]);
     });
   }
 }
