@@ -1,47 +1,47 @@
 {
-  "required": "Ce champ est requis",
-  "only": "La valeur doit être l'une des options suivantes : {{valids}}",
+  "required": "Champ requis",
+  "only": "Valeur invalide",
 
-  "string_base": "Ce champ doit être une chaîne de caractères",
-  "string_empty": "Ce champ ne peut pas être vide",
-  "string_min": "Ce champ doit contenir au moins {{limit}} caractères",
-  "string_max": "Ce champ doit contenir au maximum {{limit}} caractères",
-  "string_email": "L'adresse e-mail doit être valide",
-  "string_uuid": "L'identifiant doit être un UUID valide",
+  "string_base": "Merci de saisir du texte",
+  "string_empty": "Champ requis",
+  "string_min": "Minimum {{limit}} caractères",
+  "string_max": "Maximum {{limit}} caractères",
+  "string_email": "Adresse e-mail invalide",
+  "string_uuid": "Identifiant invalide",
 
-  "number_base": "Ce champ doit être un nombre",
-  "number_integer": "Ce champ doit être un nombre entier",
-  "number_min": "La valeur doit être supérieure ou égale à {{limit}}",
-  "number_max": "La valeur doit être inférieure ou égale à {{limit}}",
+  "number_base": "Merci de saisir un nombre",
+  "number_integer": "Nombre entier requis",
+  "number_min": "Valeur minimale : {{limit}}",
+  "number_max": "Valeur maximale : {{limit}}",
 
-  "boolean_base": "Ce champ doit être un booléen",
+  "boolean_base": "Choix requis",
 
-  "date_invalid": "La date fournie est invalide",
-  "time_invalid": "L'heure fournie est invalide",
-  "datetime_invalid": "Les dates ou heures fournies sont invalides",
+  "date_invalid": "Date invalide",
+  "time_invalid": "Heure invalide",
+  "datetime_invalid": "Date ou heure invalide",
 
-  "pattern_username": "Le nom d'utilisateur doit commencer par une lettre, et ne peut inclure que des lettres, chiffres, tirets ou underscores",
-  "pattern_password": "Le mot de passe doit contenir au moins une majuscule, une minuscule, un chiffre et un caractère spécial",
-  "pattern_first_name": "Le prénom ne peut contenir que des lettres et des tirets",
-  "pattern_last_name": "Le nom de famille ne peut contenir que des lettres et des tirets",
-  "pattern_phone": "Le numéro de téléphone doit être au format français valide (ex: 06XXXXXXXX ou +33XXXXXXXX)",
-  "pattern_license_plate": "La plaque d'immatriculation doit respecter le format AB-123-CD",
+  "pattern_username": "Doit commencer par une lettre et ne contenir que lettres, chiffres, tirets ou underscores",
+  "pattern_password": "1 majuscule, 1 minuscule, 1 chiffre et 1 caractère spécial",
+  "pattern_first_name": "Lettres et tirets uniquement",
+  "pattern_last_name": "Lettres et tirets uniquement",
+  "pattern_phone": "Numéro français valide (ex: 06XXXXXXXX ou +33XXXXXXXX)",
+  "pattern_license_plate": "Format attendu : AB-123-CD",
 
   "user": {
-    "birth_cannot_be_future": "La date de naissance ne peut pas être dans le futur",
-    "too_young": "Vous devez avoir au moins {{minAge}} ans pour continuer"
+    "birth_cannot_be_future": "La date ne peut pas être dans le futur",
+    "too_young": "Vous devez avoir au moins {{minAge}} ans pour pouvoir continuer"
   },
 
   "vehicle": {
-    "first_registration_cannot_be_future": "La date de première immatriculation ne peut pas être dans le futur"
+     "first_registration_cannot_be_future": "La date ne peut pas être dans le futur"
   },
 
   "trip": {
-    "search_date_cannot_be_past": "La date de recherche ne peut pas être dans le passé",
-    "same_locations": "Le lieu de départ et d'arrivée doivent être différents",
-    "departure_cannot_be_past": "La date et l'heure de départ doivent être dans le futur",
-    "arrival_before_departure": "L'heure d'arrivée doit être postérieure à l'heure de départ",
-    "duration_too_short": "La durée du trajet doit être d'au moins {{minDuration}} minutes",
+    "search_date_cannot_be_past": "La date de recherche doit être aujourd’hui ou ultérieure",
+    "same_locations": "Le lieu de départ et le lieu d’arrivée doivent être différents",
+    "departure_cannot_be_past": "Veuillez choisir une date et une heure de départ dans le futur",
+    "arrival_before_departure": "L’heure d’arrivée doit être postérieure à l’heure de départ",
+    "duration_too_short": "La durée du trajet doit être d’au moins {{minDuration}} minutes",
     "duration_too_long": "La durée du trajet ne peut pas dépasser {{maxDuration}} heures"
   }
 }

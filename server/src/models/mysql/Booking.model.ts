@@ -3,7 +3,7 @@ import { DataTypes, Model } from "sequelize";
 import { BOOKING_ERROR_MESSAGES, BOOKING_STATUSES } from "@/constants";
 import { AppError, formatDateTimeFromUTC } from "@/utils";
 
-import type { Trip, User } from "@/models/mysql";
+import type { Trip, User } from "@/models";
 import type { BookingAdminDTO, BookingPassengerDTO, BookingPublicDTO, BookingStatus } from "@/types";
 import type { TFunction } from "i18next";
 import type { SaveOptions, Sequelize } from "sequelize";
@@ -124,7 +124,7 @@ export default class Booking extends Model {
   }
 
   // ----------------------------
-  // Model Initialisation
+  // Model Init
   // ----------------------------
 
   public static initModel(sequelize: Sequelize) {

@@ -1,7 +1,6 @@
-import { sequelize } from "@/config";
-import dayjs from "dayjs";
 import { Op, QueryTypes } from "sequelize";
 
+import { dayjs, sequelize } from "@/config";
 import { BOOKING_STATUSES, TRIP_STATUSES } from "@/constants";
 import { Booking, Trip, User } from "@/models";
 

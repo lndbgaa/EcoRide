@@ -9,13 +9,6 @@ interface EmailRecipient {
 const { env } = appConfig;
 
 export class EmailService {
-  /**
-   *
-   * @param from -
-   * @param to -
-   * @param subject -
-   * @param html -
-   */
   public static async sendEmail(from: string, to: string, subject: string, html: string): Promise<void> {
     await transporter.sendMail({
       from,
@@ -25,13 +18,6 @@ export class EmailService {
     });
   }
 
-  /**
-   *
-   * @param from -
-   * @param recipients -
-   * @param subject -
-   * @param template -
-   */
   public static async sendBulkEmail(
     from: string,
     recipients: EmailRecipient[],

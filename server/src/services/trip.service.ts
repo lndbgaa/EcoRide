@@ -12,7 +12,7 @@ import {
   VEHICLE_ASSOCIATIONS,
   VEHICLE_ECO_ENERGY_KEYS,
 } from "@/constants";
-import { Trip } from "@/models/mysql";
+import { Trip } from "@/models";
 import { EmailService, VehicleService } from "@/services";
 import { AppError, formatDateTimeFromUTC, parseDateTimeToUTC } from "@/utils";
 
@@ -24,6 +24,7 @@ import type {
   GetTripsResponse,
   GetTripsSortOptions,
   SearchTripsPayload,
+  TripDBFilter,
   TripSortField,
 } from "@/types";
 import type { FindOptions, Order, WhereOptions } from "sequelize";
@@ -34,10 +35,10 @@ export class TripService {
   /**
    * Finds a trip by ID.
    *
-   * @param {string} tripId - The ID of the trip.
+   * @param {string} tripId - The ID of the trip to find.
    * @param {FindOptions} options - Additional Sequelize find options.
-   * @returns {Promise<Trip>} Returned trip instance.
-   * @throws {AppError} 404 if trip is not found.
+   * @returns {Promise<Trip>} The trip instance.
+   * @throws {AppError} 404 if the trip is not found.
    */
   public static async findById(tripId: string, options?: FindOptions): Promise<Trip> {
     const trip = await Trip.findByPk(tripId, options);
@@ -46,7 +47,7 @@ export class TripService {
       throw new AppError({
         statusCode: 404,
         userMessageKey: COMMON_ERROR_MESSAGES.RESOURCE_NOT_FOUND,
-        debugMessage: `[TripService.findById] Trip '${tripId}' not found in database.`,
+        debugMessage: `Trip '${tripId}' not found in database.`,
       });
     }
 
@@ -57,10 +58,10 @@ export class TripService {
    * Finds a trip by ID, ensuring it belongs to a given user.
    *
    * @param {string} userId - The ID of the user.
-   * @param {string} tripId - The ID of the trip.
+   * @param {string} tripId - The ID of the trip to find.
    * @param {FindOptions} [options] - Additional Sequelize find options.
-   * @returns {Promise<Trip>} Returned trip instance.
-   * @throws {AppError} 404 if trip does not exist or does not belong to user.
+   * @returns {Promise<Trip>} The trip instance.
+   * @throws {AppError} 404 if the trip does not exist or is not owned by the user.
    */
   public static async findOwnedById(userId: string, tripId: string, options?: FindOptions): Promise<Trip> {
     const trip = await Trip.findOne({
@@ -72,7 +73,7 @@ export class TripService {
       throw new AppError({
         statusCode: 404,
         userMessageKey: COMMON_ERROR_MESSAGES.RESOURCE_NOT_FOUND,
-        debugMessage: `[TripService.findOwnedById] Trip '${tripId}' not found or ownership check failed for user '${userId}.'`,
+        debugMessage: `Trip '${tripId}' not found or ownership check failed for user '${userId}.'`,
       });
     }
 
@@ -100,7 +101,7 @@ export class TripService {
     sortOptions?: GetTripsSortOptions,
     options?: Partial<FindOptions>
   ): Promise<GetTripsResponse> {
-    const where: WhereOptions = {};
+    const where: WhereOptions<TripDBFilter> = {};
 
     if (filters?.status) where.status = Array.isArray(filters.status) ? { [Op.in]: filters.status } : filters.status;
     if (filters?.driverId) where.driver_id = filters.driverId;
@@ -129,11 +130,11 @@ export class TripService {
   /**
    * Searches for trips based on given criteria.
    *
-   * @param {SearchTripsPayload} data - The search parameters.
+   * @param {SearchTripsPayload} data - The search parameters (from, to, date, seats, maxPrice, etc.).
    * @param {number} limit - Maximum number of trips to return.
    * @param {number} offset - Number of trips to skip (for pagination).
    * @param {User} [user] - The user performing the search. Trips where this user is the driver will be excluded.
-   * @returns {Promise<GetTripsResponse>} Object containing the total count of matching trips and an array of trip instances.
+   * @returns {Promise<GetTripsResponse>} Object containing total count of matching trips and an array of trip instances.
    */
   public static async search(data: SearchTripsPayload, limit: number, offset: number, user?: User): Promise<GetTripsResponse> {
     const dateParis = dayjs.tz(data.date, "Europe/Paris");
@@ -190,13 +191,13 @@ export class TripService {
    * Creates a new trip for a given user.
    *
    * @param {User} user - The user creating the trip.
-   * @param {CreateTripPayload} data - The trip data.
+   * @param {CreateTripPayload} data - The trip data (departureDate, departureLocation, ect.).
    * @returns {Promise<Trip>} Newly created trip with vehicle relation loaded.
-   * @throws {AppError} 404 if vehicle is not found or does not belong to user.
+   * @throws {AppError} 404 if vehicle is not found or is not owned by the user (from VehicleService.findOwnedByID()).
    * @throws {AppError} 400 if vehicle does not have enough passenger seats.
    */
   public static async create(user: User, data: CreateTripPayload): Promise<Trip> {
-    const vehicle = await VehicleService.findOwnedById(user.id, data.vehicleId);
+    const vehicle = await VehicleService.findOwnedById(user, data.vehicleId);
 
     const availablePassengerSeats = vehicle.seats - 1;
 
@@ -205,7 +206,7 @@ export class TripService {
         statusCode: 400,
         userMessageKey: TRIP_ERROR_MESSAGES.CREATE.INSUFFICIENT_VEHICLE_SEATS,
         userMessageParams: { available: availablePassengerSeats },
-        debugMessage: `[TripService.create] Cannot create trip: Vehicle '${vehicle.id}' has ${availablePassengerSeats} passenger seat(s), ${data.offeredSeats} requested.`,
+        debugMessage: `Cannot create trip: Vehicle '${vehicle.id}' has ${availablePassengerSeats} passenger seat(s), ${data.offeredSeats} requested.`,
       });
     }
 
@@ -235,13 +236,14 @@ export class TripService {
   /**
    * Cancels a trip owned by a given user.
    *
-   * @param {User} user - The user requesting the cancellation.
+   * Refunds are applied to passengers and emails are sent after transaction commit.
+   *
+   * @param {User} user - The owner of the trip.
    * @param {string} tripId - The ID of the trip to cancel.
-   * @returns {Promise<Trip>} Updated trip with status set to cancelled.
-   * @throws {AppError} 404 if trip does not exist or does not belong to user.
+   * @returns {Promise<Trip>} Updated trip with status set to 'cancelled'.
+   * @throws {AppError} 404 if trip does not exist or is not owned by the user (from this.findOwnedById()).
    * @throws {AppError} 409 if trip status is not OPEN or FULL.
    * @throws {AppError} 409 if cancellation is attempted within minimum notice period with active bookings.
-   * @note Refunds are applied to passengers and emails are sent after transaction commit.
    */
   public static async cancel(user: User, tripId: string): Promise<Trip> {
     const trip = await sequelize.transaction(async (t) => {
@@ -264,7 +266,7 @@ export class TripService {
         throw new AppError({
           statusCode: 409,
           userMessageKey: TRIP_ERROR_MESSAGES.CANCEL.INVALID_STATUS,
-          debugMessage: `[TripService.cancel] Cannot cancel trip '${tripId}': Current status is ${trip.status}.`,
+          debugMessage: `Cannot cancel trip '${tripId}': Current status is ${trip.status}.`,
         });
       }
 
@@ -279,7 +281,7 @@ export class TripService {
           statusCode: 409,
           userMessageKey: TRIP_ERROR_MESSAGES.CANCEL.TOO_CLOSE,
           userMessageParams: { hours: hoursBeforeCancellation },
-          debugMessage: `[TripService.cancel] Cannot cancel trip '${tripId}': too close to departure (${minutesBeforeDeparture} min remaining) with ${trip.bookings.length} active booking(s). Minimum required: ${TRIP_MIN_MINUTES_BEFORE_CANCELLATION} minutes.`,
+          debugMessage: `Cannot cancel trip '${tripId}': too close to departure (${minutesBeforeDeparture} min remaining) with ${trip.bookings.length} active booking(s). Minimum required: ${TRIP_MIN_MINUTES_BEFORE_CANCELLATION} minutes.`,
         });
       }
 
@@ -321,6 +323,7 @@ export class TripService {
         }));
 
       await EmailService.sendBulkEmail(gmail.user, recipients, "Ta réservation a été annulée", "trip.cancelled.passenger.html");
+      // TODO ajouter système de traduction pour email
     }
 
     return trip;
@@ -329,10 +332,10 @@ export class TripService {
   /**
    * Starts a trip owned by a given user.
    *
-   * @param {User} user - The user starting the trip.
+   * @param {User} user - The owner of the trip.
    * @param {string} tripId - The ID of the trip to start.
-   * @returns {Promise<Trip>} Updated trip with status set to in_progress.
-   * @throws {AppError} 404 if trip does not exist or does not belong to user.
+   * @returns {Promise<Trip>} Updated trip with status set to 'in_progress'.
+   * @throws {AppError} 404 if trip does not exist or is not owned by the user (from this.findOwnedById()).
    * @throws {AppError} 409 if trip status is not OPEN or FULL.
    * @throws {AppError} 409 if start is attempted too early before departure.
    * @throws {AppError} 409 if start is attempted too late after departure.
@@ -349,7 +352,7 @@ export class TripService {
         throw new AppError({
           statusCode: 409,
           userMessageKey: TRIP_ERROR_MESSAGES.START.INVALID_STATUS,
-          debugMessage: `[TripService.start] Cannot start trip '${tripId}': Current status is ${trip.status}.`,
+          debugMessage: `Cannot start trip '${tripId}': Current status is ${trip.status}.`,
         });
       }
 
@@ -362,7 +365,7 @@ export class TripService {
           statusCode: 409,
           userMessageKey: TRIP_ERROR_MESSAGES.START.TOO_EARLY,
           userMessageParams: { minutes: TRIP_MIN_MINUTES_BEFORE_STARTING },
-          debugMessage: `[TripService.start] Cannot start trip '${tripId}': too early. Now is more than ${TRIP_MIN_MINUTES_BEFORE_STARTING} minutes before departure.`,
+          debugMessage: `Cannot start trip '${tripId}': too early. Now is more than ${TRIP_MIN_MINUTES_BEFORE_STARTING} minutes before departure.`,
         });
       }
 
@@ -371,7 +374,7 @@ export class TripService {
           statusCode: 409,
           userMessageKey: TRIP_ERROR_MESSAGES.START.TOO_LATE,
           userMessageParams: { minutes: TRIP_MAX_MINUTES_AFTER_STARTING },
-          debugMessage: `[TripService.start] Cannot start trip '${tripId}': too late. Now is more than ${TRIP_MAX_MINUTES_AFTER_STARTING} minutes after departure.`,
+          debugMessage: `Cannot start trip '${tripId}': too late. Now is more than ${TRIP_MAX_MINUTES_AFTER_STARTING} minutes after departure.`,
         });
       }
 
@@ -384,12 +387,13 @@ export class TripService {
   /**
    * Ends a trip owned by a given user.
    *
-   * @param {User} user - The user ending the trip.
+   * Bookings are marked as awaiting feedback and review request emails are sent after transaction commit.
+   *
+   * @param {User} user - The owner of the trip.
    * @param {string} tripId - The ID of the trip to end.
-   * @returns {Promise<Trip>} Updated trip with status set to completed.
-   * @throws {AppError} 404 if trip does not exist or does not belong to user.
+   * @returns {Promise<Trip>} Updated trip with status set to 'completed'.
+   * @throws {AppError} 404 if trip does not exist or is not owned by the user (from this.findOwnedById()).
    * @throws {AppError} 409 if trip status is not IN_PROGRESS.
-   * @note Bookings are marked as awaiting feedback and review request emails are sent after transaction commit.
    */
   public static async end(user: User, tripId: string): Promise<Trip> {
     const trip = await sequelize.transaction(async (t) => {
@@ -408,12 +412,11 @@ export class TripService {
         transaction: t,
       });
 
-      const canBeEnded = trip.isInProgress();
-      if (!canBeEnded) {
+      if (!trip.isInProgress()) {
         throw new AppError({
           statusCode: 409,
           userMessageKey: TRIP_ERROR_MESSAGES.END.INVALID_STATUS,
-          debugMessage: `[TripService.end] Cannot end trip '${tripId}': Current status is ${trip.status}.`,
+          debugMessage: `Cannot end trip '${tripId}': Current status is ${trip.status}.`,
         });
       }
 

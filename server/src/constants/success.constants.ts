@@ -61,6 +61,11 @@ export const SUCCESS_MESSAGES = {
     INCIDENT_REPORTED: "success:booking.incident_reported",
   },
 
+  EVENT: {
+    NEXT_EVENT_RETRIEVED: "success:event.next_event_retrieved",
+    UPCOMING_EVENTS_RETRIEVED: "success:event.upcoming_events_retrieved",
+  },
+
   INCIDENT: {
     RETRIEVED_ALL: "success:incident.retrieved_all",
     RETRIEVED: "success:incident.retrieved",
@@ -74,10 +79,5 @@ export const SUCCESS_MESSAGES = {
     CREATED: "success:review.created",
     APPROVED: "success:review.approved",
     REJECTED: "success:review.rejected",
-  },
-
-  EVENT: {
-    NEXT_EVENT_RETRIEVED: "success:event.next_event_retrieved",
-    UPCOMING_EVENTS_RETRIEVED: "success:event.upcoming_events_retrieved",
   },
 } as const;

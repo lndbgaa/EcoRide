@@ -1,4 +1,4 @@
-import type { User } from "@/models/mysql";
+import type { User } from "@/models";
 import type { Request } from "express";
 
 export interface MulterRequest extends Request {
@@ -13,4 +13,4 @@ declare global {
   }
 }
 
-export {};
+export { };

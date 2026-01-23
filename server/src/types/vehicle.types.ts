@@ -1,8 +1,8 @@
-import type { UserPublicDTO } from "@/types";
+import type { UserAdminDTO } from "@/types";
 
-// ===========================
-//           DTOs
-// =========================== */
+/* ===========================
+           DTOs
+   =========================== */
 
 export interface VehicleEnergyDTO {
   id: number;
@@ -30,6 +30,7 @@ export interface VehiclePublicDTO {
   energy: string | null;
   seats: number;
   isEco: boolean;
+  isDeleted: boolean;
 }
 
 export interface VehiclePrivateDTO extends VehiclePublicDTO {
@@ -38,12 +39,12 @@ export interface VehiclePrivateDTO extends VehiclePublicDTO {
 }
 
 export interface VehicleAdminDTO extends VehiclePrivateDTO {
-  owner: UserPublicDTO | null;
+  owner: UserAdminDTO | null;
 }
 
-// ===========================
-//        Request Types
-// =========================== */
+/* ===========================
+        Request Types
+   =========================== */
 
 export type CreateVehiclePayload = {
   brandId: number;
@@ -63,9 +64,9 @@ export type UpdateVehiclePayload = {
   firstRegistrationDate?: string;
 };
 
-// ===========================
-//  Internal / DB Data Types
-// =========================== */
+/* ===========================
+         DB Types
+   =========================== */
 
 export type CreateVehicleData = {
   brand_id: number;

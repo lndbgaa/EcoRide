@@ -1,47 +1,47 @@
 {
-  "required": "This field is required",
-  "only": "The value must be one of the following options: {{valids}}",
+  "required": "Field required",
+  "only": "Invalid value",
 
-  "string_base": "This field must be a string",
-  "string_empty": "This field cannot be empty",
-  "string_min": "This field must be at least {{limit}} characters long",
-  "string_max": "This field must be at most {{limit}} characters long",
-  "string_email": "The email address must be valid",
-  "string_uuid": "The identifier must be a valid UUID",
+  "string_base": "Please enter text",
+  "string_empty": "Field required",
+  "string_min": "Minimum {{limit}} characters",
+  "string_max": "Maximum {{limit}} characters",
+  "string_email": "Invalid email address",
+  "string_uuid": "Invalid identifier",
 
-  "number_base": "This field must be a number",
-  "number_integer": "This field must be an integer",
-  "number_min": "The value must be greater than or equal to {{limit}}",
-  "number_max": "The value must be less than or equal to {{limit}}",
+  "number_base": "Please enter a number",
+  "number_integer": "Integer required",
+  "number_min": "Minimum value: {{limit}}",
+  "number_max": "Maximum value: {{limit}}",
 
-  "boolean_base": "This field must be a boolean",
+  "boolean_base": "Selection required",
 
-  "date_invalid": "The provided date is invalid",
-  "time_invalid": "The provided time is invalid",
-  "datetime_invalid": "The provided dates or times are invalid",
+  "date_invalid": "Invalid date",
+  "time_invalid": "Invalid time",
+  "datetime_invalid": "Invalid date or time",
 
-  "pattern_username": "The username must start with a letter, and can only contain letters, numbers, hyphens, or underscores",
-  "pattern_password": "The password must contain at least one uppercase letter, one lowercase letter, one number, and one special character",
-  "pattern_first_name": "The first name can only contain letters and hyphens",
-  "pattern_last_name": "The last name can only contain letters and hyphens",
-  "pattern_phone": "The phone number must be a valid French format (e.g., 06XXXXXXXX or +33XXXXXXXX)",
-  "pattern_license_plate": "The license plate must follow the format AB-123-CD",
+  "pattern_username": "Must start with a letter and only contain letters, numbers, hyphens, or underscores",
+  "pattern_password": "1 uppercase, 1 lowercase, 1 number, and 1 special character",
+  "pattern_first_name": "Letters and hyphens only",
+  "pattern_last_name": "Letters and hyphens only",
+  "pattern_phone": "Valid French phone number (e.g., 06XXXXXXXX or +33XXXXXXXX)",
+  "pattern_license_plate": "Format expected: AB-123-CD",
 
   "user": {
-    "birth_cannot_be_future": "The birth date cannot be in the future",
-    "too_young": "You must be at least {{minAge}} years old to proceed"
+    "birth_cannot_be_future": "Birth date cannot be in the future",
+    "too_young": "You must be at least {{minAge}} years old to continue"
   },
 
   "vehicle": {
-    "first_registration_cannot_be_future": "The first registration date cannot be in the future"
+    "first_registration_cannot_be_future": "First registration date cannot be in the future"
   },
 
   "trip": {
-    "search_date_cannot_be_past": "Search date cannot be in the past",
+    "search_date_cannot_be_past": "Search date must be today or later",
     "same_locations": "Departure and arrival locations must be different",
-    "departure_cannot_be_past": "The departure date and time must be in the future",
-    "arrival_before_departure": "The arrival time must be after the departure time",
-    "duration_too_short": "The trip duration must be at least {{minDuration}} minutes",
-    "duration_too_long": "The trip duration cannot exceed {{maxDuration}} hours"
+    "departure_cannot_be_past": "Departure date and time must be in the future",
+    "arrival_before_departure": "Arrival time must be after departure time",
+    "duration_too_short": "Trip must be at least {{minDuration}} minutes",
+    "duration_too_long": "Trip cannot exceed {{maxDuration}} hours"
   }
 }

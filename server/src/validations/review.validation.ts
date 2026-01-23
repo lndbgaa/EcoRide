@@ -5,7 +5,7 @@ import {
   REVIEW_MIN_RATING,
   VALIDATION_MESSAGES,
 } from "@/constants";
-import { uuidField } from "@/validations";
+import { uuidField } from "./common.validation.js";
 
 export const createReviewBodySchema = Joi.object({
   tripId: uuidField,

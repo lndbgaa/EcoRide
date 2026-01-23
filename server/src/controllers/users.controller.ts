@@ -30,7 +30,7 @@ export const getUserPreferences = catchAsync(async (req: Request, res: Response)
   const userId = req.params.id!;
 
   const user = await UserService.findById(userId);
-  const preferences = await PreferenceService.getUserPreferences(user.id);
+  const preferences = await PreferenceService.getUserPreferences(user);
   const dto = preferences.map((p) => p.toDTO(req.t));
 
   return res.status(200).json({

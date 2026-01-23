@@ -1,20 +1,10 @@
 import { DataTypes, Model } from "sequelize";
 
-import {
-  REVIEW_ERROR_MESSAGES,
-  REVIEW_MAX_RATING,
-  REVIEW_MIN_RATING,
-  REVIEW_STATUSES,
-} from "@/constants";
+import { REVIEW_ERROR_MESSAGES, REVIEW_MAX_RATING, REVIEW_MIN_RATING, REVIEW_STATUSES } from "@/constants";
 import { AppError, formatDateTimeFromUTC } from "@/utils";
 
-import type { Trip, User } from "@/models/mysql";
-import type {
-  ReviewAdminDTO,
-  ReviewAuthorDTO,
-  ReviewPublicDTO,
-  ReviewStatus,
-} from "@/types";
+import type { Trip, User } from "@/models";
+import type { ReviewAdminDTO, ReviewAuthorDTO, ReviewPublicDTO, ReviewStatus } from "@/types";
 import type { TFunction } from "i18next";
 import type { SaveOptions, Sequelize } from "sequelize";
 
@@ -57,20 +47,14 @@ export default class Review extends Model {
   // Private Status Transitions
   // ----------------------------
 
-  private static readonly allowedStatusTransitions: Record<
-    ReviewStatus,
-    ReviewStatus[]
-  > = {
+  private static readonly allowedStatusTransitions: Record<ReviewStatus, ReviewStatus[]> = {
     pending: [APPROVED, REJECTED],
     approved: [],
     rejected: [],
   } as const;
 
   private canTransitionTo(newStatus: ReviewStatus): boolean {
-    return (
-      Review.allowedStatusTransitions[this.status]?.includes(newStatus) ??
-      false
-    );
+    return Review.allowedStatusTransitions[this.status]?.includes(newStatus) ?? false;
   }
 
   private transitionTo(newStatus: ReviewStatus): void {
@@ -79,7 +63,7 @@ export default class Review extends Model {
     if (!this.canTransitionTo(newStatus)) {
       throw new AppError({
         statusCode: 400,
-        userMessageKey: REVIEW_ERROR_MESSAGES.INVALID_STATUS_TRANSITION,
+        userMessageKey: REVIEW_ERROR_MESSAGES.STATE_TRANSITION_NOT_ALLOWED,
         debugMessage: `Review ${this.id} cannot transition from ${this.status} to ${newStatus}.`,
       });
     }
@@ -91,19 +75,13 @@ export default class Review extends Model {
   // Public Status Transitions
   // ----------------------------
 
-  public async markAsApproved(
-    moderatorId: string,
-    options?: SaveOptions
-  ): Promise<void> {
+  public async markAsApproved(moderatorId: string, options?: SaveOptions): Promise<void> {
     this.transitionTo(APPROVED);
     this.moderator_id = moderatorId;
     await this.save({ ...options, fields: ["status", "moderator_id"] });
   }
 
-  public async markAsRejected(
-    moderatorId: string,
-    options?: SaveOptions
-  ): Promise<void> {
+  public async markAsRejected(moderatorId: string, options?: SaveOptions): Promise<void> {
     this.transitionTo(REJECTED);
     this.moderator_id = moderatorId;
     await this.save({ ...options, fields: ["status", "moderator_id"] });

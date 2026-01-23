@@ -5,9 +5,9 @@ export interface CustomJwtPayload extends JwtPayload {
   role: string;
 }
 
-// ===========================
-//       Request Types
-// =========================== */
+/* ===========================
+       Request Types
+   =========================== */
 
 export interface RegisterUserPayload {
   email: string;
@@ -28,10 +28,9 @@ export interface ResetPasswordPayload {
   newPassword: string;
 }
 
-// ===========================
-//       Response Types
-// =========================== */
-
+/* ===========================
+        Response Types
+   =========================== */
 export interface AuthResponse {
   accessToken: string;
   refreshToken: string;

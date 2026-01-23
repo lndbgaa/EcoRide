@@ -9,23 +9,23 @@ import { AppError } from "@/utils";
 import type {
   CreateReviewPayload,
   GetReviewsFilters,
+  GetReviewsResponse,
   GetReviewsSortOptions,
   ReviewDBFilter,
   ReviewStatus,
 } from "@/types";
 import type { FindOptions, Order, WhereOptions } from "sequelize";
 
-const { APPROVED } = REVIEW_STATUSES;
+const { APPROVED, PENDING } = REVIEW_STATUSES;
 
 export class ReviewService {
   /**
    * Finds a review by ID.
    *
-   * @param {string} reviewId - The ID of the review.
+   * @param {string} reviewId - The ID of the review to find.
    * @param {FindOptions} [options] - Additional Sequelize find options.
-   * @returns {Promise<IncidentDocument>} - The returned review instance.
-   * @throws {AppError} - If:
-   *   - The review is not found (HTTP 404).
+   * @returns {Promise<Review>} The review instance.
+   * @throws {AppError} 404 if the review is not found.
    */
   public static async findById(reviewId: string, options?: FindOptions): Promise<Review> {
     const review = await Review.findByPk(reviewId, options);
@@ -34,7 +34,7 @@ export class ReviewService {
       throw new AppError({
         statusCode: 404,
         userMessageKey: COMMON_ERROR_MESSAGES.RESOURCE_NOT_FOUND,
-        debugMessage: `[ReviewService.findById] Review '${reviewId}' not found in database.`,
+        debugMessage: `Review '${reviewId}' not found in database.`,
       });
     }
 
@@ -44,19 +44,25 @@ export class ReviewService {
   /**
    * Retrieves all reviews with pagination, optional filters, and sorting.
    *
-   * @param {number} limit - The maximum number of reviews to return.
-   * @param {number} offset - The number of reviews to skip (for pagination).
-   * @param {GetReviewsFilters} [filters] - Optional filters (status, targetId, authorId).
-   * @param {GetReviewsSortOptions} [sortOptions] - Optional sort options (by: "createdAt" | "rating", dir: "asc" | "desc").
-   * @returns {Promise<{ count: number; reviews: Review[] }>} - An object containing the total count and the list of reviews.
+   * @param {number} limit - Maximum number of reviews to return.
+   * @param {number} offset - Number of reviews to skip (for pagination).
+   * @param {GetReviewsFilters} [filters] - Optional filters:
+   *  - status: filter reviews by status
+   *  - targetId: filter reviews by target ID
+   *  - authorId: filter reviews by author ID
+   * @param {GetReviewsSortOptions} [sortOptions] - Optional sort options:
+   *  - by: 'createdAt' | 'rating' (default: 'createdAt')
+   *  - dir: 'asc' | 'desc' (default: 'desc')
+   * @param {Partial<FindOptions>} [options] - Additional Sequelize find options (include, attributes, etc.).
+   * @returns {Promise<GetReviewsResponse>} Object containing total count and list of reviews.
    */
   public static async findAll(
     limit: number,
     offset: number,
     filters?: GetReviewsFilters,
     sortOptions?: GetReviewsSortOptions,
-    options?: { include?: FindOptions["include"] }
-  ): Promise<{ count: number; reviews: Review[] }> {
+    options?: Partial<FindOptions>
+  ): Promise<GetReviewsResponse> {
     const where: WhereOptions<ReviewDBFilter> = {};
 
     if (filters?.status) where.status = filters.status;
@@ -72,7 +78,7 @@ export class ReviewService {
     const sortDirection = sortOptions?.dir === "asc" ? "ASC" : "DESC";
     const order: Order = [[sortField, sortDirection]];
 
-    const { count, rows: reviews } = await Review.findAndCountAll({
+    const { count, rows } = await Review.findAndCountAll({
       where,
       limit,
       offset,
@@ -81,7 +87,7 @@ export class ReviewService {
       distinct: true,
     });
 
-    return { count, reviews };
+    return { count, reviews: rows };
   }
 
   /**
@@ -90,12 +96,11 @@ export class ReviewService {
    * @param {User} user - The user creating the review.
    * @param {CreateReviewPayload} data - The review data (tripId, rating, comment).
    * @returns {Promise<void>}
-   * @throws {AppError} - If:
-   *   - The trip is not found (HTTP 404, thrown by TripService.findById).
-   *   - The user is the driver of the trip (HTTP 403).
-   *   - The trip is not completed (HTTP 409).
-   *   - The user has no completed booking for the trip (HTTP 403).
-   *   - The user has already reviewed the trip (HTTP 409).
+   * @throws {AppError} 404 if the trip is not found (from TripService.findById()).
+   * @throws {AppError} 403 if the user is the driver of the trip.
+   * @throws {AppError} 409 if the trip is not completed.
+   * @throws {AppError} 403 if the user has no completed booking for the trip.
+   * @throws {AppError} 409 if the user has already reviewed the trip.
    */
   public static async create(user: User, data: CreateReviewPayload): Promise<void> {
     const { tripId, rating, comment } = data;
@@ -112,7 +117,6 @@ export class ReviewService {
             required: false,
           },
         ],
-        lock: true,
         transaction: t,
       });
 
@@ -120,7 +124,7 @@ export class ReviewService {
         throw new AppError({
           statusCode: 403,
           userMessageKey: REVIEW_ERROR_MESSAGES.CREATE.IS_DRIVER,
-          debugMessage: `[ReviewService.create] Cannot create review: User '${user.id}' is the driver of trip '${tripId}'.`,
+          debugMessage: `Cannot create review: User '${user.id}' is the driver of trip '${tripId}'.`,
         });
       }
 
@@ -128,7 +132,7 @@ export class ReviewService {
         throw new AppError({
           statusCode: 409,
           userMessageKey: REVIEW_ERROR_MESSAGES.CREATE.TRIP_NOT_COMPLETED,
-          debugMessage: `[ReviewService.create] Cannot create review: Trip '${tripId}' is not completed (current status: '${trip.status}').`,
+          debugMessage: `Cannot create review: Trip '${tripId}' is not completed (current status: '${trip.status}').`,
         });
       }
 
@@ -138,7 +142,7 @@ export class ReviewService {
         throw new AppError({
           statusCode: 403,
           userMessageKey: REVIEW_ERROR_MESSAGES.CREATE.BOOKING_NOT_COMPLETED,
-          debugMessage: `[ReviewService.create] Cannot create review: User '${user.id}' has no completed booking for trip '${tripId}'.`,
+          debugMessage: `Cannot create review: User '${user.id}' has no completed booking for trip '${tripId}'.`,
         });
       }
 
@@ -150,7 +154,7 @@ export class ReviewService {
         throw new AppError({
           statusCode: 409,
           userMessageKey: REVIEW_ERROR_MESSAGES.CREATE.ALREADY_REVIEWED,
-          debugMessage: `[ReviewService.create] Cannot create review: User '${user.id}' has already reviewed trip '${tripId}'.`,
+          debugMessage: `Cannot create review: User '${user.id}' has already reviewed trip '${tripId}'.`,
         });
       }
 
@@ -172,17 +176,29 @@ export class ReviewService {
    *
    * @param {string} reviewId - The ID of the review to moderate.
    * @param {User} moderator - The admin/moderator performing the action.
-   * @param {Exclude<ReviewStatus, "pending">} status - The new status ("approved" or "rejected").
+   * @param {Exclude<ReviewStatus, "pending">} newStatus - The new status ("approved" or "rejected").
    * @returns {Promise<void>}
-   * @throws {AppError} - If:
-   *   - The review is not found (HTTP 404).
+   * @throws {AppError} 404 if the review is not found (from this.findById()).
+   * @throws {AppError} 409 if the review has already been moderated (status is not 'pending').
    */
-  public static async moderate(reviewId: string, moderator: User, status: Exclude<ReviewStatus, "pending">) {
-    const review = await this.findById(reviewId);
-    const isApproved = status === APPROVED;
-    const targetId = review.target_id;
-
+  public static async moderate(reviewId: string, moderator: User, newStatus: Exclude<ReviewStatus, "pending">): Promise<void> {
     return await sequelize.transaction(async (t) => {
+      const review = await this.findById(reviewId, {
+        transaction: t,
+        lock: t.LOCK.UPDATE,
+      });
+
+      if (review.status !== PENDING) {
+        throw new AppError({
+          statusCode: 409,
+          userMessageKey: REVIEW_ERROR_MESSAGES.MODERATE.ALREADY_MODERATED,
+          debugMessage: `Cannot moderate review '${review.id}' because its status is '${review.status}'.`,
+        });
+      }
+
+      const isApproved = newStatus === APPROVED;
+      const targetId = review.target_id;
+
       if (isApproved) {
         await review.markAsApproved(moderator.id, { transaction: t });
 

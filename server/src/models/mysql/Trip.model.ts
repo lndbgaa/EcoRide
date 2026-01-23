@@ -3,7 +3,7 @@ import { DataTypes, Model } from "sequelize";
 import { TRIP_ERROR_MESSAGES, TRIP_MAX_PRICE, TRIP_MIN_PRICE, TRIP_STATUSES } from "@/constants";
 import { AppError, calculateDuration, formatDateTimeFromUTC } from "@/utils";
 
-import type { Booking, User, Vehicle } from "@/models/mysql";
+import type { Booking, User, Vehicle } from "@/models";
 import type { TripAdminDTO, TripDriverDTO, TripPublicDTO, TripStatus } from "@/types";
 import type { TFunction } from "i18next";
 import type { SaveOptions, Sequelize } from "sequelize";
@@ -29,10 +29,6 @@ export default class Trip extends Model {
   declare driver?: User;
   declare vehicle?: Vehicle;
   declare bookings?: Booking[];
-
-  // ----------------------------
-  // Getters
-  // ----------------------------
 
   public get isEcoFriendly(): boolean {
     return this.vehicle?.isEco ?? false;
@@ -116,15 +112,19 @@ export default class Trip extends Model {
   // ----------------------------
 
   /**
+   * Increase the number of available seats for a trip.
    *
+   * This method is intended to be used **only when a booking is cancelled**.
+   * It restores previously reserved seats, ensures the total does not exceed
+   * the offered seats, and updates the trip status accordingly
+   * (e.g. from FULL to OPEN when seats become available).
    *
    * @param {number} amount - The number of seats to add.
    * @param {SaveOptions} [options] - Additional Sequelize save options.
    * @returns {Promise<void>}
-   * @throws {AppError} -If:
-   *   - The amount is not a positive integer (HTTP 400).
-   *   - Trip status is not OPEN or FULL (HTTP 409).
-   *   - Adding the seats would exceed the total offered seats (HTTP 400).
+   * @throws {AppError} 400 if amount is not a positive integer.
+   * @throws {AppError} 409 if trip status is not OPEN or FULL.
+   * @throws {AppError} 400 if adding seats would exceed the total offered seats.
    */
   public async addAvailableSeats(amount: number, options?: SaveOptions): Promise<void> {
     if (!Number.isInteger(amount) || amount <= 0) {
@@ -161,15 +161,18 @@ export default class Trip extends Model {
   }
 
   /**
+   * Decrease the number of available seats for a trip.
    *
+   * This method is intended to be used **only when a booking is created**.
+   * It reserves seats for passengers, prevents negative availability, and
+   * automatically updates the trip status to FULL when no seats remain.
    *
    * @param {number} amount - The number of seats to remove.
    * @param {SaveOptions} [options] - Additional Sequelize save options.
    * @returns {Promise<void>}
-   * @throws {AppError} -If:
-   *   - The amount is not a positive integer (HTTP 400).
-   *   - Trip status is not OPEN (HTTP 409).
-   *   - Removing the seats would leave negative available seats (HTTP 400).
+   * @throws {AppError} 400 if amount is not a positive integer.
+   * @throws {AppError} 409 if trip status is not OPEN.
+   * @throws {AppError} 400 if removing the seats would leave negative available seats.
    */
   public async removeAvailableSeats(amount: number, options?: SaveOptions): Promise<void> {
     if (!Number.isInteger(amount) || amount <= 0) {
@@ -362,7 +365,6 @@ export default class Trip extends Model {
 
           beforeCreate: (trip: Trip) => {
             trip.duration_minutes = calculateDuration(trip.departure_datetime, trip.arrival_datetime);
-
             trip.available_seats = trip.offered_seats;
           },
         },

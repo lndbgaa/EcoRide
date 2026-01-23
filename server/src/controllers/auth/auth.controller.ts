@@ -76,7 +76,7 @@ export const refreshUserToken = catchAsync(async (req: Request, res: Response): 
       statusCode: 401,
       userMessageKey: AUTH_ERROR_MESSAGES.SESSION_INVALID,
       debugMessage: "Refresh token not found in cookies.",
-      code: AUTH_ERROR_CODES.SESSION_INVALID,
+      code: AUTH_ERROR_CODES.AUTHENTICATION_REQUIRED,
       debugCode: DEBUG_CODES.AUTH.REFRESH_TOKEN_MISSING,
     });
   }

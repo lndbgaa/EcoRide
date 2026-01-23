@@ -1,6 +1,6 @@
-import { dayjs } from "@/config";
 import Joi from "joi";
 
+import { dayjs } from "@/config";
 import { MINIMUM_USER_AGE, REGEX, VALIDATION_MESSAGES } from "@/constants";
 import { dateField } from "@/validations";
 

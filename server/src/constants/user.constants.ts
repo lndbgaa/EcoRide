@@ -17,8 +17,10 @@ export const USER_STATUSES = {
   DELETED: "deleted",
 } as const;
 
+export const USER_ACCOUNT_DELETION_DELAY_DAYS = 30;
+
 export const USER_FILTERABLE_STATUSES = [USER_STATUSES.ACTIVE, USER_STATUSES.SUSPENDED, USER_STATUSES.PENDING_DELETION] as const;
 
 export const USER_SORT_FIELDS = ["createdAt", "username"] as const;
 
-export const USER_ACCOUNT_DELETION_DELAY_DAYS = 30;
+

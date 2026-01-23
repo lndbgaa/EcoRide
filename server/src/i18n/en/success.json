@@ -10,6 +10,7 @@
     "password_reset_token_valid": "Password reset link is valid",
     "password_reset_completed": "Password reset"
   },
+
   "user": {
     "retrieved_all": "Users list retrieved",
     "data_retrieved": "Data retrieved",
@@ -22,16 +23,19 @@
     "reactivated": "User account reactivated",
     "role_changed": "User role changed"
   },
+
   "reference": {
     "vehicle_brands_retrieved": "Vehicle brands list retrieved",
     "vehicle_colors_retrieved": "Vehicle colors list retrieved",
     "vehicle_energies_retrieved": "Vehicle energy types list retrieved"
   },
+
   "preference": {
     "retrieved_all": "Preferences list retrieved",
     "retrieved": "Preference retrieved",
     "updated": "Preference updated"
   },
+
   "vehicle": {
     "retrieved_all": "Vehicles list retrieved",
     "retrieved": "Vehicle retrieved",
@@ -39,6 +43,7 @@
     "updated": "Vehicle updated",
     "deleted": "Vehicle deleted"
   },
+
   "trip": {
     "retrieved_all": "Trips list retrieved",
     "retrieved": "Trip retrieved",
@@ -47,6 +52,7 @@
     "started": "Trip started",
     "ended": "Trip ended"
   },
+
   "booking": {
     "retrieved_all": "Bookings list retrieved",
     "created": "Booking created",
@@ -54,6 +60,12 @@
     "completed": "Booking completed",
     "incident_reported": "Incident reported"
   },
+
+  "event": {
+    "next_event_retrieved": "Next event retrieved",
+    "upcoming_events_retrieved": "Upcoming events retrieved"
+  },
+
   "incident": {
     "retrieved_all": "Incidents list retrieved",
     "retrieved": "Incident retrieved",
@@ -61,14 +73,11 @@
     "assigned": "Incident assigned",
     "resolved": "Incident resolved"
   },
+
   "review": {
     "retrieved_all": "Reviews list retrieved",
     "created": "Review created",
     "approved": "Review approved",
     "rejected": "Review rejected"
-  },
-  "event": {
-    "next_event_retrieved": "Next event retrieved",
-    "upcoming_events_retrieved": "Upcoming events retrieved"
   }
 }

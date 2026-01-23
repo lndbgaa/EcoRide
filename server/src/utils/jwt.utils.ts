@@ -8,11 +8,7 @@ import type { StringValue } from "ms";
 
 const { TokenExpiredError, JsonWebTokenError } = jwt;
 
-export function generateJwt(
-  payload: CustomJwtPayload,
-  secret: string,
-  expiresIn: StringValue | number
-): string {
+export function generateJwt(payload: CustomJwtPayload, secret: string, expiresIn: StringValue | number): string {
   return jwt.sign(payload, secret, { expiresIn });
 }
 
@@ -25,8 +21,8 @@ export function validateJwt(token: string, secret: string): CustomJwtPayload {
     if (err instanceof TokenExpiredError) {
       throw new AppError({
         statusCode: 401,
-        userMessageKey: AUTH_ERROR_MESSAGES.SESSION_INVALID,
-        debugMessage: `Token has expired at ${err.expiredAt.toISOString()}`,
+        userMessageKey: AUTH_ERROR_MESSAGES.SESSION_EXPIRED,
+        debugMessage: `Token has expired at ${err.expiredAt.toISOString()}.`,
         code: AUTH_ERROR_CODES.ACCESS_TOKEN_EXPIRED,
         debugCode: DEBUG_CODES.AUTH.ACCESS_TOKEN_EXPIRED,
       });
@@ -36,17 +32,17 @@ export function validateJwt(token: string, secret: string): CustomJwtPayload {
       throw new AppError({
         statusCode: 401,
         userMessageKey: AUTH_ERROR_MESSAGES.SESSION_INVALID,
-        debugMessage: `JWT validation failed: ${err.message}`,
-        code: AUTH_ERROR_CODES.ACCESS_TOKEN_INVALID,
+        debugMessage: `JWT validation failed: ${err.message}.`,
+        code: AUTH_ERROR_CODES.AUTHENTICATION_REQUIRED,
         debugCode: DEBUG_CODES.AUTH.ACCESS_TOKEN_INVALID,
       });
     }
 
     throw new AppError({
-      statusCode: 500,
+      statusCode: 401,
       userMessageKey: AUTH_ERROR_MESSAGES.SESSION_INVALID,
-      debugMessage: `Unexpected JWT validation error: ${err instanceof Error ? err.message : String(err)}`,
-      code: AUTH_ERROR_CODES.ACCESS_TOKEN_INVALID,
+      debugMessage: `Unexpected JWT validation error: ${err instanceof Error ? err.message : String(err)}.`,
+      code: AUTH_ERROR_CODES.AUTHENTICATION_REQUIRED,
       debugCode: DEBUG_CODES.AUTH.ACCESS_TOKEN_UNEXPECTED_ERROR,
     });
   }
@@ -55,8 +51,8 @@ export function validateJwt(token: string, secret: string): CustomJwtPayload {
     throw new AppError({
       statusCode: 401,
       userMessageKey: AUTH_ERROR_MESSAGES.SESSION_INVALID,
-      debugMessage: "Token payload missing required fields (id, role)",
-      code: AUTH_ERROR_CODES.ACCESS_TOKEN_MALFORMED,
+      debugMessage: "Token payload missing required fields (id, role).",
+      code: AUTH_ERROR_CODES.AUTHENTICATION_REQUIRED,
       debugCode: DEBUG_CODES.AUTH.ACCESS_TOKEN_MALFORMED,
     });
   }

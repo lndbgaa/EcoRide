@@ -12,7 +12,7 @@ export function scheduleUserDeletionJob() {
 
       for (const user of expiredUsers) {
         try {
-          await UserDeletionService.deletePermanently(user.id);
+          await UserDeletionService.deletePermanently(user);
           logger.info(`Processed user ${user.id}: data anonymized and related resources cleaned up`);
         } catch (err) {
           logger.error(`Error processing user ${user.id}: ${err}`);

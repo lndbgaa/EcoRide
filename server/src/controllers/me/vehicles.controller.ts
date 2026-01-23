@@ -9,9 +9,9 @@ import type { Request, Response } from "express";
  * Retrieve the authenticated user's vehicles.
  */
 export const getMyVehicles = catchAsync(async (req: Request, res: Response): Promise<Response> => {
-  const userId = req.user!.id;
+  const user = req.user!;
 
-  const vehicles = await VehicleService.getUserVehicles(userId);
+  const vehicles = await VehicleService.getUserVehicles(user);
   const dto = vehicles.map((v) => v.toPrivateDTO(req.t));
 
   return res.status(200).json({
@@ -25,10 +25,10 @@ export const getMyVehicles = catchAsync(async (req: Request, res: Response): Pro
  * Retrieve a specific vehicle owned by the authenticated user.
  */
 export const getMyVehicle = catchAsync(async (req: Request, res: Response): Promise<Response> => {
-  const userId = req.user!.id;
+  const user = req.user!;
   const vehicleId = req.params.id!;
 
-  const vehicle = await VehicleService.findOwnedById(userId, vehicleId);
+  const vehicle = await VehicleService.findOwnedById(user, vehicleId);
   const dto = vehicle.toPrivateDTO(req.t);
 
   return res.status(200).json({
@@ -42,10 +42,10 @@ export const getMyVehicle = catchAsync(async (req: Request, res: Response): Prom
  * Create a new vehicle for the authenticated user.
  */
 export const createMyVehicle = catchAsync(async (req: Request, res: Response): Promise<Response> => {
-  const userId = req.user!.id;
+  const user = req.user!;
   const data: CreateVehiclePayload = req.body;
 
-  const vehicle = await VehicleService.create(userId, data);
+  const vehicle = await VehicleService.create(user, data);
   const dto = vehicle.toPrivateDTO(req.t);
 
   return res.status(201).json({
@@ -59,11 +59,11 @@ export const createMyVehicle = catchAsync(async (req: Request, res: Response): P
  * Update a specific vehicle owned by the authenticated user.
  */
 export const updateMyVehicle = catchAsync(async (req: Request, res: Response): Promise<Response> => {
-  const userId = req.user!.id;
+  const user = req.user!;
   const vehicleId = req.params.id!;
   const data: UpdateVehiclePayload = req.body;
 
-  const vehicle = await VehicleService.updateVehicle(userId, vehicleId, data);
+  const vehicle = await VehicleService.updateVehicle(user, vehicleId, data);
   const dto = vehicle.toPrivateDTO(req.t);
 
   return res.status(200).json({
@@ -77,10 +77,10 @@ export const updateMyVehicle = catchAsync(async (req: Request, res: Response): P
  * Delete a specific vehicle owned by the authenticated user.
  */
 export const deleteMyVehicle = catchAsync(async (req: Request, res: Response): Promise<Response> => {
-  const userId = req.user!.id;
+  const user = req.user!;
   const vehicleId = req.params.id!;
 
-  await VehicleService.deleteVehicle(userId, vehicleId);
+  await VehicleService.deleteVehicle(user, vehicleId);
 
   return res.status(200).json({
     success: true,

@@ -106,7 +106,6 @@ export class EmailVerificationService {
       }
     } catch (err) {
       logger.error("Failed to send verification email (silent fail)", {
-        service: "EmailVerificationService",
         email: user?.email,
         userId: user?.id,
         debugMessage: err instanceof AppError ? err.debugMessage : err instanceof Error ? err.message : String(err),
@@ -141,7 +140,7 @@ export class EmailVerificationService {
         throw new AppError({
           statusCode: 400,
           userMessageKey: AUTH_ERROR_MESSAGES.EMAIL_VERIFICATION_FAILED,
-          debugMessage: "[EmailVerificationService.verifyEmail] Email verification token not found.",
+          debugMessage: "Email verification token not found.",
           code: AUTH_ERROR_CODES.EMAIL_VERIFICATION_FAILED,
           debugCode: DEBUG_CODES.AUTH.EMAIL_VERIFICATION_TOKEN_NOT_FOUND,
         });
@@ -151,9 +150,7 @@ export class EmailVerificationService {
         throw new AppError({
           statusCode: 400,
           userMessageKey: AUTH_ERROR_MESSAGES.EMAIL_VERIFICATION_FAILED,
-          debugMessage: `[EmailVerificationService.verifyEmail] ${
-            tokenRecord.used_at ? "Email verification token already used." : "Email verification token expired."
-          }`,
+          debugMessage: `${tokenRecord.used_at ? "Email verification token already used." : "Email verification token expired."}`,
           code: AUTH_ERROR_CODES.EMAIL_VERIFICATION_FAILED,
           debugCode: tokenRecord.used_at
             ? DEBUG_CODES.AUTH.EMAIL_VERIFICATION_TOKEN_ALREADY_USED
@@ -170,9 +167,9 @@ export class EmailVerificationService {
         throw new AppError({
           statusCode: 500,
           userMessageKey: AUTH_ERROR_MESSAGES.EMAIL_VERIFICATION_FAILED,
-          debugMessage: "[EmailVerificationService.verifyEmail] User not found for valid email verification token.",
+          debugMessage: "User not found in database for valid email verification token.",
           code: AUTH_ERROR_CODES.EMAIL_VERIFICATION_FAILED,
-          debugCode: DEBUG_CODES.USER.NOT_FOUND,
+          debugCode: DEBUG_CODES.AUTH.USER_NOT_FOUND,
         });
       }
 

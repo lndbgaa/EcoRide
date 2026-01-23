@@ -5,8 +5,7 @@ import { AppError, validateJwt } from "@/utils";
 
 import type { NextFunction, Request, Response } from "express";
 
-const { auth } = appConfig;
-const { accessSecret } = auth;
+const { accessSecret } = appConfig.auth;
 
 const requireAuth = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   const authHeader = req.headers.authorization;
@@ -16,7 +15,7 @@ const requireAuth = async (req: Request, res: Response, next: NextFunction): Pro
       new AppError({
         statusCode: 401,
         userMessageKey: AUTH_ERROR_MESSAGES.AUTHENTICATION_REQUIRED,
-        debugMessage: "[requireAuth] Missing or invalid authorization header",
+        debugMessage: "Missing or invalid authorization header.",
         code: AUTH_ERROR_CODES.AUTHENTICATION_REQUIRED,
         debugCode: DEBUG_CODES.AUTH.HEADER_MISSING,
       })
@@ -30,7 +29,7 @@ const requireAuth = async (req: Request, res: Response, next: NextFunction): Pro
       new AppError({
         statusCode: 401,
         userMessageKey: AUTH_ERROR_MESSAGES.AUTHENTICATION_REQUIRED,
-        debugMessage: "[requireAuth] Missing authentication token",
+        debugMessage: "Missing authentication token.",
         code: AUTH_ERROR_CODES.AUTHENTICATION_REQUIRED,
         debugCode: DEBUG_CODES.AUTH.ACCESS_TOKEN_MISSING,
       })
@@ -48,10 +47,10 @@ const requireAuth = async (req: Request, res: Response, next: NextFunction): Pro
       return next(
         new AppError({
           statusCode: 401,
-          userMessageKey: AUTH_ERROR_MESSAGES.AUTHENTICATION_REQUIRED,
-          debugMessage: "[requireAuth] Authenticated user not found in database",
+          userMessageKey: AUTH_ERROR_MESSAGES.SESSION_INVALID,
+          debugMessage: "Authenticated user not found in database.",
           code: AUTH_ERROR_CODES.AUTHENTICATION_REQUIRED,
-          debugCode: AUTH_ERROR_CODES.USER_NOT_FOUND,
+          debugCode: DEBUG_CODES.AUTH.USER_NOT_FOUND,
         })
       );
     }

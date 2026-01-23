@@ -2,15 +2,16 @@ import { DataTypes, Model } from "sequelize";
 
 import { USER_ROLES_KEY } from "@/constants";
 
-import type { UserRoleId, UserRoleKey, UserRolePublicDTO } from "@/types";
+import type { UserRoleDTO, UserRoleId, UserRoleKey } from "@/types";
 import type { TFunction } from "i18next";
 import type { Sequelize } from "sequelize";
 export default class Role extends Model {
   declare id: UserRoleId;
   declare key: UserRoleKey;
 
-  public toPublicDTO(t: TFunction): UserRolePublicDTO {
+  public toDTO(t: TFunction): UserRoleDTO {
     const translationKey = `ui:user_roles.${this.key}`;
+    
     return {
       id: this.id,
       key: this.key,

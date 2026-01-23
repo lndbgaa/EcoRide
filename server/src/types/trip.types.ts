@@ -1,16 +1,17 @@
-import type { TRIP_STATUSES } from "@/constants";
-import type { Trip } from "@/models/mysql";
+import type { TRIP_SORT_FIELDS, TRIP_STATUSES } from "@/constants";
+import type { Trip } from "@/models";
 import type { DateTimeDTO, UserAdminDTO, UserPublicDTO, VehicleAdminDTO, VehiclePrivateDTO, VehiclePublicDTO } from "@/types";
 
-// ===========================
-//    Constants-based Types
-// =========================== */
+/* ===========================
+    Constants-based Types
+   =========================== */
 
 export type TripStatus = (typeof TRIP_STATUSES)[keyof typeof TRIP_STATUSES];
+export type TripSortField = (typeof TRIP_SORT_FIELDS)[number];
 
-// ===========================
-//       DTOs (Responses)
-// =========================== */
+/* ===========================
+       DTOs (Responses)
+   =========================== */
 
 export interface TripPublicDTO {
   id: string;
@@ -53,9 +54,9 @@ export interface TripAdminDTO extends TripDriverDTO {
   vehicle: VehicleAdminDTO | null;
 }
 
-// ===========================
-//        Request Types
-// =========================== */
+/* ===========================
+        Request Types
+   =========================== */
 
 export interface SearchTripsPayload {
   from: string;
@@ -80,11 +81,9 @@ export interface CreateTripPayload {
   offeredSeats: number;
 }
 
-// ===========================
-//       Service Types
-// ===========================
-
-export type TripSortField = "createdAt" | "departureDate";
+/* ===========================
+       Service Types
+   =========================== */
 
 export interface GetTripsSortOptions {
   by?: TripSortField;
@@ -96,18 +95,23 @@ export interface GetTripsFilters {
   driverId?: string;
 }
 
-// ===========================
-//        Response Types
-// =========================== */
+/* ===========================
+        Response Types
+   =========================== */
 
 export interface GetTripsResponse {
   count: number;
   trips: Trip[];
 }
 
-// ===========================
-//         DB Types
-// =========================== */
+/* ===========================
+         DB Types
+   =========================== */
+
+export interface TripDBFilter {
+  status?: TripStatus | TripStatus[];
+  driver_id?: string;
+}
 
 export type CreateTripData = {
   departure_datetime: Date;

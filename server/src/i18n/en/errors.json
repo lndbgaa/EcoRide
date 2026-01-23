@@ -23,8 +23,10 @@
 
   "auth": {
     "authentication_required": "Authentication required. Please log in",
-    "session_invalid": "Your session is no longer valid. Please log in again",
     "role_invalid": "You do not have permission to access this resource",
+    "session_expired": "Your session has expired. Please log in again",
+    "session_invalid": "Your session is no longer valid. Please log in again",
+
     "invalid_credentials": "Invalid credentials",
     "email_already_exists": "This email address is already in use",
     "username_already_exists": "This username is already taken",
@@ -82,8 +84,8 @@
 
     "start": {
       "invalid_status": "Cannot start this trip",
-      "too_early": "It is too early to start this trip. You can start it at most {minutes} minutes before departure",
-      "too_late": "It is too late to start this trip. Starting is no longer possible more than {minutes} minutes after departure"
+      "too_early": "It is too early to start this trip. You can start it at most {{minutes}} minutes before departure",
+      "too_late": "It is too late to start this trip. Starting is no longer possible more than {{minutes}} minutes after departure"
     },
 
     "end": {
@@ -109,6 +111,7 @@
     },
 
     "complete": {
+      "already_completed": "You have already completed this booking",
       "not_awaiting_feedback": "This booking cannot be completed yet"
     },
 

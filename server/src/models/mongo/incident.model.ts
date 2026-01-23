@@ -1,7 +1,7 @@
-import dayjs from "dayjs";
 import mongoose from "mongoose";
 import { v4 as uuid } from "uuid";
 
+import { dayjs } from "@/config";
 import { INCIDENT_ERROR_MESSAGES, INCIDENT_STATUSES } from "@/constants";
 import { AppError, formatDateTimeFromUTC } from "@/utils";
 
@@ -133,7 +133,7 @@ incidentSchema.methods.markAsAssigned = async function (
     throw new AppError({
       statusCode: 400,
       userMessageKey: INCIDENT_ERROR_MESSAGES.INVALID_STATUS_TRANSITION,
-      debugMessage: `Incident ${this.id} cannot transition from ${this.status} to ${ASSIGNED}`,
+      debugMessage: `Incident ${this.id} cannot transition from ${this.status} to ${ASSIGNED}.`,
     });
   }
 
@@ -152,7 +152,7 @@ incidentSchema.methods.markAsResolved = async function (
     throw new AppError({
       statusCode: 400,
       userMessageKey: INCIDENT_ERROR_MESSAGES.INVALID_STATUS_TRANSITION,
-      debugMessage: `Incident ${this.id} cannot transition from ${this.status} to ${RESOLVED}`,
+      debugMessage: `Incident ${this.id} cannot transition from ${this.status} to ${RESOLVED}.`,
     });
   }
 

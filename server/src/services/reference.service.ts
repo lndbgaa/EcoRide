@@ -1,4 +1,4 @@
-import { CATEGORY_KEY_TO_ID } from "@/constants";
+import { PREFERENCE_CATEGORY_KEY_TO_ID } from "@/constants";
 import { PreferenceOption, VehicleBrand, VehicleColor, VehicleEnergy } from "@/models";
 
 import type { PreferenceCategoryKey } from "@/types";
@@ -43,7 +43,7 @@ export class ReferenceService {
    * @returns {Promise<PreferenceOption[]>} -
    */
   public static async getPreferenceOptions(categoryKey: PreferenceCategoryKey): Promise<PreferenceOption[]> {
-    const categoryId = CATEGORY_KEY_TO_ID[categoryKey];
+    const categoryId = PREFERENCE_CATEGORY_KEY_TO_ID[categoryKey];
 
     const options = await PreferenceOption.findAll({
       where: { category_id: categoryId },

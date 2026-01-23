@@ -1,9 +1,10 @@
 import { DataTypes, Model } from "sequelize";
 
 import { PREFERENCE_ERROR_MESSAGES } from "@/constants";
-import type { PreferenceOption } from "@/models/mysql";
-import type { PreferenceDTO } from "@/types";
 import { AppError } from "@/utils";
+
+import type { PreferenceOption } from "@/models";
+import type { PreferenceCategoryId, PreferenceDTO } from "@/types";
 import type { TFunction } from "i18next";
 import type { Sequelize } from "sequelize";
 
@@ -11,7 +12,7 @@ export default class Preference extends Model {
   declare id: string;
   declare user_id: string;
   declare option_id: number;
-  declare category_id: number;
+  declare category_id: PreferenceCategoryId;
 
   declare option?: PreferenceOption;
 
@@ -21,6 +22,10 @@ export default class Preference extends Model {
       option: this.option?.toDTO(t) ?? null,
     };
   }
+
+  // ----------------------------
+  // Model Init
+  // ----------------------------
 
   public static initModel(sequelize: Sequelize) {
     this.init(
@@ -70,9 +75,9 @@ export default class Preference extends Model {
 
               if (!option) {
                 throw new AppError({
-                  statusCode: 500,
+                  statusCode: 400,
                   userMessageKey: PREFERENCE_ERROR_MESSAGES.INVALID_OPTION,
-                  debugMessage: `[Preference.beforeValidate] PreferenceOption with id ${preference.option_id} not found`,
+                  debugMessage: `PreferenceOption with id ${preference.option_id} not found.`,
                 });
               }
 

@@ -9,10 +9,11 @@ import {
   AUTH_ERROR_MESSAGES,
   DEBUG_CODES,
   DUMMY_PASSWORD_HASH,
+  REFRESH_TOKEN_LENGTH,
   USER_ROLES_ID,
-  USER_ROLES_KEY,
+  USER_ROLES_KEY
 } from "@/constants";
-import { RefreshToken, User } from "@/models/mysql";
+import { RefreshToken, User } from "@/models";
 import { EmailVerificationService, PreferenceService } from "@/services";
 import { AppError, generateJwt } from "@/utils";
 
@@ -49,7 +50,7 @@ export class AuthService {
           { transaction: t }
         );
 
-        await PreferenceService.createUserDefaultPreferences(user.id, t);
+        await PreferenceService.createUserDefaultPreferences(user, t);
 
         return user;
       });
@@ -130,7 +131,7 @@ export class AuthService {
 
       const refreshTokenRecord = await RefreshToken.create(
         {
-          token: nanoid(),
+          token: nanoid(REFRESH_TOKEN_LENGTH),
           user_id: user.id,
           expires_at: dayjs().add(ms(refreshExpiration), "ms").toDate(),
         },
@@ -176,8 +177,8 @@ export class AuthService {
       throw new AppError({
         statusCode: 401,
         userMessageKey: AUTH_ERROR_MESSAGES.SESSION_INVALID,
-        debugMessage: "[AuthService.refreshToken] Refresh token not found in database.",
-        code: AUTH_ERROR_CODES.SESSION_INVALID,
+        debugMessage: "Refresh token not found in database.",
+        code: AUTH_ERROR_CODES.AUTHENTICATION_REQUIRED,
         debugCode: DEBUG_CODES.AUTH.REFRESH_TOKEN_NOT_FOUND,
       });
     }
@@ -193,8 +194,8 @@ export class AuthService {
       throw new AppError({
         statusCode: 401,
         userMessageKey: AUTH_ERROR_MESSAGES.SESSION_INVALID,
-        debugMessage: "[AuthService.refreshToken] Refresh token has already been used.",
-        code: AUTH_ERROR_CODES.SESSION_INVALID,
+        debugMessage: "Refresh token has already been used.",
+        code: AUTH_ERROR_CODES.AUTHENTICATION_REQUIRED,
         debugCode: DEBUG_CODES.AUTH.REFRESH_TOKEN_REUSED,
       });
     }
@@ -203,8 +204,8 @@ export class AuthService {
       throw new AppError({
         statusCode: 401,
         userMessageKey: AUTH_ERROR_MESSAGES.SESSION_INVALID,
-        debugMessage: "[AuthService.refreshToken] Refresh token has been revoked.",
-        code: AUTH_ERROR_CODES.SESSION_INVALID,
+        debugMessage: "Refresh token has been revoked.",
+        code: AUTH_ERROR_CODES.AUTHENTICATION_REQUIRED,
         debugCode: DEBUG_CODES.AUTH.REFRESH_TOKEN_REVOKED,
       });
     }
@@ -213,8 +214,8 @@ export class AuthService {
       throw new AppError({
         statusCode: 401,
         userMessageKey: AUTH_ERROR_MESSAGES.SESSION_INVALID,
-        debugMessage: "[AuthService.refreshToken] Refresh token has expired.",
-        code: AUTH_ERROR_CODES.SESSION_INVALID,
+        debugMessage: "Refresh token has expired.",
+        code: AUTH_ERROR_CODES.AUTHENTICATION_REQUIRED,
         debugCode: DEBUG_CODES.AUTH.REFRESH_TOKEN_EXPIRED,
       });
     }
@@ -226,11 +227,11 @@ export class AuthService {
 
     if (!user) {
       throw new AppError({
-        statusCode: 500,
+        statusCode: 401,
         userMessageKey: AUTH_ERROR_MESSAGES.SESSION_INVALID,
-        debugMessage: "[AuthService.refreshToken] User not found for valid refresh token.",
-        code: AUTH_ERROR_CODES.SESSION_INVALID,
-        debugCode: DEBUG_CODES.USER.NOT_FOUND,
+        debugMessage: "User not found in database for valid refresh token.",
+        code: AUTH_ERROR_CODES.AUTHENTICATION_REQUIRED,
+        debugCode: DEBUG_CODES.AUTH.USER_NOT_FOUND,
       });
     }
 
@@ -255,7 +256,7 @@ export class AuthService {
 
       const newRefreshTokenRecord = await RefreshToken.create(
         {
-          token: nanoid(),
+          token: nanoid(REFRESH_TOKEN_LENGTH),
           user_id: user.id,
           expires_at: dayjs().add(ms(refreshExpiration), "ms").toDate(),
         },

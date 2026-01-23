@@ -1,7 +1,7 @@
 import Joi from "joi";
 
 import { VALIDATION_MESSAGES } from "@/constants";
-import { uuidField } from "@/validations";
+import { uuidField } from "./common.validation.js";
 
 export const createBookingBodySchema = Joi.object({
   tripId: uuidField,

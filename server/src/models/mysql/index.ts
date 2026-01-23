@@ -143,5 +143,5 @@ export {
   Vehicle,
   VehicleBrand,
   VehicleColor,
-  VehicleEnergy,
+  VehicleEnergy
 };

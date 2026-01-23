@@ -1,6 +1,8 @@
-import dayjs from "dayjs";
+
 import { DataTypes, Model, Op } from "sequelize";
 
+
+import { dayjs } from "@/config";
 import {
   COMMON_ERROR_MESSAGES,
   VEHICLE_ECO_ENERGY_KEYS,
@@ -8,10 +10,10 @@ import {
   VEHICLE_MAX_SEATS,
   VEHICLE_MIN_SEATS,
 } from "@/constants";
-import { VehicleBrand, VehicleColor, VehicleEnergy } from "@/models/mysql";
+import { VehicleBrand, VehicleColor, VehicleEnergy } from "@/models";
 import { AppError, formatDateOnly, setIfChanged } from "@/utils";
 
-import type { User } from "@/models/mysql";
+import type { User } from "@/models";
 import type { UpdateVehiclePayload, VehicleAdminDTO, VehiclePrivateDTO, VehiclePublicDTO } from "@/types";
 import type { TFunction } from "i18next";
 import type { SaveOptions, Sequelize } from "sequelize";
@@ -35,10 +37,6 @@ export default class Vehicle extends Model {
   declare energy?: VehicleEnergy;
   declare owner?: User;
 
-  // ----------------------------
-  // Getters
-  // ----------------------------
-
   public get isEco(): boolean {
     return VEHICLE_ECO_ENERGY_KEYS.includes(this.energy?.key ?? "");
   }
@@ -46,10 +44,6 @@ export default class Vehicle extends Model {
   public get isDeleted(): boolean {
     return this.deleted_at !== null;
   }
-
-  // ------------------------------------
-  // Business Logic
-  // ------------------------------------
 
   /**
    * Marks the current vehicle instance as deleted (soft delete).
@@ -77,10 +71,9 @@ export default class Vehicle extends Model {
    *
    * @param {UpdateVehiclePayload} data - The object containing the new vehicle information.
    * @param {SaveOptions} [options] - Additional Sequelize save options.
-   * @returns {Promise<Vehicle>} - The updated vehicle instance.
-   * @throws {AppError} - If:
-   *   - No changes were detected between the current instance and the provided data (HTTP 400).
-   *   - Provided brandId, colorId, or energyId is invalid (HTTP 400).
+   * @returns {Promise<Vehicle>} The updated vehicle instance.
+   * @throws {AppError} 400 if no changes were detected between the current instance and the provided data.
+   * @throws {AppError} 400 if provided brandId, colorId, or energyId is invalid.
    */
   public async updateInfo(data: UpdateVehiclePayload, options?: SaveOptions): Promise<Vehicle> {
     const updatedFields: string[] = [];
@@ -142,6 +135,7 @@ export default class Vehicle extends Model {
       energy: this.energy?.toDTO(t).display ?? null,
       seats: this.seats,
       isEco: this.isEco,
+      isDeleted: !!this.deleted_at,
     };
   }
 
@@ -156,7 +150,7 @@ export default class Vehicle extends Model {
   public toAdminDTO(t: TFunction): VehicleAdminDTO {
     return {
       ...this.toPrivateDTO(t),
-      owner: this.owner?.toPublicDTO() ?? null,
+      owner: this.owner?.toAdminDTO(t) ?? null,
     };
   }
 
@@ -164,7 +158,7 @@ export default class Vehicle extends Model {
   // Model Init
   // ----------------------------
 
-  public static initModel(sequelize: Sequelize): void {
+  public static initModel(sequelize: Sequelize) {
     this.init(
       {
         id: {

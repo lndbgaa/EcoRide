@@ -54,7 +54,7 @@ export default class RefreshToken extends Model {
   // Model Init
   // ----------------------------
 
-  public static initModel(sequelize: Sequelize): void {
+  public static initModel(sequelize: Sequelize) {
     this.init(
       {
         id: {

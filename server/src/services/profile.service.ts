@@ -5,7 +5,7 @@ import { AUTH_ERROR_MESSAGES, USER_ERROR_MESSAGES } from "@/constants";
 import { UploadService } from "@/services";
 import { AppError } from "@/utils";
 
-import type { User } from "@/models/mysql";
+import type { User } from "@/models";
 import type { UpdateUserInfoPayload, UpdateUserPasswordPayload } from "@/types";
 
 const { env } = appConfig;
@@ -17,9 +17,8 @@ export class ProfileService {
    * @param {User} user - The user instance to update.
    * @param {UpdateUserInfoPayload} data - The new profile data.
    * @returns {Promise<User>} The updated user instance.
-   * @throws {AppError} - If:
-   *   - The new username is already in use (HTTP 409)
-   *   - The update fails due to invalid or unchanged data (HTTP 400, thrown by user.updateProfile)
+   * @throws {AppError} 409 if new username is already in use.
+   * @throws {AppError} 400 if update fails due to invalid or unchanged data (from user.updateProfile).
    */
   public static async updateProfile(user: User, data: UpdateUserInfoPayload): Promise<User> {
     try {
@@ -41,9 +40,8 @@ export class ProfileService {
    * @param {User} user - The user instance to update.
    * @param {UpdateUserPasswordPayload} data - The current and new passwords.
    * @returns {Promise<void>}
-   * @throws {AppError} - If:
-   *   - The current password is incorrect (HTTP 400)
-   *   - The new password is the same as the current one (HTTP 400)
+   * @throws {AppError} 400 if current password is incorrect.
+   * @throws {AppError} 400 if new password is the same as the current one.
    */
   public static async updatePassword(user: User, data: UpdateUserPasswordPayload): Promise<void> {
     const { currentPassword, newPassword } = data;
@@ -72,10 +70,9 @@ export class ProfileService {
    * @param {User} user - The user instance to update.
    * @param {Express.Multer.File} file - The uploaded image file.
    * @returns {Promise<{ url: string }>} The URL of the uploaded profile picture.
-   * @throws {AppError} - If:
-   *   - The file type is invalid (HTTP 400)
-   *   - The file size exceeds the maximum allowed limit (HTTP 400)
-   *   - The image upload fails (HTTP 500, thrown by UploadService.uploadImage, e.g., Cloudinary error)
+   * @throws {AppError} 400 if file type is invalid.
+   * @throws {AppError} 400 if file size exceeds the maximum allowed limit.
+   * @throws {AppError} 500 if image upload fails (from UploadService.uploadImage, e.g., Cloudinary error).
    */
   public static async updatePicture(user: User, file: Express.Multer.File): Promise<{ url: string }> {
     const allowedImageMimedTypes = ["image/jpeg", "image/png", "image/webp"];

@@ -1,5 +1,6 @@
-import dayjs from "dayjs";
 import { DataTypes, Model } from "sequelize";
+
+import { dayjs } from "@/config";
 
 import type { SaveOptions, Sequelize } from "sequelize";
 
@@ -31,10 +32,10 @@ export default class PasswordResetToken extends Model {
   }
 
   // ----------------------------
-  // Model Initialisation
+  // Model Init
   // ----------------------------
 
-  public static initModel(sequelize: Sequelize): void {
+  public static initModel(sequelize: Sequelize) {
     this.init(
       {
         id: {

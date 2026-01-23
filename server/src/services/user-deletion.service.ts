@@ -1,31 +1,21 @@
 import bcrypt from "bcrypt";
-import dayjs from "dayjs";
 import { Op, col, fn, where } from "sequelize";
 
-import { appConfig, sequelize } from "@/config";
+import { appConfig, dayjs, sequelize } from "@/config";
 import {
   AUTH_ERROR_MESSAGES,
   BOOKING_STATUSES,
+  DUMMY_PASSWORD_HASH,
   TRIP_STATUSES,
   USER_ACCOUNT_DELETION_DELAY_DAYS,
   USER_ERROR_MESSAGES,
   USER_STATUSES,
 } from "@/constants";
-import {
-  Booking,
-  EmailVerificationToken,
-  PasswordResetToken,
-  Preference,
-  RefreshToken,
-  Trip,
-  User,
-  Vehicle,
-} from "@/models/mysql";
+import { Booking, EmailVerificationToken, PasswordResetToken, Preference, RefreshToken, Trip, User, Vehicle } from "@/models";
 import { EmailService } from "@/services";
 import { AppError, logger, renderTemplate } from "@/utils";
 
 import type { CancelUserDeletionPayload } from "@/types";
-import type { Transaction } from "sequelize";
 
 const { clientUrl, gmail } = appConfig;
 
@@ -33,11 +23,10 @@ export class UserDeletionService {
   /**
    * Requests the deletion of a user's account.
    *
-   * @param {User} user - The user instance.
+   * @param {User} user
    * @returns {Promise<void>}
-   * @throws {AppError} - If:
-   *   - The user has already requested deletion
-   *   - The user has active rides or bookings preventing deletion
+   * @throws {AppError} 409 if user has already requested deletion.
+   * @throws {AppError} 409 if user has active trips or bookings preventing deletion.
    */
   public static async requestDeletion(user: User): Promise<void> {
     if (user.isPendingDeletion()) {
@@ -47,11 +36,13 @@ export class UserDeletionService {
       });
     }
 
-    const activeRide = await Trip.findOne({
+    const activeTrip = await Trip.findOne({
       where: {
         driver_id: user.id,
-        status: { [Op.in]: [TRIP_STATUSES.OPEN, TRIP_STATUSES.FULL, TRIP_STATUSES.IN_PROGRESS] },
+        status: { [Op.notIn]: [TRIP_STATUSES.CANCELLED, TRIP_STATUSES.COMPLETED] },
       },
+      attributes: ["id"],
+      limit: 1,
     });
 
     const activeBooking = await Booking.findOne({
@@ -59,16 +50,18 @@ export class UserDeletionService {
         passenger_id: user.id,
         status: { [Op.in]: [BOOKING_STATUSES.CONFIRMED] },
       },
+      attributes: ["id"],
+      limit: 1,
     });
 
-    if (activeRide || activeBooking) {
+    if (activeTrip || activeBooking) {
       throw new AppError({
-        statusCode: 400,
+        statusCode: 409,
         userMessageKey: USER_ERROR_MESSAGES.HAS_ACTIVE_RIDES_OR_BOOKINGS,
       });
     }
 
-    await sequelize.transaction(async (t: Transaction): Promise<void> => {
+    await sequelize.transaction(async (t): Promise<void> => {
       await Promise.all([
         user.markAsPendingDeletion({ transaction: t }),
 
@@ -84,13 +77,13 @@ export class UserDeletionService {
 
     try {
       await EmailService.sendEmail(gmail.user, user.email, "Confirmation de suppression de ton compte - EcoRide", content);
-
-      // TODO ajouter i18n pour l'email
-      // FIXME mettre un retry automatique pour sendEmail
+      // TODO ajouter système de traduction pour email
     } catch (err) {
       logger.warn("Failed to send deletion confirmation email", {
+        email: user?.email,
         userId: user.id,
-        error: err instanceof Error ? err.message : String(err),
+        debugMessage: err instanceof AppError ? err.debugMessage : err instanceof Error ? err.message : String(err),
+        stack: err instanceof Error ? err.stack : undefined,
       });
     }
   }
@@ -100,11 +93,9 @@ export class UserDeletionService {
    *
    * @param {CancelUserDeletionPayload} data - The user's credentials for validation.
    * @returns {Promise<void>}
-   * @throws {AppError} - If:
-   *   - The user is not found
-   *   - The provided password is incorrect
-   *   - No pending deletion request exists for the user
-   *   - The 30-day deletion period has expired
+   * @throws {AppError} 401 if user is not found or provided password is incorrect.
+   * @throws {AppError} 409 if no pending deletion request exists for user.
+   * @throws {AppError} 410 if 30-day deletion period has expired.
    */
   public static async cancelDeletion(data: CancelUserDeletionPayload): Promise<void> {
     const { email, password } = data;
@@ -112,7 +103,7 @@ export class UserDeletionService {
     const user = await User.findOne({ where: { email } });
 
     if (!user) {
-      await bcrypt.hash(password, 10);
+      await bcrypt.compare(password, DUMMY_PASSWORD_HASH);
       throw new AppError({
         statusCode: 401,
         userMessageKey: AUTH_ERROR_MESSAGES.INVALID_CREDENTIALS,
@@ -128,7 +119,7 @@ export class UserDeletionService {
 
     if (!user.isPendingDeletion()) {
       throw new AppError({
-        statusCode: 400,
+        statusCode: 409,
         userMessageKey: USER_ERROR_MESSAGES.NO_DELETION_REQUESTED,
       });
     }
@@ -151,13 +142,13 @@ export class UserDeletionService {
 
     try {
       await EmailService.sendEmail(gmail.user, user.email, "Réactivation de ton compte - EcoRide", content);
-
-      // TODO ajouter i18n pour l'email
-      // FIXME mettre un retry automatique pour sendEmail
+      // TODO ajouter système de traduction pour email
     } catch (err) {
       logger.warn("Failed to send account deletion cancellation email", {
+        email: user?.email,
         userId: user.id,
-        error: err instanceof Error ? err.message : String(err),
+        debugMessage: err instanceof AppError ? err.debugMessage : err instanceof Error ? err.message : String(err),
+        stack: err instanceof Error ? err.stack : undefined,
       });
     }
   }
@@ -165,7 +156,7 @@ export class UserDeletionService {
   /**
    * Finds all users whose account deletion request has expired (past the deletion delay period).
    *
-   * @returns {Promise<User[]>} - A list of users whose pending deletion date is older than the configured deletion delay.
+   * @returns {Promise<User[]>} A list of users whose pending deletion date is older than the configured deletion delay.
    * @notes - Compares only the date (YYYY-MM-DD) in the database (ignoring time and timezone) to retrieve all users whose deletion period has expired.
    */
   public static async findExpiredDeletionRequests(): Promise<User[]> {
@@ -182,27 +173,27 @@ export class UserDeletionService {
   /**
    * Permanently deletes a user's account and anonymizes their personal data.
    *
-   * @param {string} userId - The ID of the user to delete.
+   * @param {string} user
    * @returns {Promise<void>}
    */
-  public static async deletePermanently(userId: string): Promise<void> {
-    await sequelize.transaction(async (t: Transaction): Promise<void> => {
+  public static async deletePermanently(user: User): Promise<void> {
+    await sequelize.transaction(async (t) => {
       await Promise.all([
-        RefreshToken.destroy({ where: { user_id: userId }, transaction: t }),
-        EmailVerificationToken.destroy({ where: { user_id: userId }, transaction: t }),
-        PasswordResetToken.destroy({ where: { user_id: userId }, transaction: t }),
-        Preference.destroy({ where: { user_id: userId }, transaction: t }),
+        RefreshToken.destroy({ where: { user_id: user.id }, transaction: t }),
+        EmailVerificationToken.destroy({ where: { user_id: user.id }, transaction: t }),
+        PasswordResetToken.destroy({ where: { user_id: user.id }, transaction: t }),
+        Preference.destroy({ where: { user_id: user.id }, transaction: t }),
       ]);
 
-      const vehicles = await Vehicle.findAll({ where: { owner_id: userId }, transaction: t });
+      const vehicles = await Vehicle.findAll({ where: { owner_id: user.id }, transaction: t });
       await Promise.all(vehicles.map((v) => v.markAsDeleted({ transaction: t })));
 
-      const hashedPassword = await bcrypt.hash(`deleted_${userId}`, 10);
+      const hashedPassword = await bcrypt.hash(`deleted_${user.id}`, 10);
 
       await User.update(
         {
-          email: `deleted_user_${userId}@anonymized.local`,
-          username: `deleted_user_${userId}`,
+          email: `deleted_user_${user.id}@anonymized.local`,
+          username: `deleted_user_${user.id}`,
           password: hashedPassword,
           first_name: null,
           last_name: null,
@@ -218,7 +209,7 @@ export class UserDeletionService {
           pending_deletion_at: null,
           deleted_at: dayjs().toDate(),
         },
-        { where: { id: userId }, transaction: t }
+        { where: { id: user.id }, transaction: t }
       );
     });
   }

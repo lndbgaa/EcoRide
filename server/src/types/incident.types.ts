@@ -1,17 +1,17 @@
-import type { INCIDENT_STATUSES } from "@/constants";
+import type { INCIDENT_SORT_FIELDS, INCIDENT_STATUSES } from "@/constants";
 import type { DateTimeDTO } from "@/types";
 import type { Document } from "mongoose";
 
-// ===========================
-//    Constants-based Types
-// ===========================
+/* ===========================
+    Constants-based Types
+   =========================== */
 
-export type IncidentStatus =
-  (typeof INCIDENT_STATUSES)[keyof typeof INCIDENT_STATUSES];
+export type IncidentStatus = (typeof INCIDENT_STATUSES)[keyof typeof INCIDENT_STATUSES];
+export type IncidentSortField = (typeof INCIDENT_SORT_FIELDS)[number];
 
-// ===========================
-//       Embedded Types
-// ===========================
+/* ===========================
+       Embedded Types
+   =========================== */
 export interface UserEmbedded {
   id: string;
   email: string;
@@ -40,9 +40,9 @@ export interface ResolutionEmbedded {
   note: string;
 }
 
-// ===========================
-//     Document Interface
-// ===========================
+/* ===========================
+     Document Interface
+   =========================== */
 
 export interface IncidentDocument extends Document {
   _id: string;
@@ -65,9 +65,9 @@ export interface IncidentDocument extends Document {
   toDetailedDTO(): IncidentDetailedDTO;
 }
 
-// ===========================
-//       DTOs (Responses)
-// =========================== */
+/* ===========================
+       DTOs (Responses)
+   =========================== */
 
 export interface TripEmbeddedDTO {
   id: string;
@@ -101,9 +101,9 @@ export interface IncidentDetailedDTO extends IncidentPreviewDTO {
   };
 }
 
-// ===========================
-//       Request Types
-// ===========================
+/* ===========================
+       Request Types
+   =========================== */
 
 export interface GetIncidentsQuery {
   status?: IncidentStatus;
@@ -115,23 +115,31 @@ export interface GetMyIncidentsQuery {
   sortDir?: "asc" | "desc";
 }
 
-// ===========================
-//       Service Types
-// ===========================
+/* ===========================
+       Service Types
+   =========================== */
+export interface GetIncidentsSortOptions {
+  by?: IncidentSortField;
+  dir: "asc" | "desc";
+}
 
 export interface GetIncidentsFilters {
   status?: IncidentStatus;
   moderatorId?: string;
 }
 
-export interface GetIncidentsSortOptions {
-  by?: "createdAt" | "assignedAt" | "resolvedAt";
-  dir: "asc" | "desc";
+/* ===========================
+        Response Types
+   =========================== */
+
+export interface GetIncidentsResponse {
+  count: number;
+  incidents: IncidentDocument[];
 }
 
-// ===========================
-//         DB Types
-// ===========================
+/* ===========================
+         DB Types
+   =========================== */
 
 export interface IncidentDBFilter {
   status?: IncidentStatus;

@@ -1,6 +1,6 @@
-import dayjs from "dayjs";
 import Joi from "joi";
 
+import { dayjs } from "@/config";
 import {
   MINIMUM_USER_AGE,
   REGEX,
@@ -12,21 +12,6 @@ import {
 import { dateField } from "@/validations";
 
 const { USER, MODERATOR } = USER_ROLES_KEY;
-
-export const updateUserPasswordBodySchema = Joi.object({
-  currentPassword: Joi.string().trim().required().messages({
-    "any.required": VALIDATION_MESSAGES.REQUIRED,
-    "string.base": VALIDATION_MESSAGES.STRING_BASE,
-    "string.empty": VALIDATION_MESSAGES.STRING_EMPTY,
-  }),
-  newPassword: Joi.string().trim().min(8).pattern(REGEX.password).required().messages({
-    "any.required": VALIDATION_MESSAGES.REQUIRED,
-    "string.base": VALIDATION_MESSAGES.STRING_BASE,
-    "string.empty": VALIDATION_MESSAGES.STRING_EMPTY,
-    "string.min": VALIDATION_MESSAGES.STRING_MIN,
-    "string.pattern.base": VALIDATION_MESSAGES.PATTERN_PASSWORD,
-  }),
-});
 
 export const updateUserInfoBodySchema = Joi.object({
   username: Joi.string().trim().min(3).max(20).pattern(REGEX.username).optional().messages({
@@ -82,6 +67,21 @@ export const updateUserInfoBodySchema = Joi.object({
         "user.too_young": VALIDATION_MESSAGES.USER.TOO_YOUNG,
       })
   ),
+});
+
+export const updateUserPasswordBodySchema = Joi.object({
+  currentPassword: Joi.string().trim().required().messages({
+    "any.required": VALIDATION_MESSAGES.REQUIRED,
+    "string.base": VALIDATION_MESSAGES.STRING_BASE,
+    "string.empty": VALIDATION_MESSAGES.STRING_EMPTY,
+  }),
+  newPassword: Joi.string().trim().min(8).pattern(REGEX.password).required().messages({
+    "any.required": VALIDATION_MESSAGES.REQUIRED,
+    "string.base": VALIDATION_MESSAGES.STRING_BASE,
+    "string.empty": VALIDATION_MESSAGES.STRING_EMPTY,
+    "string.min": VALIDATION_MESSAGES.STRING_MIN,
+    "string.pattern.base": VALIDATION_MESSAGES.PATTERN_PASSWORD,
+  }),
 });
 
 export const updateUserRoleBodySchema = Joi.object({

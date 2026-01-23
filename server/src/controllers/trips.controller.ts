@@ -1,9 +1,11 @@
 import { Op } from "sequelize";
 
 import { BOOKING_STATUSES, SUCCESS_MESSAGES, VEHICLE_ASSOCIATIONS } from "@/constants";
+import { User, Vehicle } from "@/models";
 import { PreferenceService, TripService } from "@/services";
 import { catchAsync, parsePagination } from "@/utils";
 
+import type { Preference } from "@/models";
 import type { CreateTripPayload, SearchTripsPayload } from "@/types";
 import type { Request, Response } from "express";
 
@@ -42,30 +44,32 @@ export const searchTrips = catchAsync(async (req: Request, res: Response): Promi
 export const getPublicTripDetails = catchAsync(async (req: Request, res: Response): Promise<Response> => {
   const tripId = req.params.id!;
 
-  // TODO : gérer l'affichage des données anonymisées
-
   const trip = await TripService.findById(tripId, {
     include: [
-      { association: "driver" },
-      { association: "vehicle", include: VEHICLE_ASSOCIATIONS },
+      { association: "driver", model: User.scope("withDeleted") },
+      { association: "vehicle", model: Vehicle.scope("withDeleted"), include: VEHICLE_ASSOCIATIONS },
       {
         association: "bookings",
-        include: [{ association: "passenger" }],
+        include: [{ association: "passenger", model: User.scope("withDeleted") }],
         where: { status: { [Op.ne]: BOOKING_STATUSES.CANCELLED } },
         required: false,
       },
     ],
   });
 
-  const preferences = await PreferenceService.getUserPreferences(trip.driver_id);
+  let preferences: Preference[] | null = null;
+
+  if (trip.driver && !trip.driver.isDeleted) {
+    preferences = await PreferenceService.getUserPreferences(trip.driver);
+  }
 
   return res.status(200).json({
     success: true,
     message: req.t(SUCCESS_MESSAGES.TRIP.RETRIEVED),
     data: {
       trip: trip.toPublicDTO(req.t),
-      preferences: preferences.map((p) => p.toPublicDTO(req.t)),
-      passengers: trip.bookings?.map((b) => b.passenger?.toPublicDTO()),
+      preferences: preferences ? preferences.map((p) => p.toDTO(req.t)) : null,
+      passengers: trip.bookings?.filter((b) => b.passenger).map((b) => b.passenger!.toPublicDTO()),
     },
   });
 });

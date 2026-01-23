@@ -1,16 +1,7 @@
-import dayjs from "dayjs";
 import Joi from "joi";
 
+import { dayjs } from "@/config";
 import { ALLOWED_DATE_FORMATS, VALIDATION_MESSAGES } from "@/constants";
-
-export const idParamSchema = Joi.object({
-  id: Joi.string().uuid().required().messages({
-    "any.required": VALIDATION_MESSAGES.REQUIRED,
-    "string.base": VALIDATION_MESSAGES.STRING_BASE,
-    "string.empty": VALIDATION_MESSAGES.STRING_EMPTY,
-    "string.guid": VALIDATION_MESSAGES.STRING_UUID,
-  }),
-});
 
 export const uuidField = Joi.string().uuid().required().messages({
   "any.required": VALIDATION_MESSAGES.REQUIRED,
@@ -34,7 +25,7 @@ export const dateField = Joi.string()
     "string.base": VALIDATION_MESSAGES.STRING_BASE,
     "string.empty": VALIDATION_MESSAGES.STRING_EMPTY,
     "date.invalid": VALIDATION_MESSAGES.DATE_INVALID,
-  });
+});
 
 export const timeField = Joi.string()
   .trim()
@@ -51,4 +42,8 @@ export const timeField = Joi.string()
     "string.base": VALIDATION_MESSAGES.STRING_BASE,
     "string.empty": VALIDATION_MESSAGES.STRING_EMPTY,
     "time.invalid": VALIDATION_MESSAGES.TIME_INVALID,
-  });
+});
+
+export const idParamSchema = Joi.object({
+  id: uuidField
+});

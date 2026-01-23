@@ -1,16 +1,17 @@
-import type { BOOKING_STATUSES } from "@/constants";
+import type { BOOKING_SORT_FIELDS, BOOKING_STATUSES } from "@/constants";
 import type { Booking } from "@/models";
 import type { DateTimeDTO, TripAdminDTO, TripPublicDTO, UserAdminDTO, UserPublicDTO } from "@/types";
 
-// ===========================
-//    Constants-based Types
-// =========================== */
+/* ===========================
+    Constants-based Types
+   =========================== */
 
 export type BookingStatus = (typeof BOOKING_STATUSES)[keyof typeof BOOKING_STATUSES];
+export type BookingSortField = (typeof BOOKING_SORT_FIELDS)[number];
 
-// ===========================
-//       DTOs (Responses)
-// =========================== */
+/* ===========================
+       DTOs (Responses)
+   =========================== */
 
 export interface BookingPublicDTO {
   id: string;
@@ -35,9 +36,9 @@ export interface BookingAdminDTO {
   createdAt: DateTimeDTO;
 }
 
-// ===========================
-//        Request Types
-// =========================== */
+/* ===========================
+        Request Types
+   =========================== */
 export interface CreateBookingPayload {
   tripId: string;
   seatsToBook: number;
@@ -47,26 +48,31 @@ export interface ReportBookingIncidentPayload {
   description: string;
 }
 
-// ===========================
-//       Service Types
-// ===========================
+/* ===========================
+       Service Types
+   =========================== */
 
-export type BookingSortField = "createdAt" | "departureDate";
-
-export interface GetBookingsFilters {
-  status?: BookingStatus | BookingStatus[];
-  passengerId?: string;
-}
 export interface GetBookingsSortOptions {
   by?: BookingSortField;
   dir?: "asc" | "desc";
 }
+export interface GetBookingsFilters {
+  status?: BookingStatus | BookingStatus[];
+  passengerId?: string;
+}
 
-// ===========================
-//        Response Types
-// =========================== */
-
+/* ===========================
+        Response Types
+   =========================== */
 export interface GetBookingsResponse {
   count: number;
   bookings: Booking[];
+}
+
+/* ===========================
+         DB Types
+   =========================== */
+export interface BookingDBFilter {
+  status?: BookingStatus | BookingStatus[];
+  passenger_id?: string;
 }

@@ -1,8 +1,8 @@
 import Joi from "joi";
 
+import { dayjs } from "@/config";
 import { REGEX, VALIDATION_MESSAGES, VEHICLE_MAX_SEATS, VEHICLE_MIN_SEATS } from "@/constants";
 import { dateField } from "@/validations";
-import dayjs from "dayjs";
 
 export const createVehicleBodySchema = Joi.object({
   brandId: Joi.number().integer().min(1).strict().required().messages({

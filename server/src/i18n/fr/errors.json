@@ -23,8 +23,10 @@
 
   "auth": {
     "authentication_required": "Authentification requise. Veuillez vous connecter",
-    "session_invalid": "Ta session n'est plus valide. Merci de te reconnecter",
     "role_invalid": "Tu n'as pas la permission d’accéder à cette ressource",
+    "session_expired": "Ta session a expiré. Merci de te reconnecter",
+    "session_invalid": "Ta session n'est plus valide. Merci de te reconnecter",
+
     "invalid_credentials": "Identifiants incorrects",
     "email_already_exists": "Cette adresse e-mail est déjà utilisée",
     "username_already_exists": "Ce nom d’utilisateur est déjà pris",
@@ -82,8 +84,8 @@
 
     "start": {
       "invalid_status": "Impossible de démarrer ce trajet",
-      "too_early": "Il est trop tôt pour démarrer ce trajet. Vous pouvez le démarrer au maximum {minutes} minutes avant le départ",
-      "too_late": "Il est trop tard pour démarrer ce trajet. Le démarrage n’est plus possible plus de {minutes} minutes après le départ"
+      "too_early": "Il est trop tôt pour démarrer ce trajet. Vous pouvez le démarrer au maximum {{minutes}} minutes avant le départ",
+      "too_late": "Il est trop tard pour démarrer ce trajet. Le démarrage n’est plus possible plus de {{minutes}} minutes après le départ"
     },
 
     "end": {
@@ -109,6 +111,7 @@
     },
 
     "complete": {
+      "already_completed": "Tu as déjà finalisé cette réservation",
       "not_awaiting_feedback": "Cette réservation ne peut pas encore être finalisée"
     },
 
@@ -139,13 +142,17 @@
   },
 
   "review": {
-    "invalid_status_transition": "Transition de statut invalide pour cet avis",
+    "status_transition_not_allowed": "Cette action n’est pas autorisée pour l’état actuel de l’avis.",
 
     "create": {
       "is_driver": "Tu ne peux pas laisser un avis sur ton propre trajet",
       "trip_not_completed": "Tu ne peux laisser un avis que pour un trajet terminé",
       "booking_not_completed": "Tu dois d'abord valider ta réservation avant de pouvoir laisser un avis",
       "already_reviewed": "Tu as déjà laissé un avis pour ce trajet"
+    },
+
+    "moderate": {
+      "already_moderated": "Cet avis a déjà été modéré et ne peut plus être modifié."
     }
   }
 }

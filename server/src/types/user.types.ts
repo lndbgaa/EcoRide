@@ -3,9 +3,9 @@ import { USER_FILTERABLE_STATUSES, USER_ROLES_ID, USER_ROLES_KEY, USER_SORT_FIEL
 import type { User } from "@/models";
 import type { DateTimeDTO } from "@/types";
 
-// ===========================
-//    Constants-based Types
-// =========================== */
+/* ===========================
+    Constants-based Types
+   =========================== */
 
 export type UserRoleId = (typeof USER_ROLES_ID)[keyof typeof USER_ROLES_ID];
 export type UserRoleKey = (typeof USER_ROLES_KEY)[keyof typeof USER_ROLES_KEY];
@@ -14,11 +14,11 @@ export type UserStatus = (typeof USER_STATUSES)[keyof typeof USER_STATUSES];
 export type UserFilterableStatus = (typeof USER_FILTERABLE_STATUSES)[number];
 export type UserSortField = (typeof USER_SORT_FIELDS)[number];
 
-// ===========================
-//           DTOs
-// =========================== */
+/* ===========================
+           DTOs
+   =========================== */
 
-export interface UserRolePublicDTO {
+export interface UserRoleDTO {
   id: UserRoleId;
   key: UserRoleKey;
   display: string;
@@ -32,6 +32,7 @@ export interface UserPublicDTO {
   avatar: string | null;
   averageRating: number | null;
   emailIsVerified: boolean;
+  isDeleted: boolean;
   createdAt: DateTimeDTO;
 }
 
@@ -46,16 +47,16 @@ export interface UserPrivateDTO extends UserPublicDTO {
 }
 
 export interface UserAdminDTO extends UserPrivateDTO {
-  role: UserRolePublicDTO | null;
+  role: UserRoleDTO | null;
   status: UserStatus;
   suspendedAt: DateTimeDTO | null;
   pendingDeletionAt: DateTimeDTO | null;
   deletedAt: DateTimeDTO | null;
 }
 
-// ===========================
-//       Request Types
-// =========================== */
+/* ===========================
+       Request Types
+   =========================== */
 
 export interface UpdateUserInfoPayload {
   username?: string;
@@ -77,20 +78,20 @@ export interface CancelUserDeletionPayload {
 }
 
 export interface UpdateUserRolePayload {
-  role: "user" | "moderator";
+  role: Exclude<UserRoleKey, "admin">;
 }
 
 export interface GetUsersQuery {
-  status?: UserFilterableStatus;
   role?: UserRoleKey;
+  status?: UserFilterableStatus;
   search?: string;
-  sortBy?: UserSortField;
+  sortBy?: "createdAt" | "username";
   sortDir?: "asc" | "desc";
 }
 
-// ===========================
-//       Service Types
-// ===========================
+/* ===========================
+       Service Types
+   =========================== */
 
 export interface GetUsersSortOptions {
   by?: UserSortField;
@@ -103,9 +104,9 @@ export interface GetUsersFilters {
   search?: string;
 }
 
-// ===========================
-//        Response Types
-// =========================== */
+/* ===========================
+        Response Types
+   =========================== */
 
 export interface GetUsersResponse {
   count: number;

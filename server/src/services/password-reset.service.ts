@@ -170,7 +170,7 @@ export class PasswordResetService {
           userMessageKey: AUTH_ERROR_MESSAGES.PASSWORD_RESET_TOKEN_INVALID,
           debugMessage: "[PasswordResetService.resetPassword] User not found for valid password reset token.",
           code: AUTH_ERROR_CODES.PASSWORD_RESET_TOKEN_INVALID,
-          debugCode: DEBUG_CODES.USER.NOT_FOUND,
+          debugCode: DEBUG_CODES.AUTH.USER_NOT_FOUND,
         });
       }
 

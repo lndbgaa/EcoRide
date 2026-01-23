@@ -5,9 +5,10 @@ import {
   PREFERENCE_ERROR_MESSAGES,
   USER_DEFAULT_PREFERENCES_KEYS,
 } from "@/constants";
-import { Preference, PreferenceOption } from "@/models/mysql";
+import { Preference, PreferenceOption } from "@/models";
 import { AppError } from "@/utils";
 
+import type { User } from "@/models";
 import type { PreferenceCategoryKey } from "@/types";
 import type { Transaction } from "sequelize";
 
@@ -15,12 +16,12 @@ export class PreferenceService {
   /**
    * Retrieves all preferences for a given user.
    *
-   * @param {string} userId - The ID of the user.
-   * @returns {Promise<Preference[]>} - A list of the user's preferences.
+   * @param {User} user
+   * @returns {Promise<Preference[]>} A list of the user's preferences.
    */
-  public static async getUserPreferences(userId: string): Promise<Preference[]> {
+  public static async getUserPreferences(user: User): Promise<Preference[]> {
     const preferences = await Preference.findAll({
-      where: { user_id: userId },
+      where: { user_id: user.id },
       include: PREFERENCE_ASSOCIATIONS,
     });
 
@@ -31,13 +32,12 @@ export class PreferenceService {
    * Creates default user preferences during user registration.
    * This method must be called within a transaction to ensure atomicity.
    *
-   * @param {string} userId - The ID of the user.
+   * @param {User} user
    * @param {Transaction} transaction - The Sequelize transaction.
    * @returns {Promise<void>}
-   * @throws {AppError} - If:
-   *   - Default preference options are not properly configured in the database (HTTP 500).
+   * @throws {AppError} 500 if default preference options are not properly configured in database.
    */
-  public static async createUserDefaultPreferences(userId: string, transaction: Transaction): Promise<void> {
+  public static async createUserDefaultPreferences(user: User, transaction: Transaction): Promise<void> {
     const options = await PreferenceOption.findAll({
       where: { key: USER_DEFAULT_PREFERENCES_KEYS },
       transaction,
@@ -49,28 +49,27 @@ export class PreferenceService {
       throw new AppError({
         statusCode: 500,
         userMessageKey: COMMON_ERROR_MESSAGES.INTERNAL_SERVER_ERROR,
-        debugMessage: `[PreferenceService.createUserDefaultPreferences] Unable to initialize user preferences - Database misconfiguration: expected ${expectedCount} default preference options, but found ${
+        debugMessage: `Unable to initialize user preferences - Database misconfiguration: expected ${expectedCount} default preference options, but found ${
           options?.length || 0
         }`,
       });
     }
 
-    await Promise.all(options.map((o) => Preference.create({ user_id: userId, option_id: o.id }, { transaction })));
+    await Promise.all(options.map((o) => Preference.create({ user_id: user.id, option_id: o.id }, { transaction })));
   }
 
   /**
    * Updates a user's preference for a specific category.
    *
-   * @param {string} userId - The ID of the user.
+   * @param {User} user
    * @param {PreferenceCategoryKey} categoryKey - The key of the preference category.
    * @param {string} optionKey - The key of the new preference option.
-   * @returns {Promise<Preference>} - The updated preference instance with associations.
-   * @throws {AppError} - If:
-   *   - The option does not exist or doesn't belong to the category (HTTP 400).
-   *   - The preference does not exist for the user and category - data integrity issue (HTTP 500).
+   * @returns {Promise<Preference>} The updated preference instance with associations.
+   * @throws {AppError} 400 if option does not exist or doesn't belong to the category.
+   * @throws {AppError} 500 if preference does not exist for the user and category - data integrity issue.
    */
   public static async updateUserPreferenceForCategory(
-    userId: string,
+    user: User,
     categoryKey: PreferenceCategoryKey,
     optionKey: string
   ): Promise<Preference> {
@@ -83,13 +82,13 @@ export class PreferenceService {
       throw new AppError({
         statusCode: 400,
         userMessageKey: PREFERENCE_ERROR_MESSAGES.INVALID_OPTION,
-        debugMessage: `[PreferenceService.updateUserPreference] Option '${optionKey}' not found for category '${categoryKey}'`,
+        debugMessage: `Option '${optionKey}' not found for category '${categoryKey}.'`,
       });
     }
 
     return sequelize.transaction(async (t) => {
       const preference = await Preference.findOne({
-        where: { user_id: userId, category_id: option.category!.id },
+        where: { user_id: user.id, category_id: option.category!.id },
         transaction: t,
       });
 
@@ -97,12 +96,12 @@ export class PreferenceService {
         throw new AppError({
           statusCode: 500,
           userMessageKey: COMMON_ERROR_MESSAGES.INTERNAL_SERVER_ERROR,
-          debugMessage: `[PreferenceService.updateUserPreference] Preference not found for user '${userId}' and category '${categoryKey}' - data integrity issue`,
+          debugMessage: `Preference not found for user '${user.id}' and category '${categoryKey}' - data integrity issue.`,
         });
       }
 
       preference.option_id = option.id;
-      await preference.save({ transaction: t, fields: ["option_id"] });
+      await preference.save({ fields: ["option_id"], transaction: t });
 
       await preference.reload({
         include: PREFERENCE_ASSOCIATIONS,

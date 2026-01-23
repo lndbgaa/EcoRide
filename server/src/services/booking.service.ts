@@ -13,12 +13,13 @@ import { IncidentService, TripService } from "@/services";
 import { AppError } from "@/utils";
 
 import type {
+  BookingDBFilter,
   CreateBookingPayload,
   GetBookingsFilters,
   GetBookingsResponse,
   GetBookingsSortOptions,
   IncidentDocument,
-  ReportBookingIncidentPayload,
+  ReportBookingIncidentPayload
 } from "@/types";
 import type { FindOptions, Order, WhereOptions } from "sequelize";
 
@@ -26,11 +27,11 @@ export class BookingService {
   /**
    * Finds a booking by ID, ensuring it belongs to a given user.
    *
-   * @param {string} userId - The ID of the user.
-   * @param {string} bookingId - The ID of the booking.
+   * @param {string} userId
+   * @param {string} bookingId
    * @param {FindOptions} [options] - Additional Sequelize find options.
    * @returns {Promise<Booking>} Returned booking instance.
-   * @throws {AppError} 404 if the booking does not exist or does not belong to user.
+   * @throws {AppError} 404 if booking does not exist or does not belong to user.
    */
   public static async findOwnedById(userId: string, bookingId: string, options?: FindOptions): Promise<Booking> {
     const booking = await Booking.findOne({
@@ -71,7 +72,7 @@ export class BookingService {
     sortOptions?: GetBookingsSortOptions,
     options?: Partial<FindOptions>
   ): Promise<GetBookingsResponse> {
-    const where: WhereOptions = {};
+    const where: WhereOptions<BookingDBFilter> = {};
 
     if (filters?.status) where.status = Array.isArray(filters.status) ? { [Op.in]: filters.status } : filters.status;
     if (filters?.passengerId) where.passenger_id = filters.passengerId;
@@ -95,15 +96,15 @@ export class BookingService {
   /**
    * Creates a booking for a given user.
    *
-   * @param {User} user - The user (passenger) making the booking.
-   * @param {CreateBookingPayload} data - The booking data containing tripId and seatsToBook.
+   * @param {User} user
+   * @param {CreateBookingPayload} data
    * @returns {Promise<Booking>} Newly created booking with trip relation loaded.
-   * @throws {AppError} 404 if the trip is not found.
-   * @throws {AppError} 409 if the user is the driver of the trip.
-   * @throws {AppError} 409 if the trip is not open for bookings.
+   * @throws {AppError} 404 if trip is not found (from TripService.findById).
+   * @throws {AppError} 409 if user is the driver of the trip.
+   * @throws {AppError} 409 if trip is not open for bookings.
    * @throws {AppError} 409 if there are not enough available seats.
-   * @throws {AppError} 402 if the user has insufficient credits.
-   * @throws {AppError} 409 if the user already has an active booking for this trip.
+   * @throws {AppError} 402 if user has insufficient credits.
+   * @throws {AppError} 409 if user already has an active booking for this trip.
    */
   public static async create(user: User, data: CreateBookingPayload): Promise<Booking> {
     const { tripId, seatsToBook } = data;
@@ -120,7 +121,7 @@ export class BookingService {
         throw new AppError({
           statusCode: 409,
           userMessageKey: BOOKING_ERROR_MESSAGES.CREATE.IS_DRIVER,
-          debugMessage: `[BookingService.create] Cannot create booking: User '${user.id}' is the driver of trip '${tripId}'.`,
+          debugMessage: `Cannot create booking: User '${user.id}' is the driver of trip '${tripId}'.`,
         });
       }
 
@@ -128,7 +129,7 @@ export class BookingService {
         throw new AppError({
           statusCode: 409,
           userMessageKey: BOOKING_ERROR_MESSAGES.CREATE.TRIP_NOT_OPEN,
-          debugMessage: `[BookingService.create] Cannot create booking: Trip '${tripId}' is not open for bookings (current status: ${trip.status}).`,
+          debugMessage: `Cannot create booking: Trip '${tripId}' is not open for bookings (current status: ${trip.status}).`,
         });
       }
 
@@ -137,7 +138,7 @@ export class BookingService {
           statusCode: 409,
           userMessageKey: BOOKING_ERROR_MESSAGES.CREATE.NOT_ENOUGH_SEATS,
           userMessageParams: { available: trip.available_seats },
-          debugMessage: `[BookingService.create] Cannot create booking: Trip '${tripId}' has ${trip.available_seats} seat(s) available, ${seatsToBook} requested.`,
+          debugMessage: `Cannot create booking: Trip '${tripId}' has ${trip.available_seats} seat(s) available, ${seatsToBook} requested.`,
         });
       }
 
@@ -149,7 +150,7 @@ export class BookingService {
           statusCode: 402,
           userMessageKey: BOOKING_ERROR_MESSAGES.CREATE.INSUFFICIENT_CREDITS,
           userMessageParams: { required: totalPrice },
-          debugMessage: `[BookingService.create] Cannot create booking: User '${user.id}' has ${user.credits} credit(s), ${totalPrice} required.`,
+          debugMessage: `Cannot create booking: User '${user.id}' has ${user.credits} credit(s), ${totalPrice} required.`,
         });
       }
 
@@ -167,7 +168,7 @@ export class BookingService {
         throw new AppError({
           statusCode: 409,
           userMessageKey: BOOKING_ERROR_MESSAGES.CREATE.ALREADY_BOOKED,
-          debugMessage: `[BookingService.create] Cannot create booking: User '${user.id}' already has an active booking for trip '${tripId}'.`,
+          debugMessage: `Cannot create booking: User '${user.id}' already has an active booking for trip '${tripId}'.`,
         });
       }
 
@@ -183,6 +184,7 @@ export class BookingService {
       await trip.removeAvailableSeats(seatsToBook, {
         transaction: t,
       });
+
       await user.removeCredits(totalPrice, { transaction: t });
 
       await booking.reload({
@@ -197,19 +199,19 @@ export class BookingService {
   /**
    * Cancels a booking owned by a given user.
    *
-   * @param {User} user - The user (passenger) requesting the cancellation.
-   * @param {string} bookingId - The ID of the booking to cancel.
+   * @param {User} user
+   * @param {string} bookingId
    * @returns {Promise<Booking>} Updated booking with status set to cancelled.
-   * @throws {AppError} 404 if the booking does not exist or does not belong to the user.
-   * @throws {AppError} 409 if the booking is already cancelled.
-   * @throws {AppError} 409 if the booking is not in a confirmed state.
-   * @throws {AppError} 500 if required relations (trip or passenger) are missing.
+   * @throws {AppError} 404 if booking does not exist or does not belong to user (from this.findOwnedById()).
+   * @throws {AppError} 409 if booking is already cancelled.
+   * @throws {AppError} 409 if booking is not in a confirmed state.
+   * @throws {AppError} 500 if required relations (trip) are missing.
    * @throws {AppError} 409 if cancellation is attempted too close to departure.
    */
   public static async cancel(user: User, bookingId: string): Promise<Booking> {
     return await sequelize.transaction(async (t) => {
       const booking = await this.findOwnedById(user.id, bookingId, {
-        include: [{ association: "trip" }, { association: "passenger" }],
+        include: [{ association: "trip" }],
         lock: true,
         transaction: t,
       });
@@ -218,7 +220,7 @@ export class BookingService {
         throw new AppError({
           statusCode: 409,
           userMessageKey: BOOKING_ERROR_MESSAGES.CANCEL.ALREADY_CANCELLED,
-          debugMessage: `[BookingService.cancel] Cannot cancel booking '${bookingId}': already cancelled.`,
+          debugMessage: `Cannot cancel booking '${bookingId}': already cancelled.`,
         });
       }
 
@@ -226,17 +228,17 @@ export class BookingService {
         throw new AppError({
           statusCode: 409,
           userMessageKey: BOOKING_ERROR_MESSAGES.CANCEL.INVALID_STATUS,
-          debugMessage: `[BookingService.cancel] Cannot cancel booking '${bookingId}': current status is ${booking.status}.`,
+          debugMessage: `Cannot cancel booking '${bookingId}': current status is ${booking.status}.`,
         });
       }
 
-      const { trip, passenger } = booking;
+      const { trip } = booking;
 
-      if (!trip || !passenger) {
+      if (!trip) {
         throw new AppError({
           statusCode: 500,
           userMessageKey: COMMON_ERROR_MESSAGES.INTERNAL_SERVER_ERROR,
-          debugMessage: `[BookingService.cancel] Missing relations for booking '${bookingId}': trip=${!!trip}, passenger=${!!passenger}.`,
+          debugMessage: `Missing relations for booking '${bookingId}': trip=${!!trip}.`,
         });
       }
 
@@ -251,7 +253,7 @@ export class BookingService {
           statusCode: 409,
           userMessageKey: BOOKING_ERROR_MESSAGES.CANCEL.TOO_CLOSE,
           userMessageParams: { hours: hoursBeforeCancellation },
-          debugMessage: `[BookingService.cancel] Cannot cancel booking '${bookingId}': too close to departure (${minutesBeforeDeparture} min remaining). Minimum required: ${BOOKING_MIN_MINUTES_BEFORE_CANCELLATION} minutes.`,
+          debugMessage: `Cannot cancel booking '${bookingId}': too close to departure (${minutesBeforeDeparture} min remaining). Minimum required: ${BOOKING_MIN_MINUTES_BEFORE_CANCELLATION} minutes.`,
         });
       }
 
@@ -260,7 +262,7 @@ export class BookingService {
 
       await booking.markAsCancelled({ transaction: t });
       await trip.addAvailableSeats(seatsBooked, { transaction: t });
-      await passenger.addCredits(refund, { transaction: t });
+      await user.addCredits(refund, { transaction: t });
 
       return booking;
     });
@@ -272,12 +274,12 @@ export class BookingService {
    * This method finalizes a booking after the trip has ended and the passenger
    * has provided feedback. The driver receives the trip earnings minus platform fees.
    *
-   * @param {User} user - The user (passenger) completing the booking.
-   * @param {string} bookingId - The ID of the booking to complete.
+   * @param {User} user.
+   * @param {string} bookingId
    * @returns {Promise<Booking>} Updated booking with status set to completed.
-   * @throws {AppError} 404 if the booking does not exist or does not belong to the user.
-   * @throws {AppError} 409 if the booking is already completed.
-   * @throws {AppError} 409 if the booking is not in 'awaiting_feedback' status.
+   * @throws {AppError} 404 if booking does not exist or does not belong to user (from this.findOwnedById()).
+   * @throws {AppError} 409 if booking is already completed.
+   * @throws {AppError} 409 if booking is not in 'awaiting_feedback' status.
    * @throws {AppError} 500 if required relations (trip or driver) are missing.
    */
   public static async complete(user: User, bookingId: string): Promise<Booking> {
@@ -297,7 +299,7 @@ export class BookingService {
         throw new AppError({
           statusCode: 409,
           userMessageKey: BOOKING_ERROR_MESSAGES.COMPLETE.ALREADY_COMPLETED,
-          debugMessage: `[BookingService.complete] Cannot complete booking '${bookingId}': already completed.`,
+          debugMessage: `Cannot complete booking '${bookingId}': already completed.`,
         });
       }
 
@@ -305,7 +307,7 @@ export class BookingService {
         throw new AppError({
           statusCode: 409,
           userMessageKey: BOOKING_ERROR_MESSAGES.COMPLETE.NOT_AWAITING_FEEDBACK,
-          debugMessage: `[BookingService.complete] Cannot complete booking '${bookingId}': current status is '${booking.status}', expected 'awaiting_feedback'.`,
+          debugMessage: `Cannot complete booking '${bookingId}': current status is '${booking.status}', expected 'awaiting_feedback'.`,
         });
       }
 
@@ -316,7 +318,7 @@ export class BookingService {
         throw new AppError({
           statusCode: 500,
           userMessageKey: COMMON_ERROR_MESSAGES.INTERNAL_SERVER_ERROR,
-          debugMessage: `[BookingService.complete] Missing relations for booking '${bookingId}': trip=${!!trip}, driver=${!!driver}.`,
+          debugMessage: `Missing relations for booking '${bookingId}': trip=${!!trip}, driver=${!!driver}.`,
         });
       }
 
@@ -336,18 +338,18 @@ export class BookingService {
    * Reports an incident for a booking owned by a given user and marks it as completed.
    * The driver payment is suspended until the incident is resolved by a moderator.
    *
-   * @note Incident creation and booking completion are not atomic. If completion fails, the incident is deleted manually.
+   * Incident creation and booking completion are not atomic. If completion fails, the incident is deleted manually.
    *
-   * @param {User} user - The user (passenger) reporting the incident.
-   * @param {string} bookingId - The ID of the booking.
-   * @param {ReportBookingIncidentPayload} data - Incident details (description).
+   * @param {User} user
+   * @param {string} bookingId
+   * @param {ReportBookingIncidentPayload} data
    * @returns {Promise<{ booking: Booking; incident: IncidentDocument }>} Updated booking and created incident.
-   * @throws {AppError} 404 if the booking does not exist or does not belong to the user.
-   * @throws {AppError} 409 if the booking is already completed.
-   * @throws {AppError} 409 if the booking is not in 'awaiting_feedback' status.
-   * @throws {AppError} 404 if the associated trip is not found (from IncidentService.create).
-   * @throws {AppError} 409 if the associated trip is not completed (from IncidentService.create).
-   * @throws {AppError} 409 if the user has already reported an incident for this trip (from IncidentService.create).
+   * @throws {AppError} 404 if booking does not exist or does not belong to the user.
+   * @throws {AppError} 409 if booking is already completed.
+   * @throws {AppError} 409 if booking is not in 'awaiting_feedback' status.
+   * @throws {AppError} 404 if associated trip is not found (from IncidentService.create).
+   * @throws {AppError} 409 if associated trip is not completed (from IncidentService.create).
+   * @throws {AppError} 409 if user has already reported an incident for this trip (from IncidentService.create).
    * @throws {AppError} 500 if required trip relations (driver) are missing (from IncidentService.create).
    */
   public static async reportIncident(
@@ -371,7 +373,7 @@ export class BookingService {
         throw new AppError({
           statusCode: 409,
           userMessageKey: BOOKING_ERROR_MESSAGES.REPORT_INCIDENT.ALREADY_COMPLETED,
-          debugMessage: `[BookingService.reportIncident] Cannot report incident for booking '${bookingId}': already completed.`,
+          debugMessage: `Cannot report incident for booking '${bookingId}': already completed.`,
         });
       }
 
@@ -379,7 +381,7 @@ export class BookingService {
         throw new AppError({
           statusCode: 409,
           userMessageKey: BOOKING_ERROR_MESSAGES.REPORT_INCIDENT.NOT_AWAITING_FEEDBACK,
-          debugMessage: `[BookingService.reportIncident] Cannot report incident for booking '${bookingId}': current status is '${b.status}', expected 'awaiting_feedback'.`,
+          debugMessage: `Cannot report incident for booking '${bookingId}': current status is '${b.status}', expected 'awaiting_feedback'.`,
         });
       }
 

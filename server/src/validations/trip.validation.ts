@@ -1,6 +1,6 @@
-import dayjs from "dayjs";
 import Joi from "joi";
 
+import { dayjs } from "@/config";
 import {
   REVIEW_MAX_RATING,
   REVIEW_MIN_RATING,

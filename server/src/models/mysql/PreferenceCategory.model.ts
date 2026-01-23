@@ -3,9 +3,9 @@ import { DataTypes, Model } from "sequelize";
 import { PREFERENCE_CATEGORIES_KEY } from "@/constants";
 
 import type {
+  PreferenceCategoryDTO,
   PreferenceCategoryId,
   PreferenceCategoryKey,
-  PreferenceCategoryPrivateDTO,
 } from "@/types";
 import type { TFunction } from "i18next";
 import type { Sequelize } from "sequelize";
@@ -14,15 +14,14 @@ export default class PreferenceCategory extends Model {
   declare id: PreferenceCategoryId;
   declare key: PreferenceCategoryKey;
 
-  private getDisplayTranslationKey(): string {
-    return `ui:preference_categories.${this.key}`;
-  }
 
-  public toPrivateDTO(t: TFunction): PreferenceCategoryPrivateDTO {
+  public toDTO(t: TFunction): PreferenceCategoryDTO {
+    const translationKey = `ui:preference_categories.${this.key}`
+    
     return {
       id: this.id,
       key: this.key,
-      display: t(this.getDisplayTranslationKey()),
+      display: t(translationKey),
     };
   }
 

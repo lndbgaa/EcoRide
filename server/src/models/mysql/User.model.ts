@@ -1,7 +1,7 @@
 import bcrypt from "bcrypt";
-import dayjs from "dayjs";
 import { DataTypes, Model, Op } from "sequelize";
 
+import { dayjs } from "@/config";
 import {
   COMMON_ERROR_MESSAGES,
   REGEX,
@@ -13,7 +13,7 @@ import {
 } from "@/constants";
 import { AppError, calculateAge, capitalize, formatDateOnly, formatDateTimeFromUTC, setIfChanged } from "@/utils";
 
-import type { Role } from "@/models/mysql";
+import type { Role } from "@/models";
 import type { UpdateUserInfoPayload, UserAdminDTO, UserPrivateDTO, UserPublicDTO, UserRoleId, UserStatus } from "@/types";
 import type { TFunction } from "i18next";
 import type { SaveOptions, Sequelize } from "sequelize";
@@ -92,8 +92,8 @@ export default class User extends Model {
     }
 
     const nowDate = dayjs().toDate();
-    this.status = newStatus;
 
+    this.status = newStatus;
     this.suspended_at = null;
     this.pending_deletion_at = null;
     this.deleted_at = null;
@@ -161,9 +161,8 @@ export default class User extends Model {
    *
    * @param {UpdateUserInfoPayload} data - The object containing the new user information.
    * @param {SaveOptions} [options] - Additional Sequelize save options.
-   * @returns {Promise<User>} - The updated user instance.
-   * @throws {AppError} - If:
-   *   - No changes were detected between the current instance and the provided data (HTTP 400).
+   * @returns {Promise<User>} The updated user instance.
+   * @throws {AppError} 400 if no changes were detected between the current instance and the provided data.
    */
   public async updateProfile(data: UpdateUserInfoPayload, options?: SaveOptions): Promise<User> {
     const updatedFields: string[] = [];
@@ -191,8 +190,7 @@ export default class User extends Model {
    * @param {number} amount - The amount of credits to add.
    * @param {SaveOptions} [options] - Additional Sequelize save options.
    * @returns {Promise<void>}
-   * @throws {AppError} - If:
-   *   - The amount is not a positive integer (HTTP 400).
+   * @throws {AppError} 400 if the amount is not a positive integer.
    */
   public async addCredits(amount: number, options?: SaveOptions): Promise<void> {
     if (!Number.isInteger(amount) || amount <= 0) {
@@ -213,9 +211,8 @@ export default class User extends Model {
    * @param {number} amount - The amount of credits to remove.
    * @param {SaveOptions} [options] - Additional Sequelize save options.
    * @returns {Promise<void>}
-   * @throws {AppError} - If:
-   *   - The amount is not a positive integer (HTTP 400).
-   *   - The user does not have enough credits for the removal (HTTP 400).
+   * @throws {AppError} 400 if the amount is not a positive integer.
+   * @throws {AppError} 400 if the user does not have enough credits for the removal.
    */
   public async removeCredits(amount: number, options?: SaveOptions): Promise<void> {
     if (!Number.isInteger(amount) || amount <= 0) {
@@ -251,6 +248,7 @@ export default class User extends Model {
       avatar: this.profile_picture,
       averageRating: this.average_rating,
       emailIsVerified: this.email_is_verified,
+      isDeleted: !!this.deleted_at,
       createdAt: formatDateTimeFromUTC(this.created_at),
     };
   }
@@ -271,7 +269,7 @@ export default class User extends Model {
   public toAdminDTO(t: TFunction): UserAdminDTO {
     return {
       ...this.toPrivateDTO(),
-      role: this.role?.toPublicDTO(t) ?? null,
+      role: this.role?.toDTO(t) ?? null,
       status: this.status,
       suspendedAt: this.suspended_at ? formatDateTimeFromUTC(this.suspended_at) : null,
       pendingDeletionAt: this.pending_deletion_at ? formatDateTimeFromUTC(this.pending_deletion_at) : null,
@@ -283,7 +281,7 @@ export default class User extends Model {
   // Model init
   // ------------------------------------
 
-  public static initModel(sequelize: Sequelize): void {
+  public static initModel(sequelize: Sequelize) {
     User.init(
       {
         id: {
@@ -314,14 +312,14 @@ export default class User extends Model {
           },
         },
         username: {
-          type: DataTypes.STRING(50),
+          type: DataTypes.STRING(100),
           allowNull: false,
           unique: true,
           validate: {
             notEmpty: { msg: "Username is required" },
             len: {
-              args: [3, 20],
-              msg: "Username must be between 3 and 20 characters long",
+              args: [3, 100],
+              msg: "Username must be between 3 and 100 characters long",
             },
             is: {
               args: REGEX.username,
@@ -468,6 +466,7 @@ export default class User extends Model {
               user.password = await bcrypt.hash(user.password, salt);
             }
           },
+          
           beforeValidate: (user: User) => {
             if (typeof user.email === "string") user.email = user.email.trim().toLowerCase();
             if (typeof user.username === "string") user.username = user.username.trim();

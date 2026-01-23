@@ -13,7 +13,7 @@ export {
   Vehicle,
   VehicleBrand,
   VehicleColor,
-  VehicleEnergy,
+  VehicleEnergy
 } from "./mysql/index.js";
 
 export { default as Incident } from "./mongo/Incident.model.js";

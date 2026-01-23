@@ -1,21 +1,17 @@
-import type { REVIEW_STATUSES } from "@/constants";
-import type {
-  DateTimeDTO,
-  TripAdminDTO,
-  UserAdminDTO,
-  UserPublicDTO,
-} from "@/types";
+import type { REVIEW_SORT_FIELDS, REVIEW_STATUSES } from "@/constants";
+import type { Review } from "@/models";
+import type { DateTimeDTO, TripAdminDTO, UserAdminDTO, UserPublicDTO } from "@/types";
 
-// ===========================
-//    Constants-based Types
-// ===========================
+/* ===========================
+    Constants-based Types
+   =========================== */
 
-export type ReviewStatus =
-  (typeof REVIEW_STATUSES)[keyof typeof REVIEW_STATUSES];
+export type ReviewStatus = (typeof REVIEW_STATUSES)[keyof typeof REVIEW_STATUSES];
+export type ReviewSortField = (typeof REVIEW_SORT_FIELDS)[number];
 
-// ===========================
-//       DTOs (Responses)
-// =========================== */
+/* ===========================
+       DTOs (Responses)
+   =========================== */
 
 export interface ReviewPublicDTO {
   id: string;
@@ -44,9 +40,9 @@ export interface ReviewAdminDTO {
   createdAt: DateTimeDTO;
 }
 
-// ===========================
-//       Request Types
-// ===========================
+/* ===========================
+       Request Types
+   =========================== */
 
 export interface CreateReviewPayload {
   tripId: string;
@@ -59,9 +55,9 @@ export interface GetMyReviewsQuery {
   sortDir?: "asc" | "desc";
 }
 
-// ===========================
-//       Service Types
-// ===========================
+/* ===========================
+       Service Types
+   =========================== */
 
 export interface GetReviewsFilters {
   status?: ReviewStatus;
@@ -70,13 +66,22 @@ export interface GetReviewsFilters {
 }
 
 export interface GetReviewsSortOptions {
-  by?: "createdAt" | "rating";
+  by?: ReviewSortField;
   dir?: "asc" | "desc";
 }
 
-// ===========================
-//         DB Types
-// ===========================
+/* ===========================
+        Response Types
+   =========================== */
+
+export interface GetReviewsResponse {
+  count: number;
+  reviews: Review[];
+}
+
+/* ===========================
+         DB Types
+   =========================== */
 
 export interface ReviewDBFilter {
   status?: ReviewStatus;
